@@ -7,6 +7,7 @@
         x :=
 """
 function forwardProp(X::Matrix{T},
+                     Y::Matrix{T},
                      model::Model) where {T}
 
     W::AbstractArray{Matrix{T},1},
