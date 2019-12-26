@@ -29,7 +29,7 @@ function forwardProp(X::Matrix{T},
         push!(A, eval(:($(actFun).($Z[$l]))))
     end
 
-    cost = eval(:($costFun($A[$L], $Y)))
+    cost = eval(:(sum($costFun.($A[$L], $Y))/$m))
 
     #add the cost of regulization
     if regulization > 0
