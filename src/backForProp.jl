@@ -48,9 +48,8 @@ export forwardProp
 """
     predict Y using the model
 """
-function predict(model::Model, X)
-    W, B, layers = model.W, model.B, model.layers
-    Ŷ = forwardProp(X, W, B, layers)["Yhat"]
+function predict(model::Model, X, Y)
+    Ŷ = forwardProp(X, Y, model)["Yhat"]
     return Ŷ
 end #predict
 
