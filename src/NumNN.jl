@@ -7,4 +7,5 @@ module NumNN
     include("backForProp.jl")
 
 
+
 end # module NumNN
