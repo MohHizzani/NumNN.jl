@@ -165,7 +165,7 @@ function train(X,Y,model::Model, epochs; ϵ=10^-6)
                          cache)
 
         W, B = updateParams(W, B, grads, α)
-        println("N = $i, Cost = $cost\r")
+        println("N = $i, Cost = $(Costs[end])\r")
 #         next!(p)
     end
 
