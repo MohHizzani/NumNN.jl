@@ -151,7 +151,7 @@ export updateParams
         W := Array of matrices of size (n[l], n[l-1])
         B := Array of matrices of size (n[l], 1)
 """
-function train(X,Y,model::Model, epochs; ϵ=10^-6)
+function train(X,Y,model::Model, epochs ; printCosts = true, ϵ=10^-6)
     layers, lossFun, α, W, B = model.layers, model.lossFun, model.α, model.W, model.B
     Costs = []
 #     p = Progress(epochs, 1)
@@ -165,7 +165,9 @@ function train(X,Y,model::Model, epochs; ϵ=10^-6)
                          cache)
 
         model.W, model.B = updateParams(W, B, grads, α)
-        println("N = $i, Cost = $(Costs[end])\r")
+        if printCosts && i%100==0
+            println("N = $i, Cost = $(Costs[end])")
+        end
 #         next!(p)
     end
 
