@@ -27,7 +27,7 @@ mutable struct Model
 
     """
         regulization type
-            0 : mean no regulization
+            0 : means no regulization
             1 : L1 regulization
             2 : L2 regulization
     """

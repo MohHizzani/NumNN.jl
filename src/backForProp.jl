@@ -5,7 +5,10 @@ using ProgressMeter
     perform the forward propagation using
 
     input:
-        x :=
+        x := (n0, m) matrix
+        y := (c,  m) matrix where c is the number of classes
+
+    return cache of A, Z, Yhat, Cost
 """
 function forwardProp(X::Matrix{T},
                      Y::Matrix{T},
