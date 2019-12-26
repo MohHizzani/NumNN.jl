@@ -45,7 +45,7 @@ function deepInitWB(X, Y,
 
     W = Array{Matrix{T},1}()
     B = Array{Matrix{T},1}()
-    _w, _b = initWB(layers[1],size(X)[1],T; He=true, coef=0.01, zro=false)
+    _w, _b = initWB(layers[1].numNodes,size(X)[1],T; He=true, coef=0.01, zro=false)
     push!(W, _w)
     push!(B, _b)
     for i=2:length(layers)
