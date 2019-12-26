@@ -136,8 +136,8 @@ export backProp
 
 function updateParams(W, B, grads::Dict, α)
     dW, dB = grads["dW"], grads["dB"]
-    W .-= α .* dW
-    B .-= α .* dB
+    W .-= (α .* dW)
+    B .-= (α .* dB)
     return W, B
 end #updateParams
 
@@ -164,12 +164,12 @@ function train(X,Y,model::Model, epochs; ϵ=10^-6)
                          model,
                          cache)
 
-        W, B = updateParams(W, B, grads, α)
+        model.W, model.B = updateParams(W, B, grads, α)
         println("N = $i, Cost = $(Costs[end])\r")
 #         next!(p)
     end
 
-    model.W, model.B = W, B
+    # model.W, model.B = W, B
     return Dict("model"=>model,
                 "Costs"=>Costs)
 end #train
