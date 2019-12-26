@@ -6,26 +6,26 @@
     output:
         the average of the cross entropy loss function
 """
-function crossentropy(Ŷ, Y)
-    m = length(Y)
-    newŶ = copy(Ŷ)
-
-    """
-        return previous float if x == 1 and nextfloat if x == 0
-    """
-    prevnextfloat(x) = x==0 ? nextfloat(x) : x==1 ? prevfloat(x) : x
-
-    newŶ = prevnextfloat.(newŶ)
-
-    J = -sum(Y .* log.(newŶ) .+ (1 .- Y) .* log.(1 .- newŶ))/m
-    return J
-end #crossentropy
+# function crossentropy(Ŷ, Y)
+#     m = length(Y)
+#     newŶ = copy(Ŷ)
+#
+#     """
+#         return previous float if x == 1 and nextfloat if x == 0
+#     """
+#     prevnextfloat(x) = x==0 ? nextfloat(x) : x==1 ? prevfloat(x) : x
+#
+#     newŶ = prevnextfloat.(newŶ)
+#
+#     J = -sum(Y .* log.(newŶ) .+ (1 .- Y) .* log.(1 .- newŶ))/m
+#     return J
+# end #crossentropy
 
 function crossentropy(a, y)
     aNew = prevnextfloat(a)
     J = -(y * log(aNew) + (1-y) * log(1-aNew))
     return J
-end
+end #crossentropy
 
 export crossentropy
 
