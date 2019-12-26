@@ -13,7 +13,7 @@ struct FCLayer <: Layer
     keepProb::AbstractFloat
     # W::AbstractArray{<:AbstractFloat,2}
     # B::AbstractArray{<:AbstractFloat,2}
-    function Layer(numNodes,actFun;keepProb=1.0)
+    function FCLayer(numNodes,actFun;keepProb=1.0)
         # W, B
         new(numNodes, actFun, keepProb)
     end #Layer
