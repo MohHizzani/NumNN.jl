@@ -20,14 +20,15 @@ function forwardProp(X::Matrix{T},
     A = Vector{Matrix{eltype(X)}}()
     Z = Vector{Matrix{eltype(X)}}()
     push!(Z, W[1]*X .+ B[1])
-    push!(A, eval(:($layers[1].actFun.(Z[1]))))
+    actFun = layers[1].actFun
+    push!(A, eval(:($actFun.($Z[1]))))
     for l=2:L
         push!(Z, W[l]*A[l-1] .+ B[l])
         actFun = layers[l].actFun
-        push!(A, eval(:($(actFun).(Z[l]))))
+        push!(A, eval(:($(actFun).($Z[$l]))))
     end
 
-    cost = eval(:($costFun(A[L], Y)))
+    cost = eval(:($costFun($A[$L], $Y)))
 
     #add the cost of regulization
     if regulization > 0
@@ -84,7 +85,7 @@ function backprop(X,Y,
     dB = Vector{Matrix{eltype(B)}}([similar(mat) for mat in B])
 
     dlossFun = Symbol("d",lossFun)
-    dA[L] = eval(:($dlossFun.(A[L], Y))) #.* eval(:($dActFun.(Z[L])))
+    dA[L] = eval(:($dlossFun.($A[$L], $Y))) #.* eval(:($dActFun.(Z[L])))
 
     dA[L] = dA[L] .* D[L]
     dA[L] = dA[L] ./ layers[L].keepProb
@@ -92,7 +93,7 @@ function backprop(X,Y,
     for l=L:-1:1
         actFun = layers[l].actFun
         dActFun = Symbol("d",actFun)
-        dZ[l] = dA[l] .* eval(:($dActFun.(Z[l])))
+        dZ[l] = dA[l] .* eval(:($dActFun.($Z[$l])))
 
         dW[l] = 1/m .* dZ[l]*A[l-1]'
 
