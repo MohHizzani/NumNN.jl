@@ -91,7 +91,7 @@ function backProp(X,Y,
     dA[L] = dA[L] .* D[L]
     dA[L] = dA[L] ./ layers[L].keepProb
 
-    for l=L:-1:1
+    for l=L:-1:2
         actFun = layers[l].actFun
         dActFun = Symbol("d",actFun)
         dZ[l] = dA[l] .* eval(:($dActFun.($Z[$l])))
@@ -110,6 +110,23 @@ function backProp(X,Y,
         A[l-1] = dA[l-1] .* D[l-1]
         dA[l-1] = dA[l-1] ./ layers[l-1].keepProb
     end
+
+    l=1 #shortcut cause I just copied from the for loop
+    actFun = layers[l].actFun
+    dActFun = Symbol("d",actFun)
+    dZ[l] = dA[l] .* eval(:($dActFun.($Z[$l])))
+
+    dW[l] = 1/m .* dZ[l]*X' #where X = A[0]
+
+    if regulization > 0
+        if regulization==1
+            dW[l] .+= (λ/m)
+        else
+            dW[l] .+= (λ/m) .* W[l]
+        end
+    end
+    dB[l] = 1/m .* sum(dZ[l], dims=2)
+
     grads = Dict("dW"=>dW,
                  "dB"=>dB)
     return grads
