@@ -11,7 +11,7 @@ function forwardProp(X::Matrix{T},
 
     W::AbstractArray{Matrix{T},1},
     B::AbstractArray{Matrix{T},1},
-    layers::AbstractArray{Layer,1};
+    layers::AbstractArray{Layer,1},
     costFun = model.W, model.B, model.layers, model.lossFun
     regulization = model.regulization
     λ = model.λ
