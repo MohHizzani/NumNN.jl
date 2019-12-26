@@ -78,7 +78,7 @@ function backProp(X,Y,
     A, Z = cache["A"], cache["Z"]
     W, B, regulization, λ = model.W, model.B, model.regulization, model.λ
 
-    D = [rand(size(X[i])...) .< layers[i].keepProb for i=1:L]
+    D = [rand(size(A[i])...) .< layers[i].keepProb for i=1:L]
 
     A = [A[i] .* D[i] for i=1:L]
     A = [A[i] ./ layers[i].keepProb for i=1:L]
