@@ -1,6 +1,8 @@
 
 abstract type Layer end
 
+export Layer
+
 struct FCLayer <: Layer
     numNodes::Integer
     actFun::Symbol
@@ -16,6 +18,8 @@ struct FCLayer <: Layer
         new(numNodes, actFun, keepProb)
     end #Layer
 end #struct Layer
+
+export FCLayer
 
 mutable struct Model
     layers::AbstractArray{Layer,1}
@@ -46,3 +50,5 @@ mutable struct Model
         return new(layers, lossFun, regulization, λ, α, W, B)
     end #inner-constructor
 end #Model
+
+export Model

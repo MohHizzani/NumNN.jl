@@ -21,7 +21,7 @@ function crossentropy(Ŷ, Y)
     return J
 end #crossentropy
 
-
+export crossentropy
 
 """
     compute the drivative of cross-entropy loss function
@@ -34,6 +34,8 @@ function dcrossentropy(a, y)
     prevnextfloat(x) = x==0 ? nextfloat(x) : x==1 ? prevfloat(x) : x
 
     aNew = prevnextfloat(a)
-    dJ = -(y/a + (1-y)/(1-a))
+    dJ = -(y/aNew + (1-y)/(1-aNew))
     return dJ
 end #dcrossentropy
+
+export dcrossentropy

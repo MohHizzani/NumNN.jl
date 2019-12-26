@@ -40,6 +40,7 @@ function forwardProp(X::Matrix{T},
                 "Cost"=>cost)
 end #forwardProp
 
+export forwardProp
 
 """
     predict Y using the model
@@ -50,6 +51,7 @@ function predict(model::Model, X)
     return Ŷ
 end #predict
 
+export predict
 
 """
 
@@ -111,14 +113,16 @@ function backprop(X,Y,
     return grads
 end #backprop
 
+export backprop
 
 function updateParams(W, B, grads::Dict, α)
     dW, dB = grads["dW"], grads["dB"]
     W .-= α .* dW
     B .-= α .* dB
     return W, B
-end
+end #updateParams
 
+export updateParams
 
 """
     Repeat the trainging for a single preceptron
@@ -148,4 +152,6 @@ function train(X,Y,model::Model, epochs; ϵ=10^-6)
     model.W, model.B = W, B
     return Dict("model"=>model,
                 "Costs"=>Costs)
-end
+end #train
+
+export train

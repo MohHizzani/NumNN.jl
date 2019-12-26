@@ -22,7 +22,7 @@ function initWB(nl, nl_1,
     return W, B
 end #initWB
 
-
+export initWB
 
 """
     initialize W's and B's using
@@ -60,3 +60,5 @@ function deepInitWB(X, Y,
     end
     return W,B
 end #deepInitWB
+
+export deepInitWB
