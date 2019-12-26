@@ -64,7 +64,7 @@ export predict
         B := is a Vector of Matrices of (n[l], 1)
 
 """
-function backprop(X,Y,
+function backProp(X,Y,
                   model::Model,
                   cache::Dict{})
 
@@ -113,9 +113,9 @@ function backprop(X,Y,
     grads = Dict("dW"=>dW,
                  "dB"=>dB)
     return grads
-end #backprop
+end #backProp
 
-export backprop
+export backProp
 
 function updateParams(W, B, grads::Dict, α)
     dW, dB = grads["dW"], grads["dB"]
@@ -142,7 +142,7 @@ function train(X,Y,model::Model, epochs; ϵ=10^-6)
         cache = forwardProp(X,
                             model)
         push!(Costs, cache["Cost"])
-        grads = backprop(X,Y,
+        grads = backProp(X,Y,
                          model,
                          cache)
 
