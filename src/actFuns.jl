@@ -20,3 +20,15 @@ relu(z::T) where {T} = max(zero(T), z)
     return the derivative of ReLU function
 """
 drelu(z::T) where {T} = z > zero(T) ? one(T) : zero(T)
+
+
+
+"""
+    compute the softmax function
+
+"""
+function softmax(Ŷ)
+    Ŷ_exp = exp.(Ŷ)
+    sumofexp = sum(Ŷ)
+    return Ŷ./sumofexp
+end #softmax
