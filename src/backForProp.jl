@@ -157,6 +157,7 @@ function train(X,Y,model::Model, epochs; ϵ=10^-6)
 #     p = Progress(epochs, 1)
     for i=1:epochs
         cache = forwardProp(X,
+                            Y,
                             model)
         push!(Costs, cache["Cost"])
         grads = backProp(X,Y,
