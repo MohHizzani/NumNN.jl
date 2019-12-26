@@ -12,7 +12,8 @@ function initWB(nl, nl_1,
                 zro=false) where {T}
     if He
         coef = sqrt(2/nl_1)
-    elseif zro
+    end
+    if zro
         W = zeros(T, (nl,nl_1))
     else
         W = randn(T, nl, nl_1) .* coef
