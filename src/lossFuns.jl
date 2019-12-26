@@ -21,6 +21,12 @@ function crossentropy(Ŷ, Y)
     return J
 end #crossentropy
 
+function crossentropy(a, y)
+    aNew = prevnextfloat(a)
+    J = -(y * log(aNew) + (1-y) * log(1-aNew))
+    return J
+end
+
 export crossentropy
 
 """
@@ -39,3 +45,8 @@ function dcrossentropy(a, y)
 end #dcrossentropy
 
 export dcrossentropy
+
+"""
+    return previous float if x == 1 and nextfloat if x == 0
+"""
+prevnextfloat(x) = x==0 ? nextfloat(x) : x==1 ? prevfloat(x) : x
