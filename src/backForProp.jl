@@ -99,7 +99,7 @@ function backProp(X,Y,
         dActFun = Symbol("d",actFun)
         dZ[l] = dA[l] .* eval(:($dActFun.($Z[$l])))
 
-        dW[l] = 1/m .* dZ[l]*A[l-1]'
+        dW[l] = dZ[l]*A[l-1]' ./m
 
         if regulization > 0
             if regulization==1
@@ -110,7 +110,7 @@ function backProp(X,Y,
         end
         dB[l] = 1/m .* sum(dZ[l], dims=2)
         dA[l-1] = W[l]'dZ[l]
-        A[l-1] = dA[l-1] .* D[l-1]
+        dA[l-1] = dA[l-1] .* D[l-1]
         dA[l-1] = dA[l-1] ./ layers[l-1].keepProb
     end
 

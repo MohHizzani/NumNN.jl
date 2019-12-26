@@ -40,7 +40,7 @@ function dcrossentropy(a, y)
     prevnextfloat(x) = x==0 ? nextfloat(x) : x==1 ? prevfloat(x) : x
 
     aNew = prevnextfloat(a)
-    dJ = -(y/aNew + (1-y)/(1-aNew))
+    dJ = -(y/aNew - (1-y)/(1-aNew))
     return dJ
 end #dcrossentropy
 
