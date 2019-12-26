@@ -1,4 +1,5 @@
 
+using ProgressMeter
 
 """
     perform the forward propagation using
@@ -151,10 +152,14 @@ export updateParams
         W := Array of matrices of size (n[l], n[l-1])
         B := Array of matrices of size (n[l], 1)
 """
-function train(X,Y,model::Model, epochs ; printCosts = true, ϵ=10^-6)
+function train(X,Y,model::Model, epochs ; printCosts = false, useProgBar = false, ϵ=10^-6)
     layers, lossFun, α, W, B = model.layers, model.lossFun, model.α, model.W, model.B
     Costs = []
-#     p = Progress(epochs, 1)
+
+    if useProgBar
+        p = Progress(epochs, 1)
+    end
+
     for i=1:epochs
         cache = forwardProp(X,
                             Y,
@@ -168,7 +173,10 @@ function train(X,Y,model::Model, epochs ; printCosts = true, ϵ=10^-6)
         if printCosts && i%100==0
             println("N = $i, Cost = $(Costs[end])")
         end
-#         next!(p)
+
+        if useProgBar
+            next!(p)
+        end
     end
 
     # model.W, model.B = W, B
