@@ -75,15 +75,15 @@ function backProp(X,Y,
     A, Z = cache["A"], cache["Z"]
     W, B, regulization, λ = model.W, model.B, model.regulization, model.λ
 
-    D = Vector{BitArray}([rand(size(X[i])...) .< layers[i].keepProb for i=1:L])
+    D = [rand(size(X[i])...) .< layers[i].keepProb for i=1:L]
 
     A = [A[i] .* D[i] for i=1:L]
     A = [A[i] ./ layers[i].keepProb for i=1:L]
     # init all Arrays
-    dA = Vector{Matrix{eltype(A)}}([similar(mat) for mat in A])
-    dZ = Vector{Matrix{eltype(Z)}}([similar(mat) for mat in Z])
-    dW = Vector{Matrix{eltype(W)}}([similar(mat) for mat in W])
-    dB = Vector{Matrix{eltype(B)}}([similar(mat) for mat in B])
+    dA = Vector{Matrix{eltype(A[1])}}([similar(mat) for mat in A])
+    dZ = Vector{Matrix{eltype(Z[1])}}([similar(mat) for mat in Z])
+    dW = Vector{Matrix{eltype(W[1])}}([similar(mat) for mat in W])
+    dB = Vector{Matrix{eltype(B[1])}}([similar(mat) for mat in B])
 
     dlossFun = Symbol("d",lossFun)
     dA[L] = eval(:($dlossFun.($A[$L], $Y))) #.* eval(:($dActFun.(Z[L])))
