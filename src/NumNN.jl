@@ -1,5 +1,10 @@
 module NumNN
 
-greet() = print("Hello World!")
+    include("TypeDef.jl")
+    include("lossFuns.jl")
+    include("initializations.jl")
+    include("actFuns.jl")
+    include("backForProp")
 
-end # module
+
+end # module NumNN
