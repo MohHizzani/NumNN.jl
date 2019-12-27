@@ -1,5 +1,6 @@
 
 using ProgressMeter
+using LinearAlgebra
 
 """
     perform the forward propagation using
