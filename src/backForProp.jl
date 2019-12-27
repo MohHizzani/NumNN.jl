@@ -1,5 +1,6 @@
 
 using ProgressMeter
+using Random
 
 """
     perform the forward propagation using
@@ -154,24 +155,77 @@ export updateParams
         W := Array of matrices of size (n[l], n[l-1])
         B := Array of matrices of size (n[l], 1)
 """
-function train(X,Y,model::Model, epochs ; printCosts = false, useProgBar = false, ϵ=10^-6)
+function train(X_train,
+               Y_train,
+               model::Model,
+               epochs;
+               batchSize = 64,
+               printCosts = false,
+               useProgBar = false,
+               ϵ=10^-6)
     layers, lossFun, α, W, B = model.layers, model.lossFun, model.α, model.W, model.B
     Costs = []
+
+    m = size(X)[2]
+    nB = m ÷ batchSize
+    shufInd = randperm(m)
+    # batches = Vector{Matrix{eltype(X)}}()
+    # labels  = Vector{Matrix{eltype(Y)}}()
+    # for i=1:nB
+    #     downInd = (i-1)*batchSize+1
+    #     upInd   = i * batchSize
+    #     batchInd = shufInd[downInd:upInd]
+    #     push!(batches, X[:, batchInd])
+    #     push!(labels,  Y[:, batchInd])
+    # end
+    # if m%batchSize!=0
+    #     downInd = (nB)*batchSize+1
+    #     batchInd = shufInd[downInd:end]
+    #     push!(batches, X[:, batchInd])
+    #     push!(labels,  Y[:, batchInd])
+    # end
 
     if useProgBar
         p = Progress(epochs, 1)
     end
-
+    # nBatches = nB + (m%batchSize==0 ? 0 : 1)
     for i=1:epochs
-        cache = forwardProp(X,
-                            Y,
-                            model)
-        push!(Costs, cache["Cost"])
-        grads = backProp(X,Y,
-                         model,
-                         cache)
+        for j=1:nB
+            downInd = (j-1)*batchSize+1
+            upInd   = j * batchSize
+            batchInd = shufInd[downInd:upInd]
+            X = X_train[:, batchInd])
+            Y = Y_train[:, batchInd])
 
-        model.W, model.B = updateParams(W, B, grads, α)
+            cache = forwardProp(X,
+                                Y,
+                                model)
+            push!(Costs, cache["Cost"])
+            grads = backProp(X,Y,
+                             model,
+                             cache)
+
+            model.W, model.B = updateParams(W, B, grads, α)
+        end
+
+        if m%batchSize!=0
+            downInd = (nB)*batchSize+1
+            batchInd = shufInd[downInd:end]
+            X = X_train[:, batchInd])
+            Y = Y_train[:, batchInd])
+
+            cache = forwardProp(X,
+                                Y,
+                                model)
+            push!(Costs, cache["Cost"])
+            grads = backProp(X,Y,
+                             model,
+                             cache)
+
+            model.W, model.B = updateParams(W, B, grads, α)
+        end
+
+
         if printCosts && i%100==0
             println("N = $i, Cost = $(Costs[end])")
         end
