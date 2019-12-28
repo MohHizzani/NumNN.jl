@@ -42,4 +42,4 @@ function dsoftmax(Ŷ)
     return dσ.(Ŷ)
 end
 
-export softmax
+export softmax, dsoftmax
