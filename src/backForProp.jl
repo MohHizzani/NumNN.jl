@@ -23,6 +23,7 @@ function forwardProp(X::Matrix{T},
     regulization = model.regulization
     λ = model.λ
     m = size(X)[2]
+    c = size(Y)[1]
     L = length(layers)
     A = Vector{Matrix{eltype(X)}}()
     Z = Vector{Matrix{eltype(X)}}()
@@ -35,7 +36,13 @@ function forwardProp(X::Matrix{T},
         push!(A, eval(:($(actFun).($Z[$l]))))
     end
 
-    cost = eval(:(sum($costFun.($A[$L], $Y))/$m))
+    elcost = 0
+    for i=1:size(Y)[2]
+        a = A[L][:,i]
+        y = Y[:,i]
+        elCost += eval(:(sum($costFun($a, $y))/$c))
+    end
+    cost = elcost/m
 
     #add the cost of regulization
     if regulization > 0

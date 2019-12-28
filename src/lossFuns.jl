@@ -15,7 +15,7 @@
 function crossentropy(a, y)
 
     aNew = prevnextfloat.(a)
-    J = sum(.-(y .* log.(aNew) .+ (1 .- y) .* log.(1 .- aNew)))
+    J = .-(y .* log.(aNew) .+ (1 .- y) .* log.(1 .- aNew))
     return J
 end #crossentropy
 
