@@ -218,7 +218,7 @@ function train(X_train,
     layers, lossFun, α, W, B = model.layers, model.lossFun, model.α, model.W, model.B
     Costs = []
 
-    m = size(X)[2]
+    m = size(X_train)[2]
     nB = m ÷ batchSize
     shufInd = randperm(m)
 
