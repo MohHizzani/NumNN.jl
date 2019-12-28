@@ -1,6 +1,7 @@
 
 using ProgressMeter
 using Random
+using LinearAlgebra
 
 """
     perform the forward propagation using
@@ -49,15 +50,61 @@ end #forwardProp
 
 export forwardProp
 
+
 """
-    predict Y using the model
+    predict Y using the model and the input X and the labels Y
+    inputs:
+        model := the trained model
+        X := the input matrix
+        Y := the input labels to compare with
+
+    output:
+        a Dict of
+        "Yhat" := the predicted values
+        "Yhat_bools" := the predicted labels
+        "accuracy" := the accuracy of the predicted labels
 """
 function predict(model::Model, X, Y)
     Ŷ = forwardProp(X, Y, model)["Yhat"]
-    return Ŷ
+    T = eltype(Ŷ)
+    layers = model.layers
+    c, m = size(Y)
+    # if isbool(Y)
+    acc = 0
+    if isequal(layers[end].actFun, :softmax)
+        Ŷ_bool = Matrix{Integer}()
+        for v in eachcol(Ŷ)
+            Ŷ_bool = hcat(Ŷ_bool, v .== maximum(v))
+        end
+
+        acc = sum(Ŷ_bool .== Y)/m
+        println("Accuracy is = $acc")
+    end
+
+    if isequal(layers[end].actFun, :σ)
+        Ŷ_bool = Matrix{Integer}()
+        for v in eachcol(Ŷ)
+            Ŷ_bool = hcat(Ŷ_bool, v .> T(0.5))
+        end
+
+        acc = sum(Ŷ_bool .== Y)/(c*m)
+        println("Accuracy is = $acc")
+    end
+    return Dict("Yhat"=>Ŷ,
+                "Yhat_bool"=>Ŷ_bool,
+                "accuracy"=>acc)
 end #predict
 
 export predict
+
+"""
+    return true if the array values are boolean (ones and zeros)
+"""
+function isbool(y::Array{T}) where {T}
+    return iszero(y[y .!= one(T)])
+end
+
+
 
 """
 
@@ -81,8 +128,10 @@ function backProp(X,Y,
 
     D = [rand(size(A[i])...) .< layers[i].keepProb for i=1:L]
 
-    A = [A[i] .* D[i] for i=1:L]
-    A = [A[i] ./ layers[i].keepProb for i=1:L]
+    if layers.keepProb[L] < 1.0 #to save time of multiplication in case keepProb was one
+        A = [A[i] .* D[i] for i=1:L]
+        A = [A[i] ./ layers[i].keepProb for i=1:L]
+    end
     # init all Arrays
     dA = Vector{Matrix{eltype(A[1])}}([similar(mat) for mat in A])
     dZ = Vector{Matrix{eltype(Z[1])}}([similar(mat) for mat in Z])
@@ -92,9 +141,10 @@ function backProp(X,Y,
     dlossFun = Symbol("d",lossFun)
     dA[L] = eval(:($dlossFun.($A[$L], $Y))) #.* eval(:($dActFun.(Z[L])))
 
-    dA[L] = dA[L] .* D[L]
-    dA[L] = dA[L] ./ layers[L].keepProb
-
+    if layers.keepProb[L] < 1.0 #to save time of multiplication in case keepProb was one
+        dA[L] = dA[L] .* D[L]
+        dA[L] = dA[L] ./ layers[L].keepProb
+    end
     for l=L:-1:2
         actFun = layers[l].actFun
         dActFun = Symbol("d",actFun)
@@ -111,8 +161,10 @@ function backProp(X,Y,
         end
         dB[l] = 1/m .* sum(dZ[l], dims=2)
         dA[l-1] = W[l]'dZ[l]
-        dA[l-1] = dA[l-1] .* D[l-1]
-        dA[l-1] = dA[l-1] ./ layers[l-1].keepProb
+        if layers.keepProb[l-1] < 1.0 #to save time of multiplication in case keepProb was one
+            dA[l-1] = dA[l-1] .* D[l-1]
+            dA[l-1] = dA[l-1] ./ layers[l-1].keepProb
+        end
     end
 
     l=1 #shortcut cause I just copied from the for loop
