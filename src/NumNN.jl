@@ -5,6 +5,7 @@ module NumNN
     include("initializations.jl")
     include("actFuns.jl")
     include("backForProp.jl")
+    include("assistance.jl")
 
 
 
