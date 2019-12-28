@@ -84,7 +84,7 @@ function predict(model::Model, X, Y)
             Ŷ_bool = hcat(Ŷ_bool, v .== maximum(v))
         end
 
-        acc = sum(Ŷ_bool .== Y)/m
+        acc = sum([Ŷ_bool[:,i] == Y[:,i] for i=1:size(Y)[2]])/m
         println("Accuracy is = $acc")
     end
 
