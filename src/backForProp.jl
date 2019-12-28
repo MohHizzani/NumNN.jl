@@ -127,8 +127,10 @@ function backProp(X,Y,
 
     D = [rand(size(A[i])...) .< layers[i].keepProb for i=1:L]
 
-    A = [A[i] .* D[i] for i=1:L]
-    A = [A[i] ./ layers[i].keepProb for i=1:L]
+    if layers.keepProb[L] < 1.0 #to save time of multiplication in case keepProb was one
+        A = [A[i] .* D[i] for i=1:L]
+        A = [A[i] ./ layers[i].keepProb for i=1:L]
+    end
     # init all Arrays
     dA = Vector{Matrix{eltype(A[1])}}([similar(mat) for mat in A])
     dZ = Vector{Matrix{eltype(Z[1])}}([similar(mat) for mat in Z])
@@ -138,9 +140,10 @@ function backProp(X,Y,
     dlossFun = Symbol("d",lossFun)
     dA[L] = eval(:($dlossFun.($A[$L], $Y))) #.* eval(:($dActFun.(Z[L])))
 
-    dA[L] = dA[L] .* D[L]
-    dA[L] = dA[L] ./ layers[L].keepProb
-
+    if layers.keepProb[L] < 1.0 #to save time of multiplication in case keepProb was one
+        dA[L] = dA[L] .* D[L]
+        dA[L] = dA[L] ./ layers[L].keepProb
+    end
     for l=L:-1:2
         actFun = layers[l].actFun
         dActFun = Symbol("d",actFun)
@@ -157,8 +160,10 @@ function backProp(X,Y,
         end
         dB[l] = 1/m .* sum(dZ[l], dims=2)
         dA[l-1] = W[l]'dZ[l]
-        dA[l-1] = dA[l-1] .* D[l-1]
-        dA[l-1] = dA[l-1] ./ layers[l-1].keepProb
+        if layers.keepProb[l-1] < 1.0 #to save time of multiplication in case keepProb was one
+            dA[l-1] = dA[l-1] .* D[l-1]
+            dA[l-1] = dA[l-1] ./ layers[l-1].keepProb
+        end
     end
 
     l=1 #shortcut cause I just copied from the for loop
