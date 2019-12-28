@@ -72,7 +72,7 @@ function predict(model::Model, X, Y)
     # if isbool(Y)
     acc = 0
     if isequal(layers[end].actFun, :softmax)
-        Ŷ_bool = Matrix{Integer}()
+        Ŷ_bool = BitArray(undef, c, 0)
         for v in eachcol(Ŷ)
             Ŷ_bool = hcat(Ŷ_bool, v .== maximum(v))
         end
@@ -82,7 +82,7 @@ function predict(model::Model, X, Y)
     end
 
     if isequal(layers[end].actFun, :σ)
-        Ŷ_bool = Matrix{Integer}()
+        Ŷ_bool = BitArray(undef, c, 0)
         for v in eachcol(Ŷ)
             Ŷ_bool = hcat(Ŷ_bool, v .> T(0.5))
         end
