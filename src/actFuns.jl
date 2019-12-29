@@ -38,6 +38,10 @@ function softmax(Ŷ)
     return Ŷ./sumofexp
 end #softmax
 
-dsoftmax(Ŷ) = dσ(Ŷ)
+function dsoftmax(Ŷ)
+    Ŷ_exp = exp.(Ŷ)
+    sumofexp = sum(Ŷ)
+    return (Ŷ_exp .* (sumofexp - Ŷ_exp) ./ sumofexp^2)
+end #dsoftmax
 
 export softmax, dsoftmax
