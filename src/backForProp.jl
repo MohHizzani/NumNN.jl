@@ -165,13 +165,22 @@ function backProp(X,Y,
     for l=L:-1:2
         actFun = layers[l].actFun
         dActFun = Symbol("d",actFun)
-        dZ[l] = dA[l] .* eval(:($dActFun.($Z[$l])))
+        if isequal(actFun, :softmax)
+            dz = Matrix{eltype(X)}(undef, size(dZ[l])[1], 0)
+            for i=1:size(Z[l])[2]
+                z = Z[l][:,i]
+                dz = hcat(dz, dA[l][:,i] .* eval(:($dActFun($z))))
+            end
+            dZ[l] = dz
+        else
+            dZ[l] = dA[l] .* eval(:($dActFun.($Z[$l])))
+        end
 
         dW[l] = dZ[l]*A[l-1]' ./m
 
         if regulization > 0
             if regulization==1
-                dW[l] .+= (λ/m)
+                dW[l] .+= (λ/2m)
             else
                 dW[l] .+= (λ/m) .* W[l]
             end
