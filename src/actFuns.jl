@@ -34,14 +34,13 @@ export drelu
 """
 function softmax(Ŷ)
     Ŷ_exp = exp.(Ŷ)
-    sumofexp = sum(Ŷ)
+    sumofexp = sum(Ŷ_exp)
     return Ŷ_exp./sumofexp
 end #softmax
 
 function dsoftmax(Ŷ)
-    Ŷ_exp = exp.(Ŷ)
-    sumofexp = sum(Ŷ)
-    return (Ŷ_exp .* (sumofexp - Ŷ_exp) ./ sumofexp^2)
+    sŶ = softmax(Ŷ)
+    return sŶ .* (1 .- sŶ)
 end #dsoftmax
 
 export softmax, dsoftmax
