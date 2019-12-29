@@ -19,7 +19,7 @@ function forwardProp(X::Matrix{T},
     W::AbstractArray{Matrix{T},1},
     B::AbstractArray{Matrix{T},1},
     layers::AbstractArray{Layer,1},
-    costFun = model.W, model.B, model.layers, model.lossFun
+    lossFun = model.W, model.B, model.layers, model.lossFun
     regulization = model.regulization
     λ = model.λ
     m = size(X)[2]
@@ -40,7 +40,7 @@ function forwardProp(X::Matrix{T},
     for i=1:size(Y)[2]
         a = A[L][:,i]
         y = Y[:,i]
-        elCost += eval(:(sum($costFun($a, $y))/$c))
+        elCost += eval(:(sum($lossFun($a, $y)))) / c
     end
     cost = elCost/m
 

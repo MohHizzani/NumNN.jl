@@ -12,25 +12,41 @@
     output:
         J := scaler value of the cross entropy loss
 """
-function crossentropy(a, y)
+function binaryCrossentropy(a, y)
 
     aNew = prevnextfloat.(a)
     J = .-(y .* log.(aNew) .+ (1 .- y) .* log.(1 .- aNew))
     return J
-end #crossentropy
+end #binaryCrossentropy
 
-export crossentropy
+export binaryCrossentropy
 
 """
     compute the drivative of cross-entropy loss function
 """
-function dcrossentropy(a, y)
+function dbinaryCrossentropy(a, y)
     aNew = prevnextfloat.(a)
     dJ = .-(y ./ aNew .- (1 .- y) ./ (1 .- aNew))
     return dJ
-end #dcrossentropy
+end #dbinaryCrossentropy
 
-export dcrossentropy
+export dbinaryCrossentropy
+
+function categoricalCrossentropy(a, y)
+    aNew = prevnextfloat.(a)
+    J = .-(y .* log.(aNew))
+    return J
+end
+
+
+function dcategoricalCrossentropy(a, y)
+    aNew = prevnextfloat.(a)
+    dJ = .-(y ./ aNew)
+    return dJ
+end
+
+export categoricalCrossentropy, dcategoricalCrossentropy
+
 
 """
     return previous float if x == 1 and nextfloat if x == 0
