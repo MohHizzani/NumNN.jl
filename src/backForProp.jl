@@ -33,7 +33,17 @@ function forwardProp(X::Matrix{T},
     for l=2:L
         push!(Z, W[l]*A[l-1] .+ B[l])
         actFun = layers[l].actFun
-        push!(A, eval(:($(actFun).($Z[$l]))))
+
+        if isequal(actFun, :softmax)
+            a = Matrix{eltype(X)}(undef, c, 0)
+            for i=1:m
+                zCol = Z[l][:,i]
+                a = hcat(a, eval(:($(actFun)($zCol))))
+            end
+            push!(A, a)
+        else
+            push!(A, eval(:($(actFun).($Z[$l]))))
+        end
     end
 
     elCost = 0

@@ -35,7 +35,7 @@ export drelu
 function softmax(Ŷ)
     Ŷ_exp = exp.(Ŷ)
     sumofexp = sum(Ŷ)
-    return Ŷ./sumofexp
+    return Ŷ_exp./sumofexp
 end #softmax
 
 function dsoftmax(Ŷ)
