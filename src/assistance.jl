@@ -15,6 +15,6 @@ function oneHot(Y; classes = [], numC = 0)
         hotY = hcat(hotY, Integer.(Cs .== y))
     end
     return hotY
-end
+end #oneHot
 
 export oneHot

@@ -46,13 +46,20 @@ function forwardProp(X::Matrix{T},
         end
     end
 
-    elCost = 0
-    for i=1:size(Y)[2]
-        a = A[L][:,i]
-        y = Y[:,i]
-        elCost += eval(:(sum($lossFun($a, $y)))) / c
+    if isequal(lossFun, :categoricalCrossentropy)
+        cost = sum(eval(:($lossFun.($A[$L], $Y))))/ m
+    else
+        cost = sum(eval(:($lossFun.($A[$L], $Y)))) / (m*c)
     end
-    cost = elCost/m
+    # elCost = 0
+    # for i=1:size(Y)[2]
+    #     a = A[L][:,i]
+    #     y = Y[:,i]
+    #     if isequal(lossFun, :categoricalCrossentropy)
+    #         elCost += eval(:(sum($lossFun($a, $y))))
+    #     else
+    # end
+    # cost = elCost/m
 
     #add the cost of regulization
     if regulization > 0
@@ -202,7 +209,7 @@ function backProp(X,Y,
 
     if regulization > 0
         if regulization==1
-            dW[l] .+= (λ/m)
+            dW[l] .+= (λ/2m)
         else
             dW[l] .+= (λ/m) .* W[l]
         end
