@@ -173,12 +173,13 @@ function backProp(X,Y,
         actFun = layers[l].actFun
         dActFun = Symbol("d",actFun)
         if isequal(actFun, :softmax)
-            dz = Matrix{eltype(X)}(undef, size(dZ[l])[1], 0)
-            for i=1:size(Z[l])[2]
-                z = Z[l][:,i]
-                dz = hcat(dz, dA[l][:,i] .* eval(:($dActFun($z))))
-            end
-            dZ[l] = dz
+            # dz = Matrix{eltype(X)}(undef, size(dZ[l])[1], 0)
+            # for i=1:size(Z[l])[2]
+            #     z = Z[l][:,i]
+            #     dz = hcat(dz, dA[l][:,i] .* eval(:($dActFun($z))))
+            # end
+            # dZ[l] = dz
+            dZ[l] = A[l] .- Y
         else
             dZ[l] = dA[l] .* eval(:($dActFun.($Z[$l])))
         end
