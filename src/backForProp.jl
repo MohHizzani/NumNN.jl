@@ -51,17 +51,7 @@ function forwardProp(X::Matrix{T},
     else
         cost = sum(eval(:($lossFun.($A[$L], $Y)))) / (m*c)
     end
-    # elCost = 0
-    # for i=1:size(Y)[2]
-    #     a = A[L][:,i]
-    #     y = Y[:,i]
-    #     if isequal(lossFun, :categoricalCrossentropy)
-    #         elCost += eval(:(sum($lossFun($a, $y))))
-    #     else
-    # end
-    # cost = elCost/m
 
-    #add the cost of regulization
     if regulization > 0
         cost += (λ/2m) * sum([norm(w, regulization) for w in W])
     end
@@ -173,12 +163,6 @@ function backProp(X,Y,
         actFun = layers[l].actFun
         dActFun = Symbol("d",actFun)
         if isequal(actFun, :softmax)
-            # dz = Matrix{eltype(X)}(undef, size(dZ[l])[1], 0)
-            # for i=1:size(Z[l])[2]
-            #     z = Z[l][:,i]
-            #     dz = hcat(dz, dA[l][:,i] .* eval(:($dActFun($z))))
-            # end
-            # dZ[l] = dz
             dZ[l] = A[l] .- Y
         else
             dZ[l] = dA[l] .* eval(:($dActFun.($Z[$l])))
