@@ -153,6 +153,7 @@ function backProp(X,Y,
     dB = Vector{Matrix{eltype(B[1])}}([similar(mat) for mat in B])
 
     dlossFun = Symbol("d",lossFun)
+    actFun = layers[L].actFun
     if ! isequal(actFun, :softmax) && !(actFun==:σ &&
                                         lossFun==:binaryCrossentropy)
         dA[L] = eval(:($dlossFun.($A[$L], $Y))) #.* eval(:($dActFun.(Z[L])))
