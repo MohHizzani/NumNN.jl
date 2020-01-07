@@ -37,12 +37,12 @@ export initWB
             #Vector{Matrix{T}}
 """
 function deepInitWB(X, Y,
-                    layers,
-                    p::Type{T}=Float64::Type{Float64};
+                    layers;
                     He=true,
                     coef=0.01,
-                    zro=false) where {T}
+                    zro=false)
 
+    T = eltype(X)
     W = Array{Matrix{T},1}()
     B = Array{Matrix{T},1}()
     _w, _b = initWB(layers[1].numNodes,size(X)[1],T; He=true, coef=0.01, zro=false)
