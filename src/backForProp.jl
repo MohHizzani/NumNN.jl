@@ -87,7 +87,7 @@ function predict(model::Model, X, Y)
     acc = 0
     if isequal(layers[end].actFun, :softmax)
         Ŷ_bool = BitArray(undef, c, 0)
-        p = Progress(size(Ŷ)[2], .1)
+        p = Progress(size(Ŷ)[2], 0.01)
         for v in eachcol(Ŷ)
             Ŷ_bool = hcat(Ŷ_bool, v .== maximum(v))
             next!(p)
@@ -99,10 +99,10 @@ function predict(model::Model, X, Y)
 
     if isequal(layers[end].actFun, :σ)
         Ŷ_bool = BitArray(undef, c, 0)
-        p = Progress(size(Ŷ)[2], .1)
+        p = Progress(size(Ŷ)[2], 0.01)
         for v in eachcol(Ŷ)
             Ŷ_bool = hcat(Ŷ_bool, v .> T(0.5))
-            p = Progress(size(Ŷ)[2], .1)
+            next!(p)
         end
 
         acc = sum(Ŷ_bool .== Y)/(c*m)
