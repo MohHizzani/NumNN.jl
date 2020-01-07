@@ -233,8 +233,8 @@ function updateParams(model::Model, grads::Dict, tMiniBatch::Integer)
             VCorrected[:db][i] .= V[:db][i] ./ (1-β1^tMiniBatch)
 
             if optimizer==:adam
-                S[:dw][i] .= β2 .* S[:dw][i] .+ (1-β2) .* (dW[i]).^2
-                S[:db][i] .= β2 .* S[:db][i] .+ (1-β2) .* (dB[i]).^2
+                S[:dw][i] .= β2 .* S[:dw][i] .+ (1-β2) .* (dW[i].^2)
+                S[:db][i] .= β2 .* S[:db][i] .+ (1-β2) .* (dB[i].^2)
 
                 ##correcting
                 SCorrected[:dw][i] .= S[:dw][i] ./ (1-β2^tMiniBatch)
@@ -272,28 +272,28 @@ function updateParams!(model::Model, grads::Dict, tMiniBatch::Integer)
             V[:db][i] .= β1 .* V[:db][i] .+ (1-β1) .* dB[i]
 
             ##correcting
-            VCorrected[:dw][i] ./= (1-β1^tMiniBatch)
-            VCorrected[:db][i] ./= (1-β1^tMiniBatch)
+            VCorrected[:dw][i] .= V[:dw][i] ./ (1-β1^tMiniBatch)
+            VCorrected[:db][i] .= V[:db][i] ./ (1-β1^tMiniBatch)
 
             if optimizer==:adam
-                S[:dw][i] .= β2 .* S[:dw][i] .* (1-β2) .* (dW[i]).^2
-                S[:db][i] .= β2 .* S[:db][i] .* (1-β2) .* (dB[i]).^2
+                S[:dw][i] .= β2 .* S[:dw][i] .+ (1-β2) .* (dW[i].^2)
+                S[:db][i] .= β2 .* S[:db][i] .+ (1-β2) .* (dB[i].^2)
 
                 ##correcting
-                SCorrected[:dw][i] ./= (1-β2^tMiniBatch)
-                SCorrected[:db][i] ./= (1-β2^tMiniBatch)
+                SCorrected[:dw][i] .= S[:dw][i] ./ (1-β2^tMiniBatch)
+                SCorrected[:db][i] .= S[:db][i] ./ (1-β2^tMiniBatch)
 
                 ##update parameters with adam
-                model.W[i] .-= (α .* (VCorrected[:dw][i] ./ (sqrt.(SCorrected[:dw][i]) .+ ϵAdam)))
-                model.B[i] .-= (α .* (VCorrected[:db][i] ./ (sqrt.(SCorrected[:db][i]) .+ ϵAdam)))
+                W[i] .-= (α .* (VCorrected[:dw][i] ./ (sqrt.(SCorrected[:dw][i]) .+ ϵAdam)))
+                B[i] .-= (α .* (VCorrected[:db][i] ./ (sqrt.(SCorrected[:db][i]) .+ ϵAdam)))
             else#if optimizer==:momentum
-                model.W[i] .-= (α .* VCorrected[:dw][i])
-                model.B[i] .-= (α .* VCorrected[:db][i])
+                W[i] .-= (α .* VCorrected[:dw][i])
+                B[i] .-= (α .* VCorrected[:db][i])
             end #if optimizer==:adam
         end #for i=1:L
     else
-        model.W .-= (α .* dW)
-        model.B .-= (α .* dB)
+        W .-= (α .* dW)
+        B .-= (α .* dB)
     end #if optimizer==:adam || optimizer==:momentum
     return
 end #updateParams!
