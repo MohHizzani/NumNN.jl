@@ -57,7 +57,7 @@ mutable struct Model
     β1::AbstractFloat
     B2::AbstractFloat
     function Model(X, Y, layers, α;
-                   optimizer = :nonadam,
+                   optimizer = :gds,
                    β1 = 0.9,
                    β2 = 0.999,
                    ϵAdam = 1e-8,
@@ -66,14 +66,7 @@ mutable struct Model
                    lossFun = :categoricalCrossentropy)
 
         W, B = deepInitWB(X, Y, layers)
-        if optimizer == :adam
-            V, S = deepInitVS(W,B)
-        else
-            V = Dict(:vdw=>Array{Array{Number,2},1}(undef,0),
-                     :vdb=>Array{Array{Number,2},1}(undef,0))
-            S = Dict(:sdw=>Array{Array{Number,2},1}(undef,0),
-                     :sdb=>Array{Array{Number,2},1}(undef,0))
-        end
+        V, S = deepInitVS(W,B, optimizer)
         @assert regulization in [0, 1, 2]
         return new(layers, lossFun, regulization, λ, α,
                    W, B,

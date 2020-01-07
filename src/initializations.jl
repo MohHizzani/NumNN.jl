@@ -66,12 +66,26 @@ export deepInitWB
 
 
 function deepInitVS(W::Array{Array{Number,2},1},
-                    B::Array{Array{Number,2},1})
+                    B::Array{Array{Number,2},1},
+                    optimizer::Symbol)
 
-    VdW = Array{Array{eltype(W[1]),2},1}([zeros(size(w)) for w in W])
-    VdB = Array{Array{eltype(B[1]),2},1}([zeros(size(b)) for b in B])
-    SdW = Array{Array{eltype(W[1]),2},1}([zeros(size(w)) for w in W])
-    SdB = Array{Array{eltype(B[1]),2},1}([zeros(size(b)) for b in B])
+    if optimizer==:adam || optimizer==:momentum
+        VdW = Array{Array{eltype(W[1]),2},1}([zeros(size(w)) for w in W])
+        VdB = Array{Array{eltype(B[1]),2},1}([zeros(size(b)) for b in B])
+        if optimizer==:adam
+            SdW = Array{Array{eltype(W[1]),2},1}([zeros(size(w)) for w in W])
+            SdB = Array{Array{eltype(B[1]),2},1}([zeros(size(b)) for b in B])
+        else
+            SdW = Array{Array{eltype(W[1]),2},1}(undef,0)
+            SdB = Array{Array{eltype(W[1]),2},1}(undef,0)
+        end
+
+    else
+        SdW = Array{Array{eltype(W[1]),2},1}(undef,0)
+        SdB = Array{Array{eltype(W[1]),2},1}(undef,0)
+        VdW = Array{Array{eltype(W[1]),2},1}(undef,0)
+        VdB = Array{Array{eltype(W[1]),2},1}(undef,0)
+    end
 
     return Dict(:vdw=>VdW, :vdb=>VdB), Dict(:sdw=>SdW, :sdb=>SdB)
 end
