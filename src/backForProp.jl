@@ -226,7 +226,7 @@ function updateParams(model::Model, grads::Dict, tMiniBatch::Integer)
     if optimizer==:adam || optimizer==:momentum
         for i=1:L
             V[:dw][i] .= β1 .* V[:dw][i] .+ (1-β1) .* dW[i]
-            v[:db][i] .= β1 .* V[:db][i] .+ (1-β1) .* dB[i]
+            V[:db][i] .= β1 .* V[:db][i] .+ (1-β1) .* dB[i]
 
             ##correcting
             VCorrected[:dw][i] ./= (1-β1^tMiniBatch)
