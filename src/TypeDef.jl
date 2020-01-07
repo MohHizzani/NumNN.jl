@@ -55,7 +55,7 @@ mutable struct Model
     optimizer::Symbol
     ϵAdam::AbstractFloat
     β1::AbstractFloat
-    B2::AbstractFloat
+    β2::AbstractFloat
     function Model(X, Y, layers, α;
                    optimizer = :gds,
                    β1 = 0.9,
