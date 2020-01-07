@@ -42,16 +42,16 @@ mutable struct Model
         learning rate
     """
     α::AbstractFloat
-    W::Array{Array{Number,2},1}
-    B::Array{Array{Number,2},1}
+    W::Array{Array{<:Number,2},1}
+    B::Array{Array{<:Number,2},1}
 
 
     """
         V is the velocity
         S is the RMSProp
     """
-    V::Dict{Symbol,Array{Array{Number,2},1}}
-    S::Dict{Symbol,Array{Array{Number,2},1}}
+    V::Dict{Symbol,Array{Array{<:Number,2},1}}
+    S::Dict{Symbol,Array{Array{<:Number,2},1}}
     optimizer::Symbol
     ϵAdam::AbstractFloat
     β1::AbstractFloat
