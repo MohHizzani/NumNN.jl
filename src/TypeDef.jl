@@ -42,8 +42,8 @@ mutable struct Model
         learning rate
     """
     α::AbstractFloat
-    W::AbstractArray{AbstractArray{Number,2},1}
-    B::AbstractArray{AbstractArray{Number,2},1}
+    W::Array{Array{Number,2},1}
+    B::Array{Array{Number,2},1}
 
 
     """
