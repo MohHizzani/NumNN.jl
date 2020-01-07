@@ -62,3 +62,18 @@ function deepInitWB(X, Y,
 end #deepInitWB
 
 export deepInitWB
+
+
+
+function deepInitVS(W::Array{Array{Number,2},1},
+                    B::Array{Array{Number,2},1})
+
+    VdW = Array{Array{eltype(W[1]),2},1}([zeros(size(w)) for w in W])
+    VdB = Array{Array{eltype(B[1]),2},1}([zeros(size(b)) for b in B])
+    SdW = Array{Array{eltype(W[1]),2},1}([zeros(size(w)) for w in W])
+    SdB = Array{Array{eltype(B[1]),2},1}([zeros(size(b)) for b in B])
+
+    return Dict(:vdw=>VdW, :vdb=>VdB), Dict(:sdw=>SdW, :sdb=>SdB)
+end
+
+export deepInitVS
