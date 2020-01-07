@@ -42,12 +42,27 @@ mutable struct Model
         learning rate
     """
     α::AbstractFloat
-    W::AbstractArray{AbstractArray{AbstractFloat,2},1}
-    B::AbstractArray{AbstractArray{AbstractFloat,2},1}
-    function Model(X, Y, layers, α; regulization = 0, λ = 1.0, lossFun = :crossentropy)
+    W::AbstractArray{AbstractArray{Number,2},1}
+    B::AbstractArray{AbstractArray{Number,2},1}
+
+
+    """
+        V is the velocity
+        S is the RMSProp
+    """
+    V::AbstractArray{AbstractArray{Number,2},1}
+    S::AbstractArray{AbstractArray{Number,2},1}
+    optimizer::Symbol
+    function Model(X, Y, layers, α; optimizer = :nonadam, regulization = 0, λ = 1.0, lossFun = :categoricalCrossentropy)
         W, B = deepInitWB(X, Y, layers)
+        if optimizer == "adam"
+            V, S = deepInitVS(W,B)
+        else
+            V = Array{Array{Number,2},1}(undef,0)
+            S = Array{Array{Number,2},1}(undef,0)
+        end
         @assert regulization in [0, 1, 2]
-        return new(layers, lossFun, regulization, λ, α, W, B)
+        return new(layers, lossFun, regulization, λ, α, W, B, V, S, optimizer)
     end #inner-constructor
 end #Model
 
