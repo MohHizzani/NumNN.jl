@@ -295,6 +295,7 @@ function updateParams!(model::Model, grads::Dict, tMiniBatch::Integer)
         W .-= (α .* dW)
         B .-= (α .* dB)
     end #if optimizer==:adam || optimizer==:momentum
+    model.W, model.B = W, B
     return
 end #updateParams!
 
