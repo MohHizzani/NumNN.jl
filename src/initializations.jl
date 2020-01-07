@@ -87,7 +87,7 @@ function deepInitVS(W::Array{Array{Number,2},1},
         VdB = Array{Array{eltype(W[1]),2},1}(undef,0)
     end
 
-    return Dict(:vdw=>VdW, :vdb=>VdB), Dict(:sdw=>SdW, :sdb=>SdB)
+    return Dict(:dw=>VdW, :db=>VdB), Dict(:dw=>SdW, :db=>SdB)
 end
 
 export deepInitVS
