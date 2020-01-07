@@ -65,9 +65,9 @@ export deepInitWB
 
 
 
-function deepInitVS(W::Array{Array{Number,2},1},
-                    B::Array{Array{Number,2},1},
-                    optimizer::Symbol)
+function deepInitVS(W::Array{Array{T,2},1},
+                    B::Array{Array{T,2},1},
+                    optimizer::Symbol) where T
 
     if optimizer==:adam || optimizer==:momentum
         VdW = Array{Array{eltype(W[1]),2},1}([zeros(size(w)) for w in W])
