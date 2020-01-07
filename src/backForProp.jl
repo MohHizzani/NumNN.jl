@@ -229,16 +229,16 @@ function updateParams(model::Model, grads::Dict, tMiniBatch::Integer)
             V[:db][i] .= β1 .* V[:db][i] .+ (1-β1) .* dB[i]
 
             ##correcting
-            VCorrected[:dw][i] ./= (1-β1^tMiniBatch)
-            VCorrected[:db][i] ./= (1-β1^tMiniBatch)
+            VCorrected[:dw][i] .= V[:dw][i] ./ (1-β1^tMiniBatch)
+            VCorrected[:db][i] .= V[:db][i] ./ (1-β1^tMiniBatch)
 
             if optimizer==:adam
-                S[:dw][i] .= β2 .* S[:dw][i] .* (1-β2) .* (dW[i]).^2
-                S[:db][i] .= β2 .* S[:db][i] .* (1-β2) .* (dB[i]).^2
+                S[:dw][i] .= β2 .* S[:dw][i] .+ (1-β2) .* (dW[i]).^2
+                S[:db][i] .= β2 .* S[:db][i] .+ (1-β2) .* (dB[i]).^2
 
                 ##correcting
-                SCorrected[:dw][i] ./= (1-β2^tMiniBatch)
-                SCorrected[:db][i] ./= (1-β2^tMiniBatch)
+                SCorrected[:dw][i] .= S[:dw][i] ./ (1-β2^tMiniBatch)
+                SCorrected[:db][i] .= S[:db][i] ./ (1-β2^tMiniBatch)
 
                 ##update parameters with adam
                 W[i] .-= (α .* (VCorrected[:dw][i] ./ (sqrt.(SCorrected[:dw][i]) .+ ϵAdam)))
