@@ -3,7 +3,7 @@ abstract type Layer end
 
 export Layer
 
-struct FCLayer <: Layer
+mutable struct FCLayer <: Layer
     numNodes::Integer
     actFun::Symbol
 
@@ -11,18 +11,50 @@ struct FCLayer <: Layer
         drop-out keeping node probability
     """
     keepProb::AbstractFloat
-    # W::AbstractArray{<:AbstractFloat,2}
-    # B::AbstractArray{<:AbstractFloat,2}
-    function FCLayer(numNodes,actFun;keepProb=1.0)
+    W::Array{T,2} where {T}
+    B::Array{T,2} where {T}
+    Vdw::Array{T,2} where {T}
+    Vdb::Array{T,2} where {T}
+    Sdw::Array{T,2} where {T}
+    Sdb::Array{T,2} where {T}
+
+    """
+        pointer to previous layer
+    """
+    prevLayer::L where {L<:Union{Layer, Nothing}}
+    function FCLayer(numNodes,actFun, layerInput = nothing; keepProb=1.0)
         # W, B
-        new(numNodes, actFun, keepProb)
-    end #Layer
+        if isa(layerInput, Layer)
+            T = eltype(layerInput.W)
+            nl = numNodes
+            nl_1 = size(layerInput.W)[1]
+            prevLayer = layerInput
+        elseif isa(layerInput, Array)
+            T = eltype(layerInput)
+            nl = numNodes
+            nl_1 = size(layerInput)[1]
+            prevLayer = nothing
+        else
+            T = Any
+            nl = numNodes
+            nl_1 = 0
+            prevLayer = nothing
+        end
+        new(numNodes, actFun, keepProb,
+            Matrix{T}(undef, numNodes,nl_1),
+            Matrix{T}(undef, numNodes,1),
+            Matrix{T}(undef, numNodes,nl_1),
+            Matrix{T}(undef, numNodes,1),
+            Matrix{T}(undef, numNodes,nl_1),
+            Matrix{T}(undef, numNodes,1),
+            prevLayer)
+    end #FCLayer
 end #struct Layer
 
 export FCLayer
 
 mutable struct Model
-    layers::AbstractArray{Layer,1}
+    layers::Array{Layer,1}
     lossFun::Symbol
 
     """
@@ -42,21 +74,23 @@ mutable struct Model
         learning rate
     """
     α::AbstractFloat
-    W#::Array{Array{<:Number,2},1}
-    B#::Array{Array{<:Number,2},1}
+    W::Array{Array{T,N},1} where {T,N}
+    B::Array{Array{T,N},1} where {T,N}
 
 
     """
         V is the velocity
         S is the RMSProp
     """
-    V#::Dict{Symbol,Array{Array{<:Number,2},1}}
-    S#::Dict{Symbol,Array{Array{<:Number,2},1}}
+    V::Dict{Symbol,Array{Array{T,N},1}}  where {T,N}
+    S::Dict{Symbol,Array{Array{T,N},1}}  where {T,N}
     optimizer::Symbol
     ϵAdam::AbstractFloat
     β1::AbstractFloat
     β2::AbstractFloat
-    function Model(X, Y, layers, α;
+    function Model(X, Y,
+                   outLayer::Layer,
+                   α;
                    optimizer = :gds,
                    β1 = 0.9,
                    β2 = 0.999,
@@ -65,7 +99,7 @@ mutable struct Model
                    λ = 1.0,
                    lossFun = :categoricalCrossentropy)
 
-        W, B = deepInitWB(X, Y, layers)
+        W, B = deepInitWB(X, Y, outLayer)
         V, S = deepInitVS(W,B, optimizer)
         @assert regulization in [0, 1, 2]
         return new(layers, lossFun, regulization, λ, α,
