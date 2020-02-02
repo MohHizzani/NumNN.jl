@@ -54,7 +54,8 @@ end #struct Layer
 export FCLayer
 
 mutable struct Model
-    layers::Array{Layer,1}
+    # layers::Array{Layer,1}
+    outLayer::Layer
     lossFun::Symbol
 
     """
@@ -102,9 +103,13 @@ mutable struct Model
         W, B = deepInitWB(X, Y, outLayer)
         V, S = deepInitVS(W,B, optimizer)
         @assert regulization in [0, 1, 2]
-        return new(layers, lossFun, regulization, λ, α,
+        return new(outLayer,
+                   lossFun,
+                   regulization, λ,
+                   α,
                    W, B,
-                   V, S, optimizer, ϵAdam, β1, β2)
+                   V, S,
+                   optimizer, ϵAdam, β1, β2)
     end #inner-constructor
 end #Model
 
