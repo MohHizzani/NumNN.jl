@@ -40,3 +40,5 @@ function (l::FCLayer)(x::Array)
     l.prevLayer = nothing
     return l
 end #function (l::FCLayer)(x::Array)
+
+export l
