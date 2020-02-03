@@ -37,7 +37,7 @@ export initWB
             #Vector{Matrix{T}}
 """
 function deepInitWB(X, Y,
-                    layers;
+                    outLayer;
                     He=true,
                     coef=0.01,
                     zro=false)
@@ -45,20 +45,36 @@ function deepInitWB(X, Y,
     T = eltype(X)
     W = Array{Matrix{T},1}()
     B = Array{Matrix{T},1}()
-    _w, _b = initWB(layers[1].numNodes,size(X)[1],T; He=true, coef=0.01, zro=false)
+    prevLayer = outLayer.prevLayer
+    _w, _b = initWB(outLayer.numNodes, prevLayer.prevLayer.numNodes,T; He=true, coef=0.01, zro=false)
+    outLayer.W, outLayer.B = _w, _b
     push!(W, _w)
     push!(B, _b)
-    for i=2:length(layers)
-        _w, _b = initWB(layers[i].numNodes,
-                        layers[i-1].numNodes,
-                        T;
-                        He=true,
-                        coef=0.01,
-                        zro=false)
+
+    # for i=2:length(layers)
+    while ! isequal(prevLayer, nothing)
+        if ! isequal(prevLayer.prevLayer, nothing)
+            _w, _b = initWB(prevLayer.numNodes,
+                            prevLayer.prevLayer.numNodes,
+                            T;
+                            He=true,
+                            coef=0.01,
+                            zro=false)
+        else
+            _w, _b = initWB(prevLayer.numNodes,
+                            size(X)[1],
+                            T;
+                            He=true,
+                            coef=0.01,
+                            zro=false)
+        end #if
+        prevLayer.W, prevLayer.B = _w, _b
         push!(W, _w)
         push!(B, _b)
+
+        prevLayer = prevLayer.prevLayer
     end
-    return W,B
+    return W[end:-1:1],B[end:-1:1]
 end #deepInitWB
 
 export deepInitWB
