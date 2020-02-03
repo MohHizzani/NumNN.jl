@@ -21,3 +21,22 @@ function chain(X, arr::Array{L,1}) where {L<:Layer}
 end
 
 export chain
+
+
+
+"""
+    connect with the previous layer
+"""
+function (l::FCLayer)(li_1::Layer)
+    l.prevLayer = li_1
+    return l
+end #function (l::FCLayer)(li_1::Layer)
+
+
+"""
+    define input as X
+"""
+function (l::FCLayer)(x::Array)
+    l.prevLayer = nothing
+    return l
+end #function (l::FCLayer)(x::Array)

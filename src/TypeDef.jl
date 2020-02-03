@@ -49,9 +49,22 @@ mutable struct FCLayer <: Layer
             # Matrix{T}(undef, numNodes,1),
             prevLayer)# != nothing ? Ptr{Layer}(pointer_from_objref(prevLayer)) : nothing)
     end #FCLayer
-end #struct Layer
+end #struct FCLayer
 
 export FCLayer
+
+
+struct AddLayer <: Layer
+    prevLayer::Layer
+    l2::Layer
+    numNodes::Integer
+    function AddLayer(l1, l2; numNodes = 0)
+        numNodes = l1.numNodes
+        new(l1, l1, numNodes)
+    end #function AddLayer
+end
+
+
 
 mutable struct Model
     # layers::Array{Layer,1}

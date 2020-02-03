@@ -37,7 +37,7 @@ export initWB
             #Vector{Matrix{T}}
 """
 function deepInitWB(X, Y,
-                    outLayer;
+                    outLayer::Layer;
                     He=true,
                     coef=0.01,
                     zro=false)
@@ -46,34 +46,45 @@ function deepInitWB(X, Y,
     W = Array{Matrix{T},1}()
     B = Array{Matrix{T},1}()
     prevLayer = outLayer.prevLayer
-    _w, _b = initWB(outLayer.numNodes, prevLayer.prevLayer.numNodes,T; He=true, coef=0.01, zro=false)
+    _w, _b = initWB(outLayer.numNodes, prevLayer.numNodes,T; He=true, coef=0.01, zro=false)
     outLayer.W, outLayer.B = _w, _b
     push!(W, _w)
     push!(B, _b)
 
     # for i=2:length(layers)
-    while ! isequal(prevLayer, nothing)
-        if ! isequal(prevLayer.prevLayer, nothing)
-            _w, _b = initWB(prevLayer.numNodes,
-                            prevLayer.prevLayer.numNodes,
-                            T;
-                            He=true,
-                            coef=0.01,
-                            zro=false)
-        else
-            _w, _b = initWB(prevLayer.numNodes,
-                            size(X)[1],
-                            T;
-                            He=true,
-                            coef=0.01,
-                            zro=false)
-        end #if
-        prevLayer.W, prevLayer.B = _w, _b
-        push!(W, _w)
-        push!(B, _b)
+    while (! isequal(prevLayer, nothing))
+        if (! isa(prevLayer, AddLayer))
+            if (! isequal(prevLayer.prevLayer, nothing))
+                _w, _b = initWB(prevLayer.numNodes,
+                                prevLayer.prevLayer.numNodes,
+                                T;
+                                He=true,
+                                coef=0.01,
+                                zro=false)
+            else
+                _w, _b = initWB(prevLayer.numNodes,
+                                size(X)[1],
+                                T;
+                                He=true,
+                                coef=0.01,
+                                zro=false)
+            end #if (! isequal(prevLayer.prevLayer, nothing))
+            prevLayer.W, prevLayer.B = _w, _b
+            push!(W, _w)
+            push!(B, _b)
+            prevLayer = prevLayer.prevLayer
 
-        prevLayer = prevLayer.prevLayer
-    end
+        else #if it's an AddLayer
+            _w = Matrix{T}(undef, 0,0)
+            _b = Matrix{T}(undef, 0,0)
+            push!(W, _w)
+            push!(B, _b)
+            prevLayer = prevLayer.prevLayer
+        end #if (! isequal(prevLayer, AddLayer))
+
+
+    end #while (! isequal(prevLayer, nothing))
+
     return W[end:-1:1],B[end:-1:1]
 end #deepInitWB
 
