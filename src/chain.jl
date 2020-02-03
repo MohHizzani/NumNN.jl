@@ -18,3 +18,5 @@ function chain(X, arr::Array{L,1}) where {L<:Layer}
 
     return a
 end
+
+export chain
