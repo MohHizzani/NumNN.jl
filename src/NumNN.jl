@@ -6,6 +6,7 @@ module NumNN
     include("actFuns.jl")
     include("backForProp.jl")
     include("assistance.jl")
+    include("chain.jl")
 
 
 
