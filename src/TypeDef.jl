@@ -36,13 +36,13 @@ mutable struct FCLayer <: Layer
             prevLayer = nothing
         else
             T = Any
-            nl = numNodes
+            nl = 0
             nl_1 = 0
             prevLayer = nothing
         end
         new(numNodes, actFun, keepProb,
-            Matrix{T}(undef, numNodes,nl_1),
-            Matrix{T}(undef, numNodes,1),
+            Matrix{T}(undef, nl,nl_1),
+            Matrix{T}(undef, nl,1),
             # Matrix{T}(undef, numNodes,nl_1),
             # Matrix{T}(undef, numNodes,1),
             # Matrix{T}(undef, numNodes,nl_1),
