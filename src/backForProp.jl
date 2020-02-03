@@ -3,6 +3,31 @@ using ProgressMeter
 using Random
 using LinearAlgebra
 
+
+"""
+    run single layer forward propagation
+"""
+function (l::Layer)(ai_1)
+    W = l.W
+    B = l.B
+    actFun = l.actFun
+    z = W * ai_1 .+ B
+    if isequal(actFun, :softmax)
+        ai = Matrix{eltype(X)}(undef, c, 0)
+        for i=1:m
+            zCol = z[:,i]
+            ai = hcat(ai, eval(:($(actFun)($zCol))))
+        end
+    else
+        ai = eval(:($(actFun).($z))))
+    end
+
+    return z, ai
+end
+
+
+
+
 """
     perform the forward propagation using
 
