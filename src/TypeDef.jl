@@ -13,10 +13,10 @@ mutable struct FCLayer <: Layer
     keepProb::AbstractFloat
     W::Array{T,2} where {T}
     B::Array{T,2} where {T}
-    Vdw::Array{T,2} where {T}
-    Vdb::Array{T,2} where {T}
-    Sdw::Array{T,2} where {T}
-    Sdb::Array{T,2} where {T}
+    # Vdw::Array{T,2} where {T}
+    # Vdb::Array{T,2} where {T}
+    # Sdw::Array{T,2} where {T}
+    # Sdb::Array{T,2} where {T}
 
     """
         pointer to previous layer
@@ -43,11 +43,11 @@ mutable struct FCLayer <: Layer
         new(numNodes, actFun, keepProb,
             Matrix{T}(undef, numNodes,nl_1),
             Matrix{T}(undef, numNodes,1),
-            Matrix{T}(undef, numNodes,nl_1),
-            Matrix{T}(undef, numNodes,1),
-            Matrix{T}(undef, numNodes,nl_1),
-            Matrix{T}(undef, numNodes,1),
-            prevLayer)
+            # Matrix{T}(undef, numNodes,nl_1),
+            # Matrix{T}(undef, numNodes,1),
+            # Matrix{T}(undef, numNodes,nl_1),
+            # Matrix{T}(undef, numNodes,1),
+            prevLayer)# != nothing ? Ptr{Layer}(pointer_from_objref(prevLayer)) : nothing)
     end #FCLayer
 end #struct Layer
 
