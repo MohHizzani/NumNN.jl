@@ -64,7 +64,7 @@ struct AddLayer <: Layer
     end #function AddLayer
 end
 
-
+export AddLayer
 
 mutable struct Model
     # layers::Array{Layer,1}
