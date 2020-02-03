@@ -6,12 +6,13 @@
 """
 function chain(X, arr::Array{L,1}) where {L<:Layer}
     prevLayer = nothing
+    La = eltype(arr)
     for l in arr
         if isequal(prevLayer, nothing)
-            a = L(l.numNodes, l.actFun, X, keepProb=l.keepProb)
+            global a = La(l.numNodes, l.actFun, X, keepProb=l.keepProb)
             prevLayer = a
         else
-            a = L(l.numNodes, l.actFun, prevLayer, keepProb=l.keepProb)
+            global a = La(l.numNodes, l.actFun, prevLayer, keepProb=l.keepProb)
             prevLayer = a
         end
     end #for
