@@ -68,9 +68,11 @@ struct AddLayer <: Layer
     l2::Layer
     numNodes::Integer
     forwCount::Integer
+    A::Array{T,2} where {T}
     function AddLayer(l1, l2; numNodes = 0)
         numNodes = l1.numNodes
-        new(l1, l1, numNodes, 0)
+        T = eltype(l1.W)
+        new(l1, l2, numNodes, 0, Matrix{T}(undef,0,0))
     end #function AddLayer
 end
 

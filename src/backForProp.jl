@@ -5,6 +5,35 @@ using LinearAlgebra
 
 
 """
+    perform single layer forward propagation
+"""
+function layerForward(l::Layer)
+
+end
+
+
+function chainForProp(X, oLayer::Layer)
+    if typeof(oLayer)!=AddLayer
+        if oLayer.prevLayer!=nothing
+            actFun = oLayer.actFun
+            W, B = oLayer.W, oLayer.B
+            Z = W*X .+ B
+            A = eval(:($actFun($Z)))
+            return A
+        else
+            actFun = oLayer.actFun
+            W, B = oLayer.W, oLayer.B
+            prevLayer
+            Z = W*chainForProp(X, prevLayer) .+ B
+            A = eval(:($actFun($Z)))
+            return A
+        end #if oLayer.prevLayer!=nothing
+    else
+        A = chainForProp(X, prevLayer) .+ chainForProp(X, l2)
+    return
+
+
+"""
     perform the forward propagation using
 
     input:
