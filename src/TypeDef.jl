@@ -13,6 +13,12 @@ mutable struct FCLayer <: Layer
     keepProb::AbstractFloat
     W::Array{T,2} where {T}
     B::Array{T,2} where {T}
+
+    ### adding Z & A place holder for recursive calling
+    ### and a counter for how many it was called
+    Z::Array{T,2} where {T}
+    A::Array{T,2} where {T}
+    forwCount::Integer
     # Vdw::Array{T,2} where {T}
     # Vdb::Array{T,2} where {T}
     # Sdw::Array{T,2} where {T}
@@ -43,6 +49,9 @@ mutable struct FCLayer <: Layer
         new(numNodes, actFun, keepProb,
             Matrix{T}(undef, nl,nl_1),
             Matrix{T}(undef, nl,1),
+            Matrix{T}(undef, 0, 0),
+            Matrix{T}(undef, 0, 0),
+            0,
             # Matrix{T}(undef, numNodes,nl_1),
             # Matrix{T}(undef, numNodes,1),
             # Matrix{T}(undef, numNodes,nl_1),
@@ -58,9 +67,10 @@ struct AddLayer <: Layer
     prevLayer::Layer
     l2::Layer
     numNodes::Integer
+    forwCount::Integer
     function AddLayer(l1, l2; numNodes = 0)
         numNodes = l1.numNodes
-        new(l1, l1, numNodes)
+        new(l1, l1, numNodes, 0)
     end #function AddLayer
 end
 
