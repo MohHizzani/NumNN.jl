@@ -32,6 +32,8 @@ end #dbinaryCrossentropy
 
 export dbinaryCrossentropy
 
+
+
 function categoricalCrossentropy(a, y)
     aNew = prevnextfloat.(a)
     J = .-(y .* log.(aNew))

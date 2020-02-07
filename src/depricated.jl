@@ -14,3 +14,115 @@ function flatten(x)
     rgp, n, m = size(x)
     return reshape(x, (rgp*m*n, 1))
 end
+
+
+
+"""
+    perform the forward propagation using
+
+    input:
+        x := (n0, m) matrix
+        y := (c,  m) matrix where c is the number of classes
+
+    return cache of A, Z, Yhat, Cost
+"""
+function forwardProp(X::Matrix{T},
+                     Y::Matrix{T},
+                     model::Model) where {T}
+
+    W::AbstractArray{Matrix{T},1},
+    B::AbstractArray{Matrix{T},1},
+    layers::AbstractArray{Layer,1},
+    lossFun = model.W, model.B, model.layers, model.lossFun
+    regulization = model.regulization
+    λ = model.λ
+    m = size(X)[2]
+    c = size(Y)[1]
+    L = length(layers)
+    A = Vector{Matrix{eltype(X)}}()
+    Z = Vector{Matrix{eltype(X)}}()
+    push!(Z, W[1]*X .+ B[1])
+    actFun = layers[1].actFun
+    push!(A, eval(:($actFun.($Z[1]))))
+    for l=2:L
+        push!(Z, W[l]*A[l-1] .+ B[l])
+        actFun = layers[l].actFun
+
+        if isequal(actFun, :softmax)
+            a = Matrix{eltype(X)}(undef, c, 0)
+            for i=1:m
+                zCol = Z[l][:,i]
+                a = hcat(a, eval(:($(actFun)($zCol))))
+            end
+            push!(A, a)
+        else
+            push!(A, eval(:($(actFun).($Z[$l]))))
+        end
+    end
+
+    if isequal(lossFun, :categoricalCrossentropy)
+        cost = sum(eval(:($lossFun.($A[$L], $Y))))/ m
+    else
+        cost = sum(eval(:($lossFun.($A[$L], $Y)))) / (m*c)
+    end
+
+    if regulization > 0
+        cost += (λ/2m) * sum([norm(w, regulization) for w in W])
+    end
+
+    return Dict("A"=>A,
+                "Z"=>Z,
+                "Yhat"=>A[L],
+                "Cost"=>cost)
+end #forwardProp
+
+# export forwardProp
+
+
+"""
+    predict Y using the model and the input X and the labels Y
+    inputs:
+        model := the trained model
+        X := the input matrix
+        Y := the input labels to compare with
+
+    output:
+        a Dict of
+        "Yhat" := the predicted values
+        "Yhat_bools" := the predicted labels
+        "accuracy" := the accuracy of the predicted labels
+"""
+function predict(model::Model, X, Y)
+    Ŷ = forwardProp(X, Y, model)["Yhat"]
+    T = eltype(Ŷ)
+    layers = model.layers
+    c, m = size(Y)
+    # if isbool(Y)
+    acc = 0
+    if isequal(layers[end].actFun, :softmax)
+        Ŷ_bool = BitArray(undef, c, 0)
+        p = Progress(size(Ŷ)[2], 0.01)
+        for v in eachcol(Ŷ)
+            Ŷ_bool = hcat(Ŷ_bool, v .== maximum(v))
+            next!(p)
+        end
+
+        acc = sum([Ŷ_bool[:,i] == Y[:,i] for i=1:size(Y)[2]])/m
+        println("Accuracy is = $acc")
+    end
+
+    if isequal(layers[end].actFun, :σ)
+        Ŷ_bool = BitArray(undef, c, 0)
+        p = Progress(size(Ŷ)[2], 0.01)
+        for v in eachcol(Ŷ)
+            Ŷ_bool = hcat(Ŷ_bool, v .> T(0.5))
+            next!(p)
+        end
+
+        acc = sum(Ŷ_bool .== Y)/(c*m)
+        println("Accuracy is = $acc")
+    end
+    return Dict("Yhat"=>Ŷ,
+                "Yhat_bool"=>Ŷ_bool,
+                "accuracy"=>acc)
+end #predict
