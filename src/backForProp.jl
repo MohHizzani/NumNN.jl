@@ -5,32 +5,69 @@ using LinearAlgebra
 
 
 """
-    perform single layer forward propagation
+    perform the chained forward propagation using recursive calls
+
+    input:
+    X := input of the forward propagation
+    oLayer := output layer
+    cnt := an internal counter used to cache the layers was performed
+           not to redo it again
+
+    returns:
+    A := the output of the last layer
+
+    for internal use, it set again the values of Z and A in each layer
+        to be used later in back propagation and add one to the layer
+        forwCount value when pass through it
 """
-function layerForward(l::Layer)
+function chainForProp(X, oLayer::Layer, cnt::Interger=-1)
+    if cnt==-1
+        cnt = oLayer.forwCount+1
+    end
 
-end
-
-
-function chainForProp(X, oLayer::Layer)
     if typeof(oLayer)!=AddLayer
-        if oLayer.prevLayer!=nothing
+        if oLayer.prevLayer==nothing
             actFun = oLayer.actFun
             W, B = oLayer.W, oLayer.B
-            Z = W*X .+ B
-            A = eval(:($actFun($Z)))
+            if oLayer.forwCount < cnt
+                oLayer.forwcount += 1
+                Z = W*X .+ B
+                oLayer.Z = Z
+                A = eval(:($actFun($Z)))
+                oLayer.A = A
+            else #if oLayer.forwCount < cnt
+                A = oLayer.A
+            end #if oLayer.forwCount < cnt
             return A
-        else
+        else #if oLayer.prevLayer==nothing
             actFun = oLayer.actFun
             W, B = oLayer.W, oLayer.B
-            prevLayer
-            Z = W*chainForProp(X, prevLayer) .+ B
-            A = eval(:($actFun($Z)))
+            prevLayer = oLayer.prevLayer
+            if oLayer.forwCount < cnt
+                oLayer.forwCount += 1
+                Z = W*chainForProp(X, prevLayer, oLayer.forwCount) .+ B
+                oLayer.Z = Z
+                A = eval(:($actFun($Z)))
+                oLayer.A = A
+            else #if oLayer.forwCount < cnt
+                A = oLayer.A
+            end #if oLayer.forwCount < cnt
             return A
         end #if oLayer.prevLayer!=nothing
-    else
-        A = chainForProp(X, prevLayer) .+ chainForProp(X, l2)
-    return
+    else #if typeof(oLayer)!=AddLayer
+        if oLayer.forwCount < cnt
+            oLayer.forwCount += 1
+            A = chainForProp(X, oLayer.prevLayer, oLayer.forwCount) .+
+                chainForProp(X, oLayer.l2, oLayer.forwCount)
+            oLayer.A = A
+        else #if oLayer.forwCount < cnt
+            A = oLayer.A
+        end #if oLayer.forwCount < cnt
+
+        return A
+    end #if typeof(oLayer)!=AddLayer
+
+end #function chainForProp
 
 
 """
