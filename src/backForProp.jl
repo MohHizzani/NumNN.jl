@@ -30,7 +30,7 @@ function chainForProp(X, oLayer::Layer, cnt::Integer=-1)
             actFun = oLayer.actFun
             W, B = oLayer.W, oLayer.B
             if oLayer.forwCount < cnt
-                oLayer.forwcount += 1
+                oLayer.forwCount += 1
                 Z = W*X .+ B
                 oLayer.Z = Z
                 A = eval(:($actFun($Z)))
