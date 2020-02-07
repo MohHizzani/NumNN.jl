@@ -66,3 +66,10 @@ function dsoftmax(Ŷ,dim=1)
 end #dsoftmax
 
 export softmax, dsoftmax
+
+
+Base.tanh(Z::Array{T,N}) = tanh.(Z)
+
+dtanh(Z::Array{T,N}) where {T,N} = 1 .- (tanh.(Z)).^2
+
+export dtanh
