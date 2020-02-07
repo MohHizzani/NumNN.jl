@@ -1,29 +1,34 @@
 """
     return the Sigmoid output
+    inputs must be matices
 """
-σ(x,w,b) = 1/(1+exp(-(w*x+b)))
-σ(z)  = 1/(1+exp(-z))
+σ(X,W,B) = 1 ./ (1 .+ exp.(.-(W*X .+ B)))
+σ(Z)  = 1 ./ (1 .+ exp.(.-Z))
 
 export σ
 
 """
     return the derivative of Sigmoid function
 """
-dσ(z) = σ(z) * (1-σ(z))
+dσ(Z) = σ(Z) .* (1 .- σ(Z))
 
 export dσ
 
 """
     return the ReLU output
 """
-relu(z::T) where {T} = max(zero(T), z)
+function relu(Z::Array{T,N}) where {T,N}
+    max.(zero(T), Z)
+end #function relu(Z::Array{T,N}) where {T,N}
 
 export relu
 
 """
     return the derivative of ReLU function
 """
-drelu(z::T) where {T} = z > zero(T) ? one(T) : zero(T)
+function drelu(Z::Array{T,N}) where {T,N}
+    return T.(Z .> zero(T))
+end #function drelu(z::Array{T,N}) where {T,N}
 
 export drelu
 
@@ -32,15 +37,32 @@ export drelu
     compute the softmax function
 
 """
-function softmax(Ŷ)
+function softmax(Ŷ, dim=1)
     Ŷ_exp = exp.(Ŷ)
-    sumofexp = sum(Ŷ_exp)
+    sumofexp = sum(Ŷ_exp, dims=dim)
     return Ŷ_exp./sumofexp
 end #softmax
 
-function dsoftmax(Ŷ)
+function dsoftmax(Ŷ,dim=1)
     sŶ = softmax(Ŷ)
-    return sŶ .* (1 .- sŶ)
+    T = eltype(Ŷ)
+    softMat = Array{T,3}(undef,0,0,0)
+    sSize = size(Ŷ)[dim]
+    for c in eachcol(sŶ)
+        tmpMat = zeros(T, sSize, sSize)
+        for i=1:length(c)
+            for j=1:length(c)
+                if i==j
+                    tmpMat[i,j] = c[i] * (1-c[j])
+                else
+                    tmpMat[i,j] = -c[i]*c[j]
+                end
+            end
+        end
+        softMat = cat(softMat, tmpMat, dims=3)
+    end
+
+    return softMat
 end #dsoftmax
 
 export softmax, dsoftmax
