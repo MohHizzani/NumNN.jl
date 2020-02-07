@@ -20,7 +20,7 @@ using LinearAlgebra
         to be used later in back propagation and add one to the layer
         forwCount value when pass through it
 """
-function chainForProp(X, oLayer::Layer, cnt::Interger=-1)
+function chainForProp(X, oLayer::Layer, cnt::Integer=-1)
     if cnt==-1
         cnt = oLayer.forwCount+1
     end
@@ -69,6 +69,7 @@ function chainForProp(X, oLayer::Layer, cnt::Interger=-1)
 
 end #function chainForProp
 
+export chainForProp
 
 """
     perform the forward propagation using
