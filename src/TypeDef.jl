@@ -63,7 +63,7 @@ end #struct FCLayer
 export FCLayer
 
 
-struct AddLayer <: Layer
+mutable struct AddLayer <: Layer
     prevLayer::Layer
     l2::Layer
     numNodes::Integer
