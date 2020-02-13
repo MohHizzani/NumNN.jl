@@ -122,8 +122,8 @@ mutable struct Model
                    λ = 1.0,
                    lossFun = :categoricalCrossentropy)
 
-        W, B = deepInitWB(X, Y, outLayer)
-        V, S = deepInitVS(W,B, optimizer)
+        deepInitWB!(X, Y, outLayer)
+        deepInitVS!(outLayer, optimizer)
         @assert regulization in [0, 1, 2]
         return new(outLayer,
                    lossFun,
