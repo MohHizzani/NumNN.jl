@@ -19,7 +19,6 @@ mutable struct FCLayer <: Layer
     ### and a counter for how many it was called
     Z::Array{T,N} where {T,N}
     A::Array{T,N} where {T,N}
-    D::BitArray{N} where {N}
     forwCount::Integer
     V::Dict{Symbol,Array{T,N} where {T,N}}
     S::Dict{Symbol,Array{T,N} where {T,N}}
@@ -54,16 +53,14 @@ mutable struct FCLayer <: Layer
             Matrix{T}(undef, nl, 1),
             Matrix{T}(undef, 0, 0),
             Matrix{T}(undef, 0, 0),
-
             Matrix{T}(undef, 0, 0),
             Matrix{T}(undef, 0, 0),
-            BitArray{2}(undef, 0, 0),
             0,
             Dict(:dw => Matrix{T}(undef, 0, 0), :db => Matrix{T}(undef, 0, 0)),
             Dict(:dw => Matrix{T}(undef, 0, 0), :db => Matrix{T}(undef, 0, 0)),
             0,
             prevLayer,
-        )# != nothing ? Ptr{Layer}(pointer_from_objref(prevLayer)) : nothing)
+        )#
     end #FCLayer
 end #struct FCLayer
 
