@@ -21,21 +21,22 @@ end #oneHot
 
 export oneHot
 
-function resetForwCount!(outLayer::Layer)
+function resetCount!(outLayer::Layer,
+                     cnt::Symbol)
     prevLayer = outLayer.prevLayer
     if prevLayer == nothing
-        if outLayer.forwCount != 0
-            outLayer.forwCount = 0
-        end #if outLayer.forwCount != 0
-    elseif outLayer==AddLayer #if prevLayer == nothing
-        resetForwCount!(prevLayer)
-        resetForwCount!(outLayer.l2)
-        outLayer.forwCount = 0
+        # if outLayer.forwCount != 0
+            eval(:($outLayer.$cnt = 0))
+        # end #if outLayer.forwCount != 0
+    elseif isa(outLayer, AddLayer) #if prevLayer == nothing
+        resetCount!(prevLayer, cnt)
+        resetCount!(outLayer.l2, cnt)
+        eval(:($outLayer.$cnt = 0))
     else #if prevLayer == nothing
-        resetForwCount!(prevLayer)
-        outLayer.forwCount = 0
+        resetCount!(prevLayer, cnt)
+        eval(:($outLayer.$cnt = 0))
     end #if prevLayer == nothing
     return nothing
 end #function resetForwCount
 
-export resetForwCount!
+export resetCount!
