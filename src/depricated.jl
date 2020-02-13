@@ -126,3 +126,86 @@ function predict(model::Model, X, Y)
                 "Yhat_bool"=>Ŷ_bool,
                 "accuracy"=>acc)
 end #predict
+
+
+
+function backProp(X,Y,
+                  model::Model,
+                  cache::Dict{})
+
+    layers::AbstractArray{Layer, 1} = model.layers
+    lossFun = model.lossFun
+    m = size(X)[2]
+    L = length(layers)
+    A, Z = cache["A"], cache["Z"]
+    W, B, regulization, λ = model.W, model.B, model.regulization, model.λ
+
+    D = [rand(size(A[i])...) .< layers[i].keepProb for i=1:L]
+
+    if layers[L].keepProb < 1.0 #to save time of multiplication in case keepProb was one
+        A = [A[i] .* D[i] for i=1:L]
+        A = [A[i] ./ layers[i].keepProb for i=1:L]
+    end
+    # init all Arrays
+    dA = Vector{Matrix{eltype(A[1])}}([similar(mat) for mat in A])
+    dZ = Vector{Matrix{eltype(Z[1])}}([similar(mat) for mat in Z])
+    dW = Vector{Matrix{eltype(W[1])}}([similar(mat) for mat in W])
+    dB = Vector{Matrix{eltype(B[1])}}([similar(mat) for mat in B])
+
+    dlossFun = Symbol("d",lossFun)
+    actFun = layers[L].actFun
+    if ! isequal(actFun, :softmax) && !(actFun==:σ &&
+                                        lossFun==:binaryCrossentropy)
+        dA[L] = eval(:($dlossFun.($A[$L], $Y))) #.* eval(:($dActFun.(Z[L])))
+    end
+    if layers[L].keepProb < 1.0 #to save time of multiplication in case keepProb was one
+        dA[L] = dA[L] .* D[L]
+        dA[L] = dA[L] ./ layers[L].keepProb
+    end
+    for l=L:-1:2
+        actFun = layers[l].actFun
+        dActFun = Symbol("d",actFun)
+        if l==L && (isequal(actFun, :softmax) ||
+                    (actFun==:σ && lossFun==:binaryCrossentropy))
+            dZ[l] = A[l] .- Y
+        else
+            dZ[l] = dA[l] .* eval(:($dActFun.($Z[$l])))
+        end
+
+        dW[l] = dZ[l]*A[l-1]' ./m
+
+        if regulization > 0
+            if regulization==1
+                dW[l] .+= (λ/2m)
+            else
+                dW[l] .+= (λ/m) .* W[l]
+            end
+        end
+        dB[l] = 1/m .* sum(dZ[l], dims=2)
+        dA[l-1] = W[l]'dZ[l]
+        if layers[l-1].keepProb < 1.0 #to save time of multiplication in case keepProb was one
+            dA[l-1] = dA[l-1] .* D[l-1]
+            dA[l-1] = dA[l-1] ./ layers[l-1].keepProb
+        end
+    end
+
+    l=1 #shortcut cause I just copied from the for loop
+    actFun = layers[l].actFun
+    dActFun = Symbol("d",actFun)
+    dZ[l] = dA[l] .* eval(:($dActFun.($Z[$l])))
+
+    dW[l] = 1/m .* dZ[l]*X' #where X = A[0]
+
+    if regulization > 0
+        if regulization==1
+            dW[l] .+= (λ/2m)
+        else
+            dW[l] .+= (λ/m) .* W[l]
+        end
+    end
+    dB[l] = 1/m .* sum(dZ[l], dims=2)
+
+    grads = Dict("dW"=>dW,
+                 "dB"=>dB)
+    return grads
+end #backProp
