@@ -20,3 +20,22 @@ function oneHot(Y; classes = [], numC = 0)
 end #oneHot
 
 export oneHot
+
+function resetForwCount!(outLayer::Layer)
+    prevLayer = outLayer.prevLayer
+    if prevLayer == nothing
+        if outLayer.forwCount != 0
+            outLayer.forwCount = 0
+        end #if outLayer.forwCount != 0
+    elseif outLayer==AddLayer #if prevLayer == nothing
+        resetForwCount!(prevLayer)
+        resetForwCount!(outLayer.l2)
+        outLayer.forwCount = 0
+    else #if prevLayer == nothing
+        resetForwCount!(prevLayer)
+        outLayer.forwCount = 0
+    end #if prevLayer == nothing
+    return nothing
+end #function resetForwCount
+
+export resetForwCount!
