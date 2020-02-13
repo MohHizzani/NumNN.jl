@@ -27,7 +27,6 @@ export initWB
 """
     initialize W's and B's using
         X := is the input of the neural Network
-        Y := is the labels
         layers := is 1st rank array contains elements of Layer(s) (hidden and output)
 
     returns:
@@ -36,59 +35,50 @@ export initWB
         B := 1st rank array contains all the B's for each layer
             #Vector{Matrix{T}}
 """
-function deepInitWB(X, Y,
-                    outLayer::Layer;
+function deepInitWB!(X,
+                    outLayer::Layer,
+                    cnt = -1;
                     He=true,
                     coef=0.01,
                     zro=false)
-
+    if cnt < 0
+        cnt = outLayer.forwCount
+    end
     T = eltype(X)
-    W = Array{Matrix{T},1}()
-    B = Array{Matrix{T},1}()
     prevLayer = outLayer.prevLayer
-    _w, _b = initWB(outLayer.numNodes, prevLayer.numNodes,T; He=true, coef=0.01, zro=false)
-    outLayer.W, outLayer.B = _w, _b
-    push!(W, _w)
-    push!(B, _b)
+    forwCount = outLayer.forwCount
+    if prevLayer == nothing
+        if forwCount < cnt
+        _w, _b = initWB(outLayer.numNodes, size(X)[1],T; He=He, coef=coef, zro=zro)
+        outLayer.W, outLayer.B = _w, _b
+        outLayer.forwCount += 1
+        end #if forwCount < cnt
+    elseif isa(outLayer, AddLayer) && forwCount < cnt
+        deepInitWB!(X, prevLayer, outLayer.forwCount+1;
+                    He=He,
+                    coef=coef,
+                    zro=zro)
+        deepInitWB!(X, outLayer.l2, outLayer.forwCount+1;
+                    He=He,
+                    coef=coef,
+                    zro=zro)
+        outLayer.forwCount += 1
 
-    # for i=2:length(layers)
-    while (! isequal(prevLayer, nothing))
-        if (! isa(prevLayer, AddLayer))
-            if (! isequal(prevLayer.prevLayer, nothing))
-                _w, _b = initWB(prevLayer.numNodes,
-                                prevLayer.prevLayer.numNodes,
-                                T;
-                                He=true,
-                                coef=0.01,
-                                zro=false)
-            else
-                _w, _b = initWB(prevLayer.numNodes,
-                                size(X)[1],
-                                T;
-                                He=true,
-                                coef=0.01,
-                                zro=false)
-            end #if (! isequal(prevLayer.prevLayer, nothing))
-            prevLayer.W, prevLayer.B = _w, _b
-            push!(W, _w)
-            push!(B, _b)
-            prevLayer = prevLayer.prevLayer
+    else #if prevLayer == nothing
+        deepInitWB!(X, prevLayer, outLayer.forwCount+1;
+                    He=He,
+                    coef=coef,
+                    zro=zro)
+        _w, _b = initWB(outLayer.numNodes, prevLayer.numNodes,T; He=He, coef=coef, zro=zro)
+        outLayer.W, outLayer.B = _w, _b
+        outLayer.forwCount += 1
 
-        else #if it's an AddLayer
-            _w = Matrix{T}(undef, 0,0)
-            _b = Matrix{T}(undef, 0,0)
-            push!(W, _w)
-            push!(B, _b)
-            prevLayer = prevLayer.prevLayer
-        end #if (! isequal(prevLayer, AddLayer))
+    end #if prevLayer == nothing
 
-
-    end #while (! isequal(prevLayer, nothing))
-
-    return W[end:-1:1],B[end:-1:1]
+    return nothing
 end #deepInitWB
 
-export deepInitWB
+export deepInitWB!
 
 
 
