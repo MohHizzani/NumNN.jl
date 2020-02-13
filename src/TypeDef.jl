@@ -106,16 +106,7 @@ mutable struct Model
         learning rate
     """
     α::AbstractFloat
-    W::Array{Array{T,N},1} where {T,N}
-    B::Array{Array{T,N},1} where {T,N}
 
-
-    """
-        V is the velocity
-        S is the RMSProp
-    """
-    V::Dict{Symbol,Array{Array{T,N},1}}  where {T,N}
-    S::Dict{Symbol,Array{Array{T,N},1}}  where {T,N}
     optimizer::Symbol
     ϵAdam::AbstractFloat
     β1::AbstractFloat
@@ -138,8 +129,6 @@ mutable struct Model
                    lossFun,
                    regulization, λ,
                    α,
-                   W, B,
-                   V, S,
                    optimizer, ϵAdam, β1, β2)
     end #inner-constructor
 end #Model
