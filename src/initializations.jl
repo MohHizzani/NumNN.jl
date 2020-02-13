@@ -5,20 +5,23 @@
     returns:
         W: of size of (nl, nl_1)
 """
-function initWB(nl, nl_1,
-                p::Type{T}=Float64::Type{Float64};
-                He=true,
-                coef=0.01,
-                zro=false) where {T}
+function initWB(
+    nl,
+    nl_1,
+    p::Type{T} = Float64::Type{Float64};
+    He = true,
+    coef = 0.01,
+    zro = false,
+) where {T}
     if He
-        coef = sqrt(2/nl_1)
+        coef = sqrt(2 / nl_1)
     end
     if zro
-        W = zeros(T, (nl,nl_1))
+        W = zeros(T, (nl, nl_1))
     else
         W = randn(T, nl, nl_1) .* coef
     end
-    B = zeros(T, (nl,1))
+    B = zeros(T, (nl, 1))
     return W, B
 end #initWB
 
@@ -35,45 +38,81 @@ export initWB
         B := 1st rank array contains all the B's for each layer
             #Vector{Matrix{T}}
 """
-function deepInitWB!(X,
-                    outLayer::Layer,
-                    cnt = -1;
-                    He=true,
-                    coef=0.01,
-                    zro=false)
+function deepInitWB!(
+    X,
+    outLayer::Layer,
+    cnt = -1;
+    He = true,
+    coef = 0.01,
+    zro = false,
+)
     if cnt < 0
-        cnt = outLayer.forwCount
+        cnt = outLayer.forwCount + 1
     end
     T = eltype(X)
     prevLayer = outLayer.prevLayer
     forwCount = outLayer.forwCount
     if prevLayer == nothing
         if forwCount < cnt
-        _w, _b = initWB(outLayer.numNodes, size(X)[1],T; He=He, coef=coef, zro=zro)
-        outLayer.W, outLayer.B = _w, _b
-        outLayer.dW, outLayer.dB = zeros(T, size(_w)...), zeros(T, size(_b)...)
-        outLayer.forwCount += 1
+            outLayer.forwCount += 1
+            _w, _b = initWB(
+                outLayer.numNodes,
+                size(X)[1],
+                T;
+                He = He,
+                coef = coef,
+                zro = zro,
+            )
+            outLayer.W, outLayer.B = _w, _b
+            outLayer.dW, outLayer.dB = zeros(T, size(_w)...),
+                zeros(T, size(_b)...)
+
         end #if forwCount < cnt
-    elseif isa(outLayer, AddLayer) && forwCount < cnt
-        deepInitWB!(X, prevLayer, outLayer.forwCount+1;
-                    He=He,
-                    coef=coef,
-                    zro=zro)
-        deepInitWB!(X, outLayer.l2, outLayer.forwCount+1;
-                    He=He,
-                    coef=coef,
-                    zro=zro)
-        outLayer.forwCount += 1
+    elseif isa(outLayer, AddLayer)
+        if forwCount < cnt
+            outLayer.forwCount += 1
+            deepInitWB!(
+                X,
+                prevLayer,
+                outLayer.forwCount + 1;
+                He = He,
+                coef = coef,
+                zro = zro,
+            )
+            deepInitWB!(
+                X,
+                outLayer.l2,
+                outLayer.forwCount + 1;
+                He = He,
+                coef = coef,
+                zro = zro,
+            )
+        end #if forwCount < cnt
 
     else #if prevLayer == nothing
-        deepInitWB!(X, prevLayer, outLayer.forwCount+1;
-                    He=He,
-                    coef=coef,
-                    zro=zro)
-        _w, _b = initWB(outLayer.numNodes, prevLayer.numNodes,T; He=He, coef=coef, zro=zro)
-        outLayer.W, outLayer.B = _w, _b
-        outLayer.dW, outLayer.dB = zeros(T, size(_w)...), zeros(T, size(_b)...)
-        outLayer.forwCount += 1
+        if forwCount < cnt
+            outLayer.forwCount += 1
+            deepInitWB!(
+                X,
+                prevLayer,
+                outLayer.forwCount + 1;
+                He = He,
+                coef = coef,
+                zro = zro,
+            )
+            _w, _b = initWB(
+                outLayer.numNodes,
+                prevLayer.numNodes,
+                T;
+                He = He,
+                coef = coef,
+                zro = zro,
+            )
+            outLayer.W, outLayer.B = _w, _b
+            outLayer.dW, outLayer.dB = zeros(T, size(_w)...),
+                zeros(T, size(_b)...)
+
+        end #if forwCount < cnt
 
     end #if prevLayer == nothing
 
@@ -84,29 +123,49 @@ export deepInitWB!
 
 
 
-function deepInitVS(W::Array{Array{T,2},1},
-                    B::Array{Array{T,2},1},
-                    optimizer::Symbol) where {T<:Number}
+function deepInitVS!(outLayer::Layer, optimizer::Symbol, cnt::Integer = -1)
 
-    if optimizer==:adam || optimizer==:momentum
-        VdW = Array{Array{eltype(W[1]),2},1}([zeros(size(w)) for w in W])
-        VdB = Array{Array{eltype(B[1]),2},1}([zeros(size(b)) for b in B])
-        if optimizer==:adam
-            SdW = Array{Array{eltype(W[1]),2},1}([zeros(size(w)) for w in W])
-            SdB = Array{Array{eltype(B[1]),2},1}([zeros(size(b)) for b in B])
-        else
-            SdW = Array{Array{eltype(W[1]),2},1}(undef,0)
-            SdB = Array{Array{eltype(W[1]),2},1}(undef,0)
-        end
-
-    else
-        SdW = Array{Array{eltype(W[1]),2},1}(undef,0)
-        SdB = Array{Array{eltype(W[1]),2},1}(undef,0)
-        VdW = Array{Array{eltype(W[1]),2},1}(undef,0)
-        VdB = Array{Array{eltype(W[1]),2},1}(undef,0)
+    if cnt < 0
+        cnt = outLayer.forwCount + 1
     end
 
-    return Dict(:dw=>VdW, :db=>VdB), Dict(:dw=>SdW, :db=>SdB)
-end
+    prevLayer = outLayer.prevLayer
 
-export deepInitVS
+    if optimizer == :adam || optimizer == :momentum
+        if prevLayer == nothing
+            if outLayer.forwCount < cnt
+                outLayer.forwCount += 1
+                T = eltype(outLayer.W)
+                outLayer.V[:dw] = zeros(T, size(outLayer.W)...)
+                outLayer.V[:db] = zeros(T, size(outLayer.B)...)
+                if optimizer == :adam
+                    outLayer.S[:dw] = zeros(T, size(outLayer.W)...)
+                    outLayer.S[:db] = zeros(T, size(outLayer.B)...)
+                end #if optimizer == :adam
+            end #if outLayer.forwCount < cnt
+        elseif isa(outLayer, AddLayer)
+            if outLayer.forwCount < cnt
+                outLayer.forwCount += 1
+                deepInitVS!(prevLayer, optimizer, outLayer.forwCount)
+                deepInitVS!(outLayer.l2, optimizer, outLayer.forwCount)
+            end #if outLayer.forwCount < cnt
+        else #if prevLayer == nothing
+            if outLayer.forwCount < cnt
+                outLayer.forwCount += 1
+                deepInitVS!(prevLayer, optimizer, outLayer.forwCount)
+                T = eltype(outLayer.W)
+                outLayer.V[:dw] = zeros(T, size(outLayer.W)...)
+                outLayer.V[:db] = zeros(T, size(outLayer.B)...)
+                if optimizer == :adam
+                    outLayer.S[:dw] = zeros(T, size(outLayer.W)...)
+                    outLayer.S[:db] = zeros(T, size(outLayer.B)...)
+                end #if optimizer == :adam
+            end #if outLayer.forwCount < cnt
+        end #if prevLayer == nothing
+
+    end #if optimizer==:adam || optimizer==:momentum
+
+    return nothing
+end #function deepInitVS!
+
+export deepInitVS!
