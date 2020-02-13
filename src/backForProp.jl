@@ -106,7 +106,7 @@ function predict(model::Model, X, Y)
         println("Accuracy is = $acc")
     end
 
-    if isequal(layers[end].actFun, :σ)
+    if isequal(outLayer.actFun, :σ)
         Ŷ_bool = Ŷ .> T(0.5)
         acc = sum(Ŷ_bool .== Y)/(c*m)
         println("Accuracy is = $acc")
