@@ -51,6 +51,7 @@ function deepInitWB!(X,
         if forwCount < cnt
         _w, _b = initWB(outLayer.numNodes, size(X)[1],T; He=He, coef=coef, zro=zro)
         outLayer.W, outLayer.B = _w, _b
+        outLayer.dW, outLayer.dB = zeros(T, size(_w)...), zeros(T, size(_b)...)
         outLayer.forwCount += 1
         end #if forwCount < cnt
     elseif isa(outLayer, AddLayer) && forwCount < cnt
@@ -71,6 +72,7 @@ function deepInitWB!(X,
                     zro=zro)
         _w, _b = initWB(outLayer.numNodes, prevLayer.numNodes,T; He=He, coef=coef, zro=zro)
         outLayer.W, outLayer.B = _w, _b
+        outLayer.dW, outLayer.dB = zeros(T, size(_w)...), zeros(T, size(_b)...)
         outLayer.forwCount += 1
 
     end #if prevLayer == nothing
