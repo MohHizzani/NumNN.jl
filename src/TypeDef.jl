@@ -16,8 +16,9 @@ mutable struct FCLayer <: Layer
 
     ### adding Z & A place holder for recursive calling
     ### and a counter for how many it was called
-    Z::Array{T,2} where {T}
-    A::Array{T,2} where {T}
+    Z::Array{T,N} where {T,N}
+    A::Array{T,N} where {T,N}
+    D::BitArray{N} where {N}
     forwCount::Integer
     # Vdw::Array{T,2} where {T}
     # Vdb::Array{T,2} where {T}
@@ -51,6 +52,7 @@ mutable struct FCLayer <: Layer
             Matrix{T}(undef, nl,1),
             Matrix{T}(undef, 0, 0),
             Matrix{T}(undef, 0, 0),
+            BitArray{2}(undef, 0,0),
             0,
             # Matrix{T}(undef, numNodes,nl_1),
             # Matrix{T}(undef, numNodes,1),
