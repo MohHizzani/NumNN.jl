@@ -29,6 +29,9 @@ export chain
 """
 function (l::FCLayer)(li_1::Layer)
     l.prevLayer = li_1
+    if ! in(l,li_1.nextLayers)
+        push!(li_1.nextLayers, l)
+    end
     return l
 end #function (l::FCLayer)(li_1::Layer)
 
