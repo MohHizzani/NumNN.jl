@@ -27,6 +27,7 @@ mutable struct FCLayer <: Layer
         pointer to previous layer
     """
     prevLayer::L where {L<:Union{Layer,Nothing}}
+    nextLayers::Array{Layer,1}
     function FCLayer(numNodes, actFun, layerInput = nothing; keepProb = 1.0)
         # W, B
         if isa(layerInput, Layer)
@@ -60,6 +61,7 @@ mutable struct FCLayer <: Layer
             Dict(:dw => Matrix{T}(undef, 0, 0), :db => Matrix{T}(undef, 0, 0)),
             0,
             prevLayer,
+            Array{Layer,1}(undef,0)
         )#
     end #FCLayer
 end #struct FCLayer
@@ -68,6 +70,7 @@ export FCLayer
 
 
 mutable struct AddLayer <: Layer
+    nextLayers::Array{Layer,1}
     prevLayer::Layer
     l2::Layer
     numNodes::Integer
@@ -77,7 +80,8 @@ mutable struct AddLayer <: Layer
     function AddLayer(l1, l2; numNodes = 0)
         numNodes = l1.numNodes
         T = eltype(l1.W)
-        new(l1, l2, numNodes, 0, 0, Matrix{T}(undef, 0, 0))
+        new(Array{Layer,1}(undef,0),
+            l1, l2, numNodes, 0, 0, Matrix{T}(undef, 0, 0))
     end #function AddLayer
 end
 
