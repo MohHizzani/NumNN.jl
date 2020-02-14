@@ -18,6 +18,7 @@ mutable struct FCLayer <: Layer
     ### adding Z & A place holder for recursive calling
     ### and a counter for how many it was called
     Z::Array{T,N} where {T,N}
+    dZ::Array{T,N} where {T,N}
     A::Array{T,N} where {T,N}
     forwCount::Integer
     V::Dict{Symbol,Array{T,N} where {T,N}}
@@ -56,6 +57,7 @@ mutable struct FCLayer <: Layer
             Matrix{T}(undef, 0, 0),
             Matrix{T}(undef, 0, 0),
             Matrix{T}(undef, 0, 0),
+            Matrix{T}(undef, 0, 0),
             0,
             Dict(:dw => Matrix{T}(undef, 0, 0), :db => Matrix{T}(undef, 0, 0)),
             Dict(:dw => Matrix{T}(undef, 0, 0), :db => Matrix{T}(undef, 0, 0)),
@@ -76,12 +78,15 @@ mutable struct AddLayer <: Layer
     numNodes::Integer
     forwCount::Integer
     backCount::Integer
-    A::Array{T,2} where {T}
+    A::Array{T,N} where {T,N}
+    dZ::Array{T,N} where {T,N}
     function AddLayer(l1, l2; numNodes = 0)
         numNodes = l1.numNodes
         T = eltype(l1.W)
         new(Array{Layer,1}(undef,0),
-            l1, l2, numNodes, 0, 0, Matrix{T}(undef, 0, 0))
+            l1, l2, numNodes, 0, 0,
+            Matrix{T}(undef, 0, 0),
+            Matrix{T}(undef, 0, 0))
     end #function AddLayer
 end
 
