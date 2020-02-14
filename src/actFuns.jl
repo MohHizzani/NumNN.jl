@@ -73,3 +73,14 @@ Base.tanh(Z::Array{T,N}) where {T,N} = tanh.(Z)
 dtanh(Z::Array{T,N}) where {T,N} = 1 .- (tanh.(Z)).^2
 
 export dtanh, tanh
+
+
+function noAct(Z)
+    return Z
+end
+
+function dnoAct(Z)
+    return ones(eltype(Z), size(Z)...)
+end
+
+export noAct, dnoAct
