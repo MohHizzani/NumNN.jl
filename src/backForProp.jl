@@ -136,7 +136,7 @@ function outBackProp!(model::Model, Y, cnt::Integer)
     lossFun = model.lossFun
     m = size(Y)[2]
     # A, Z = cache["A"], cache["Z"]
-    # A, Z = outLayer.A, outLayer.Z
+    A, Z = outLayer.A, outLayer.Z
     # dZ, dW, dB = outLayer.dZ, outLayer.dW, outLayer.dB
     regulization, λ = model.regulization, model.λ
 
@@ -157,23 +157,24 @@ function outBackProp!(model::Model, Y, cnt::Integer)
 
         outLayer.dZ = eval(:($dlossFun($A, $Y))) #.* eval(:($dActFun.(Z[L])))
 
-        if outLayer.keepProb < 1.0 #to save time of multiplication in case keepProb was one
-            dA = dA .* D
-            dA = dA ./ outLayer.keepProb
-        end
+        # if outLayer.keepProb < 1.0 #to save time of multiplication in case keepProb was one
+        #     dA = dA .* D
+        #     dA = dA ./ outLayer.keepProb
+        # end
 
         outLayer.dW = outLayer.dZ*outLayer.A' ./m
 
         if regulization > 0
             if regulization==1
-                dW[l] .+= (λ/2m)
+                outLayer.dW .+= (λ/2m)
             else
-                dW[l] .+= (λ/m) .* W[l]
+                outLayer.dW .+= (λ/m) .* outLayer.W
             end
         end
-        dB[l] = 1/m .* sum(dZ[l], dims=2)
+        outLayer.dB = 1/m .* sum(outLayer.dZ, dims=2)
     end #if outLayer.backCount < cnt
 
+    outLayer.backCount += 1
     return nothing
 end #function outBackProp!
 
@@ -185,9 +186,83 @@ function backProp!(X::Array,
                    cLayer::Layer,
                    cnt::Integer)
 
+    outLayer = model.outLayer
+    prevLayer = cLayer.prevLayer
+    lossFun = model.lossFun
+    try
+        global keepProb = cLayer.keepProb
+    catch
+
+    end
+    m = size(X)[2]
+    # A, Z = cache["A"], cache["Z"]
+    try
+        global A, Z = cLayer.A, cLayer.Z
+    catch
+
+    end
+    # dZ, dW, dB = outLayer.dZ, outLayer.dW, outLayer.dB
+    regulization, λ = model.regulization, model.λ
+
+    ## in case nothing has finished yet of the next layer(s)
+    if cLayer.backCount >= cnt
+        return nothing
+    end
+
+    if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+        if cLayer isa AddLayer
+            for nextLayer in cLayer.nextLayers
+                try
+                    cLayer.dZ .+= nextLayer.W'nextLayer.dZ
+                catch e
+                    cLayer.dZ = nextLayer.W'nextLayer.dZ
+                end #tyr/catch
+            end #for
+            cLayer.backCount += 1
+            return nothing
+        end #if cLayer isa AddLayer
+        for nextLayer in cLayer.nextLayers
+            try
+                dA .+= nextLayer.W'nextLayer.dZ
+            catch e
+                if isa(e, DimensionMismatch)
+                    dA = nextLayer.W'nextLayer.dZ
+                else
+                    dA = nextLayer.dZ
+                end #isa(e, DimensionMismatch)
+            end #try/catch
+        end #for
+        if keepProb < 1.0 #to save time of multiplication in case keepProb was one
+           D = rand(cLayer.numNodes,1) .< keepProb
+           dA = dA .* D
+           dA = dA ./ keepProb
+        end
+    dActFun = Symbol("d",cLayer.actFun)
+
+    cLayer.dZ = dA .* eval(:($dActFun($Z)))
+
+    try ##in case it is the input layer
+        cLayer.dW = cLayer.dZ*cLayer.prevLayer.A' ./m
+    catch
+        cLayer.dW = cLayer.dZ*X' ./m
+    end #try/cathc
+
+    if regulization > 0
+        if regulization==1
+            cLayer.dW .+= (λ/2m)
+        else
+            cLayer.dW .+= (λ/m) .* cLayer.W
+        end
+    end
+
+    cLayer.dB = 1/m .* sum(cLayer.dZ, dims=2)
+
+    cLayer.backCount += 1
+    end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+    return nothing
 end
 
-
+export backProp!
 
 """
 
@@ -200,7 +275,7 @@ end
 """
 function chainBackProp!(X,Y,
                        model::Model,
-                       cLayer::L,
+                       cLayer::L=nothing,
                        cnt = -1) where {L<:Union{Array,Nothing}}
     if cnt < 0
         cnt = model.outLayer.backCount+1
@@ -209,6 +284,12 @@ function chainBackProp!(X,Y,
     if cLayer==nothing
         outBackProp!(model, Y, cnt)
         chainBackProp!(X,Y,model, model.outLayer.prevLayer, model.outLayer.backCount)
+
+    elseif cLayer isa AddLayer
+        backProp!(X, model, cLayer, cnt)
+        for prevLayer in cLayer.prevLayer
+            chainBackProp!(X,Y,model, prevLayer, cLayer.backCount)
+        end #for
     else #if cLayer==nothing
         backProp!(X,model,cLayer, cnt)
         chainBackProp!(X,Y,model, cLayer.prevLayer, cLayer.backCount)
