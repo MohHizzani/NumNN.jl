@@ -22,11 +22,11 @@ end #binaryCrossentropy
 export binaryCrossentropy
 
 """
-    compute the drivative of cross-entropy loss function
+    compute the drivative of cross-entropy loss function to the input of the
+    layer dZ
 """
 function dbinaryCrossentropy(a, y)
-    aNew = prevnextfloat.(a)
-    dJ = .-(y ./ aNew .- (1 .- y) ./ (1 .- aNew))
+    dJ = a .- y
     return dJ
 end #dbinaryCrossentropy
 
@@ -42,8 +42,7 @@ end
 
 
 function dcategoricalCrossentropy(a, y)
-    aNew = prevnextfloat.(a)
-    dJ = .-(y ./ aNew)
+    dJ = a .- y
     return dJ
 end
 
