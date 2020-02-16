@@ -35,6 +35,16 @@ function (l::FCLayer)(li_1::Layer)
     return l
 end #function (l::FCLayer)(li_1::Layer)
 
+function (l::AddLayer)(li::Array{Layer,1})
+    for lj in li
+        if !in(lj,l.prevLayer)
+            push!(l.prevLayer, lj)
+        end
+        if !in(l, lj.nextLayer)
+            push!(li.nextLayers, l)
+        end
+    end #for
+end #function (l::AddLayer)(li::Array{Layer,1})
 
 """
     define input as X
