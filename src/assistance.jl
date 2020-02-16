@@ -29,8 +29,9 @@ function resetCount!(outLayer::Layer,
             eval(:($outLayer.$cnt = 0))
         # end #if outLayer.forwCount != 0
     elseif isa(outLayer, AddLayer) #if prevLayer == nothing
-        resetCount!(prevLayer, cnt)
-        resetCount!(outLayer.l2, cnt)
+        for prevLayer in outLayer.prevLayer
+            resetCount!(prevLayer, cnt)
+        end #for
         eval(:($outLayer.$cnt = 0))
     else #if prevLayer == nothing
         resetCount!(prevLayer, cnt)
