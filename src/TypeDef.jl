@@ -73,20 +73,20 @@ export FCLayer
 
 mutable struct AddLayer <: Layer
     nextLayers::Array{Layer,1}
-    prevLayer::Layer
-    l2::Layer
+    prevLayer::Array{Layer,1}
     numNodes::Integer
     forwCount::Integer
     backCount::Integer
     A::Array{T,N} where {T,N}
     dZ::Array{T,N} where {T,N}
-    function AddLayer(l1, l2; numNodes = 0)
-        numNodes = l1.numNodes
-        T = eltype(l1.W)
+    function AddLayer(; numNodes = 0)
+        # numNodes = l1.numNodes
+        # T = eltype(l1.W)
         new(Array{Layer,1}(undef,0),
-            l1, l2, numNodes, 0, 0,
-            Matrix{T}(undef, 0, 0),
-            Matrix{T}(undef, 0, 0))
+            Array{Layer,1}(undef,0),
+            numNodes, 0, 0,
+            Matrix{Nothing}(undef, 0, 0),
+            Matrix{Nothing}(undef, 0, 0))
     end #function AddLayer
 end
 
