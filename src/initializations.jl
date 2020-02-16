@@ -71,22 +71,17 @@ function deepInitWB!(
     elseif isa(outLayer, AddLayer)
         if forwCount < cnt
             outLayer.forwCount += 1
-            deepInitWB!(
-                X,
-                prevLayer,
-                outLayer.forwCount + 1;
-                He = He,
-                coef = coef,
-                zro = zro,
-            )
-            deepInitWB!(
-                X,
-                outLayer.l2,
-                outLayer.forwCount + 1;
-                He = He,
-                coef = coef,
-                zro = zro,
-            )
+            for prevLayer in outLayer.prevLayer
+                    deepInitWB!(
+                    X,
+                    prevLayer,
+                    outLayer.forwCount;
+                    He = He,
+                    coef = coef,
+                    zro = zro,
+                )
+            end #for prevLayer in outLayer.prevLayer
+
         end #if forwCount < cnt
 
     else #if prevLayer == nothing
@@ -95,7 +90,7 @@ function deepInitWB!(
             deepInitWB!(
                 X,
                 prevLayer,
-                outLayer.forwCount + 1;
+                outLayer.forwCount;
                 He = He,
                 coef = coef,
                 zro = zro,
