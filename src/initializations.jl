@@ -141,8 +141,9 @@ function deepInitVS!(outLayer::Layer, optimizer::Symbol, cnt::Integer = -1)
         elseif isa(outLayer, AddLayer)
             if outLayer.forwCount < cnt
                 outLayer.forwCount += 1
-                deepInitVS!(prevLayer, optimizer, outLayer.forwCount)
-                deepInitVS!(outLayer.l2, optimizer, outLayer.forwCount)
+                for prevLayer in outLayer.prevLayer
+                    deepInitVS!(prevLayer, optimizer, outLayer.forwCount)
+                end #for
             end #if outLayer.forwCount < cnt
         else #if prevLayer == nothing
             if outLayer.forwCount < cnt
