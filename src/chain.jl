@@ -44,6 +44,7 @@ function (l::AddLayer)(ls::Array{L,1}) where {L<:Layer}
             push!(li.nextLayers, l)
         end
     end #for
+    l.numNodes = ls[1].numNodes
     return l
 end #function (l::AddLayer)(li::Array{Layer,1})
 
