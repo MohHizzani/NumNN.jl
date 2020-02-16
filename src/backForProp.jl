@@ -21,51 +21,51 @@ using LinearAlgebra
         forwCount value when pass through it
 """
 function chainForProp(X, oLayer::Layer, cnt::Integer=-1)
-    if cnt==-1
+    if cnt<0
         cnt = oLayer.forwCount+1
     end
 
-    if typeof(oLayer)!=AddLayer
-        if oLayer.prevLayer==nothing
-            actFun = oLayer.actFun
-            W, B = oLayer.W, oLayer.B
-            if oLayer.forwCount < cnt
-                oLayer.forwCount += 1
-                Z = W*X .+ B
-                oLayer.Z = Z
-                A = eval(:($actFun($Z)))
-                oLayer.A = A
-            else #if oLayer.forwCount < cnt
-                A = oLayer.A
-            end #if oLayer.forwCount < cnt
-            return A
-        else #if oLayer.prevLayer==nothing
-            actFun = oLayer.actFun
-            W, B = oLayer.W, oLayer.B
-            prevLayer = oLayer.prevLayer
-            if oLayer.forwCount < cnt
-                oLayer.forwCount += 1
-                Z = W*chainForProp(X, prevLayer, oLayer.forwCount) .+ B
-                oLayer.Z = Z
-                A = eval(:($actFun($Z)))
-                oLayer.A = A
-            else #if oLayer.forwCount < cnt
-                A = oLayer.A
-            end #if oLayer.forwCount < cnt
-            return A
-        end #if oLayer.prevLayer!=nothing
-    else #if typeof(oLayer)!=AddLayer
+    if oLayer.prevLayer==nothing
+        actFun = oLayer.actFun
+        W, B = oLayer.W, oLayer.B
         if oLayer.forwCount < cnt
             oLayer.forwCount += 1
-            A = chainForProp(X, oLayer.prevLayer, oLayer.forwCount) .+
-                chainForProp(X, oLayer.l2, oLayer.forwCount)
+            Z = W*X .+ B
+            oLayer.Z = Z
+            A = eval(:($actFun($Z)))
+            oLayer.A = A
+        else #if oLayer.forwCount < cnt
+            A = oLayer.A
+        end #if oLayer.forwCount < cnt
+        return A
+    elseif isa(oLayer, AddLayer) #if typeof(oLayer)==AddLayer
+        if oLayer.forwCount < cnt
+            oLayer.forwCount += 1
+            A = chainForProp(X, oLayer.prevLayer[1], oLayer.forwCount)
+            for prevLayer in oLayer.prevLayer[2:end]
+                A .+=  chainForProp(X, prevLayer, oLayer.forwCount)
+            end
             oLayer.A = A
         else #if oLayer.forwCount < cnt
             A = oLayer.A
         end #if oLayer.forwCount < cnt
 
         return A
-    end #if typeof(oLayer)!=AddLayer
+    else #if oLayer.prevLayer==nothing
+        actFun = oLayer.actFun
+        W, B = oLayer.W, oLayer.B
+        prevLayer = oLayer.prevLayer
+        if oLayer.forwCount < cnt
+            oLayer.forwCount += 1
+            Z = W*chainForProp(X, prevLayer, oLayer.forwCount) .+ B
+            oLayer.Z = Z
+            A = eval(:($actFun($Z)))
+            oLayer.A = A
+        else #if oLayer.forwCount < cnt
+            A = oLayer.A
+        end #if oLayer.forwCount < cnt
+        return A
+    end #if oLayer.prevLayer!=nothing
 
 end #function chainForProp
 
@@ -128,58 +128,41 @@ end
 
 
 """
-
-    inputs:
-    X := is a (nx, m) matrix
-    model contains these parameters
-        W := is a Vector of Matrices of (n[l], n[l-1])
-        B := is a Vector of Matrices of (n[l], 1)
-
+    do the back propagation for the output layer
 """
-function backProp(X,Y,
-                  model::Model,
-                  cache::Dict{})
-
-    layers::AbstractArray{Layer, 1} = model.layers
+function outBackProp!(model::Model, Y, cnt::Integer)
+    outLayer = model.outLayer
+    prevLayer = outLayer.prevLayer
     lossFun = model.lossFun
-    m = size(X)[2]
-    L = length(layers)
-    A, Z = cache["A"], cache["Z"]
-    W, B, regulization, λ = model.W, model.B, model.regulization, model.λ
+    m = size(Y)[2]
+    # A, Z = cache["A"], cache["Z"]
+    # A, Z = outLayer.A, outLayer.Z
+    # dZ, dW, dB = outLayer.dZ, outLayer.dW, outLayer.dB
+    regulization, λ = model.regulization, model.λ
 
-    D = [rand(size(A[i])...) .< layers[i].keepProb for i=1:L]
+    if outLayer.backCount < cnt
+        outLayer.backCount += 1
 
-    if layers[L].keepProb < 1.0 #to save time of multiplication in case keepProb was one
-        A = [A[i] .* D[i] for i=1:L]
-        A = [A[i] ./ layers[i].keepProb for i=1:L]
-    end
-    # init all Arrays
-    dA = Vector{Matrix{eltype(A[1])}}([similar(mat) for mat in A])
-    dZ = Vector{Matrix{eltype(Z[1])}}([similar(mat) for mat in Z])
-    dW = Vector{Matrix{eltype(W[1])}}([similar(mat) for mat in W])
-    dB = Vector{Matrix{eltype(B[1])}}([similar(mat) for mat in B])
+        if outLayer.keepProb < 1.0 #to save memory and time
+            D = rand(outLayer.numNodes,1) .< outLayer.keepProb
+            outLayer.A = outLayer.A .* D
+            outLayer.A = outLayer.A ./ outLayer.keepProb
+        end
+        # init all Arrays
+        # dA = zeros(eltype(A), size(A)...)
+        # dZ = zeros(eltype(A), size(A)...)
 
-    dlossFun = Symbol("d",lossFun)
-    actFun = layers[L].actFun
-    if ! isequal(actFun, :softmax) && !(actFun==:σ &&
-                                        lossFun==:binaryCrossentropy)
-        dA[L] = eval(:($dlossFun.($A[$L], $Y))) #.* eval(:($dActFun.(Z[L])))
-    end
-    if layers[L].keepProb < 1.0 #to save time of multiplication in case keepProb was one
-        dA[L] = dA[L] .* D[L]
-        dA[L] = dA[L] ./ layers[L].keepProb
-    end
-    for l=L:-1:2
-        actFun = layers[l].actFun
-        dActFun = Symbol("d",actFun)
-        if l==L && (isequal(actFun, :softmax) ||
-                    (actFun==:σ && lossFun==:binaryCrossentropy))
-            dZ[l] = A[l] .- Y
-        else
-            dZ[l] = dA[l] .* eval(:($dActFun.($Z[$l])))
+        dlossFun = Symbol("d",lossFun)
+        actFun = outLayer.actFun
+
+        outLayer.dZ = eval(:($dlossFun($A, $Y))) #.* eval(:($dActFun.(Z[L])))
+
+        if outLayer.keepProb < 1.0 #to save time of multiplication in case keepProb was one
+            dA = dA .* D
+            dA = dA ./ outLayer.keepProb
         end
 
-        dW[l] = dZ[l]*A[l-1]' ./m
+        outLayer.dW = outLayer.dZ*outLayer.A' ./m
 
         if regulization > 0
             if regulization==1
@@ -189,78 +172,54 @@ function backProp(X,Y,
             end
         end
         dB[l] = 1/m .* sum(dZ[l], dims=2)
-        dA[l-1] = W[l]'dZ[l]
-        if layers[l-1].keepProb < 1.0 #to save time of multiplication in case keepProb was one
-            dA[l-1] = dA[l-1] .* D[l-1]
-            dA[l-1] = dA[l-1] ./ layers[l-1].keepProb
-        end
+    end #if outLayer.backCount < cnt
+
+    return nothing
+end #function outBackProp!
+
+export outBackProp!
+
+
+function backProp!(X::Array,
+                   model::Model,
+                   cLayer::Layer,
+                   cnt::Integer)
+
+end
+
+
+
+"""
+
+    inputs:
+    X := is a (nx, m) matrix
+    model contains these parameters
+        W := is a Vector of Matrices of (n[l], n[l-1])
+        B := is a Vector of Matrices of (n[l], 1)
+
+"""
+function chainBackProp!(X,Y,
+                       model::Model,
+                       cLayer::L,
+                       cnt = -1) where {L<:Union{Array,Nothing}}
+    if cnt < 0
+        cnt = model.outLayer.backCount+1
     end
 
-    l=1 #shortcut cause I just copied from the for loop
-    actFun = layers[l].actFun
-    dActFun = Symbol("d",actFun)
-    dZ[l] = dA[l] .* eval(:($dActFun.($Z[$l])))
+    if cLayer==nothing
+        outBackProp!(model, Y, cnt)
+        chainBackProp!(X,Y,model, model.outLayer.prevLayer, model.outLayer.backCount)
+    else #if cLayer==nothing
+        backProp!(X,model,cLayer, cnt)
+        chainBackProp!(X,Y,model, cLayer.prevLayer, cLayer.backCount)
+    end #if cLayer==nothing
 
-    dW[l] = 1/m .* dZ[l]*X' #where X = A[0]
 
-    if regulization > 0
-        if regulization==1
-            dW[l] .+= (λ/2m)
-        else
-            dW[l] .+= (λ/m) .* W[l]
-        end
-    end
-    dB[l] = 1/m .* sum(dZ[l], dims=2)
-
-    grads = Dict("dW"=>dW,
-                 "dB"=>dB)
-    return grads
 end #backProp
 
-export backProp
+export chainBackProp!
 
-function updateParams(model::Model, grads::Dict, tMiniBatch::Integer)
-    W, B, V, S, layers = model.W, model.B, model.V, model.S, model.layers
-    optimizer = model.optimizer
-    dW, dB = grads["dW"], grads["dB"]
-    L = length(layers)
-    α = model.α
-    β1, β2, ϵAdam = model.β1, model.β2, model.ϵAdam
 
-    #initialize the needed variables to hold the corrected values
-    #it is being init here cause these are not needed elsewhere
-    VCorrected, SCorrected = deepInitVS(W,B,optimizer)
-    if optimizer==:adam || optimizer==:momentum
-        for i=1:L
-            V[:dw][i] .= β1 .* V[:dw][i] .+ (1-β1) .* dW[i]
-            V[:db][i] .= β1 .* V[:db][i] .+ (1-β1) .* dB[i]
-
-            ##correcting
-            VCorrected[:dw][i] .= V[:dw][i] ./ (1-β1^tMiniBatch)
-            VCorrected[:db][i] .= V[:db][i] ./ (1-β1^tMiniBatch)
-
-            if optimizer==:adam
-                S[:dw][i] .= β2 .* S[:dw][i] .+ (1-β2) .* (dW[i].^2)
-                S[:db][i] .= β2 .* S[:db][i] .+ (1-β2) .* (dB[i].^2)
-
-                ##correcting
-                SCorrected[:dw][i] .= S[:dw][i] ./ (1-β2^tMiniBatch)
-                SCorrected[:db][i] .= S[:db][i] ./ (1-β2^tMiniBatch)
-
-                ##update parameters with adam
-                W[i] .-= (α .* (VCorrected[:dw][i] ./ (sqrt.(SCorrected[:dw][i]) .+ ϵAdam)))
-                B[i] .-= (α .* (VCorrected[:db][i] ./ (sqrt.(SCorrected[:db][i]) .+ ϵAdam)))
-            else#if optimizer==:momentum
-                W[i] .-= (α .* VCorrected[:dw][i])
-                B[i] .-= (α .* VCorrected[:db][i])
-            end #if optimizer==:adam
-        end #for i=1:L
-    else
-        W .-= (α .* dW)
-        B .-= (α .* dB)
-    end #if optimizer==:adam || optimizer==:momentum
-    return W, B
-end #updateParams
 
 function updateParams!(model::Model, grads::Dict, tMiniBatch::Integer)
     W, B, V, S, layers = model.W, model.B, model.V, model.S, model.layers
@@ -306,7 +265,7 @@ function updateParams!(model::Model, grads::Dict, tMiniBatch::Integer)
     return
 end #updateParams!
 
-export updateParams, updateParams!
+export updateParams!
 
 """
     Repeat the trainging for a single preceptron
