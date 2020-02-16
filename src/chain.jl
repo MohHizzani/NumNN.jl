@@ -35,15 +35,16 @@ function (l::FCLayer)(li_1::Layer)
     return l
 end #function (l::FCLayer)(li_1::Layer)
 
-function (l::AddLayer)(li::Array{Layer,1})
-    for lj in li
-        if !in(lj,l.prevLayer)
-            push!(l.prevLayer, lj)
+function (l::AddLayer)(ls::Array{L,1}) where {L<:Layer}
+    for li in ls
+        if !in(li,l.prevLayer)
+            push!(l.prevLayer, li)
         end
-        if !in(l, lj.nextLayer)
+        if !in(l, li.nextLayers)
             push!(li.nextLayers, l)
         end
     end #for
+    return l
 end #function (l::AddLayer)(li::Array{Layer,1})
 
 """
