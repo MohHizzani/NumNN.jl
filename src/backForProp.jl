@@ -174,7 +174,6 @@ function outBackProp!(model::Model, Y, cnt::Integer)
         outLayer.dB = 1/m .* sum(outLayer.dZ, dims=2)
     end #if outLayer.backCount < cnt
 
-    outLayer.backCount += 1
     return nothing
 end #function outBackProp!
 
@@ -225,11 +224,11 @@ function backProp!(X::Array,
             try
                 dA .+= nextLayer.W'nextLayer.dZ
             catch e
-                if isa(e, DimensionMismatch)
+                try
                     dA = nextLayer.W'nextLayer.dZ
-                else
+                catch e1
                     dA = nextLayer.dZ
-                end #isa(e, DimensionMismatch)
+                end #try/catch
             end #try/catch
         end #for
         if keepProb < 1.0 #to save time of multiplication in case keepProb was one
@@ -276,7 +275,7 @@ export backProp!
 function chainBackProp!(X,Y,
                        model::Model,
                        cLayer::L=nothing,
-                       cnt = -1) where {L<:Union{Array,Nothing}}
+                       cnt = -1) where {L<:Union{Layer,Nothing}}
     if cnt < 0
         cnt = model.outLayer.backCount+1
     end
@@ -292,7 +291,9 @@ function chainBackProp!(X,Y,
         end #for
     else #if cLayer==nothing
         backProp!(X,model,cLayer, cnt)
-        chainBackProp!(X,Y,model, cLayer.prevLayer, cLayer.backCount)
+        if cLayer.prevLayer != nothing
+            chainBackProp!(X,Y,model, cLayer.prevLayer, cLayer.backCount)
+        end #if cLayer.prevLayer == nothing
     end #if cLayer==nothing
 
 
