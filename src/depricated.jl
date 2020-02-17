@@ -253,3 +253,49 @@ function updateParams(model::Model, grads::Dict, tMiniBatch::Integer)
     end #if optimizer==:adam || optimizer==:momentum
     return W, B
 end #updateParams
+
+
+
+function updateParams!(model::Model, grads::Dict, tMiniBatch::Integer)
+    W, B, V, S, layers = model.W, model.B, model.V, model.S, model.layers
+    optimizer = model.optimizer
+    dW, dB = grads["dW"], grads["dB"]
+    L = length(layers)
+    α = model.α
+    β1, β2, ϵAdam = model.β1, model.β2, model.ϵAdam
+
+    #initialize the needed variables to hold the corrected values
+    #it is being init here cause these are not needed elsewhere
+    VCorrected, SCorrected = deepInitVS(W,B,optimizer)
+    if optimizer==:adam || optimizer==:momentum
+        for i=1:L
+            V[:dw][i] .= β1 .* V[:dw][i] .+ (1-β1) .* dW[i]
+            V[:db][i] .= β1 .* V[:db][i] .+ (1-β1) .* dB[i]
+
+            ##correcting
+            VCorrected[:dw][i] .= V[:dw][i] ./ (1-β1^tMiniBatch)
+            VCorrected[:db][i] .= V[:db][i] ./ (1-β1^tMiniBatch)
+
+            if optimizer==:adam
+                S[:dw][i] .= β2 .* S[:dw][i] .+ (1-β2) .* (dW[i].^2)
+                S[:db][i] .= β2 .* S[:db][i] .+ (1-β2) .* (dB[i].^2)
+
+                ##correcting
+                SCorrected[:dw][i] .= S[:dw][i] ./ (1-β2^tMiniBatch)
+                SCorrected[:db][i] .= S[:db][i] ./ (1-β2^tMiniBatch)
+
+                ##update parameters with adam
+                W[i] .-= (α .* (VCorrected[:dw][i] ./ (sqrt.(SCorrected[:dw][i]) .+ ϵAdam)))
+                B[i] .-= (α .* (VCorrected[:db][i] ./ (sqrt.(SCorrected[:db][i]) .+ ϵAdam)))
+            else#if optimizer==:momentum
+                W[i] .-= (α .* VCorrected[:dw][i])
+                B[i] .-= (α .* VCorrected[:db][i])
+            end #if optimizer==:adam
+        end #for i=1:L
+    else
+        W .-= (α .* dW)
+        B .-= (α .* dB)
+    end #if optimizer==:adam || optimizer==:momentum
+    model.W, model.B = W, B
+    return
+end #updateParams!
