@@ -162,7 +162,7 @@ function outBackProp!(model::Model, Y, cnt::Integer)
         #     dA = dA ./ outLayer.keepProb
         # end
 
-        outLayer.dW = outLayer.dZ*outLayer.A' ./m
+        outLayer.dW = outLayer.dZ*prevLayer.A' ./m
 
         if regulization > 0
             if regulization==1
