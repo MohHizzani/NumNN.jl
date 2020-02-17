@@ -130,14 +130,14 @@ end
 """
     do the back propagation for the output layer
 """
-function outBackProp!(model::Model, Y, cnt::Integer)
+function outBackProp!(model::Model, Y, cnt::Integer; tMiniBatch::Integer)
     outLayer = model.outLayer
     prevLayer = outLayer.prevLayer
     lossFun = model.lossFun
     m = size(Y)[2]
-    # A, Z = cache["A"], cache["Z"]
+
     A, Z = outLayer.A, outLayer.Z
-    # dZ, dW, dB = outLayer.dZ, outLayer.dW, outLayer.dB
+
     regulization, λ = model.regulization, model.λ
 
     if outLayer.backCount < cnt
@@ -148,19 +148,13 @@ function outBackProp!(model::Model, Y, cnt::Integer)
             outLayer.A = outLayer.A .* D
             outLayer.A = outLayer.A ./ outLayer.keepProb
         end
-        # init all Arrays
-        # dA = zeros(eltype(A), size(A)...)
-        # dZ = zeros(eltype(A), size(A)...)
+
 
         dlossFun = Symbol("d",lossFun)
         actFun = outLayer.actFun
 
-        outLayer.dZ = eval(:($dlossFun($A, $Y))) #.* eval(:($dActFun.(Z[L])))
+        outLayer.dZ = eval(:($dlossFun($A, $Y)))
 
-        # if outLayer.keepProb < 1.0 #to save time of multiplication in case keepProb was one
-        #     dA = dA .* D
-        #     dA = dA ./ outLayer.keepProb
-        # end
 
         outLayer.dW = outLayer.dZ*prevLayer.A' ./m
 
@@ -171,8 +165,19 @@ function outBackProp!(model::Model, Y, cnt::Integer)
                 outLayer.dW .+= (λ/m) .* outLayer.W
             end
         end
+
+
+
+
         outLayer.dB = 1/m .* sum(outLayer.dZ, dims=2)
+
+        updateParams!(model,
+                      outLayer,
+                      tMiniBatch)
+
     end #if outLayer.backCount < cnt
+
+
 
     return nothing
 end #function outBackProp!
@@ -183,7 +188,8 @@ export outBackProp!
 function backProp!(X::Array,
                    model::Model,
                    cLayer::Layer,
-                   cnt::Integer)
+                   cnt::Integer;
+                   tMiniBatch::Integer)
 
     outLayer = model.outLayer
     prevLayer = cLayer.prevLayer
@@ -194,13 +200,13 @@ function backProp!(X::Array,
 
     end
     m = size(X)[2]
-    # A, Z = cache["A"], cache["Z"]
+
     try
         global A, Z = cLayer.A, cLayer.Z
     catch
 
     end
-    # dZ, dW, dB = outLayer.dZ, outLayer.dW, outLayer.dB
+
     regulization, λ = model.regulization, model.λ
 
     ## in case nothing has finished yet of the next layer(s)
@@ -257,7 +263,13 @@ function backProp!(X::Array,
     cLayer.dB = 1/m .* sum(cLayer.dZ, dims=2)
 
     cLayer.backCount += 1
+
+    updateParams!(model,
+                  cLayer,
+                  tMiniBatch)
+
     end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+
     return nothing
 end
 
@@ -267,32 +279,38 @@ export backProp!
 
     inputs:
     X := is a (nx, m) matrix
-    model contains these parameters
-        W := is a Vector of Matrices of (n[l], n[l-1])
-        B := is a Vector of Matrices of (n[l], 1)
+    Y := is a (c,  m) matrix
+    model := is the model to perform the back propagation on
+    cLayer := is an internal variable to hold the current layer
+    cnt := is an internal variable to count the step of back propagation currently on
+
+    output:
+    nothing
+
 
 """
 function chainBackProp!(X,Y,
                        model::Model,
                        cLayer::L=nothing,
-                       cnt = -1) where {L<:Union{Layer,Nothing}}
+                       cnt = -1;
+                       tMiniBatch::Integer) where {L<:Union{Layer,Nothing}}
     if cnt < 0
         cnt = model.outLayer.backCount+1
     end
 
     if cLayer==nothing
-        outBackProp!(model, Y, cnt)
-        chainBackProp!(X,Y,model, model.outLayer.prevLayer, model.outLayer.backCount)
+        outBackProp!(model, Y, cnt, tMiniBatch=tMiniBatch)
+        chainBackProp!(X,Y,model, model.outLayer.prevLayer, model.outLayer.backCount, tMiniBatch=tMiniBatch)
 
     elseif cLayer isa AddLayer
-        backProp!(X, model, cLayer, cnt)
+        backProp!(X, model, cLayer, cnt, tMiniBatch=tMiniBatch)
         for prevLayer in cLayer.prevLayer
-            chainBackProp!(X,Y,model, prevLayer, cLayer.backCount)
+            chainBackProp!(X,Y,model, prevLayer, cLayer.backCount, tMiniBatch=tMiniBatch)
         end #for
     else #if cLayer==nothing
-        backProp!(X,model,cLayer, cnt)
+        backProp!(X,model,cLayer, cnt, tMiniBatch=tMiniBatch)
         if cLayer.prevLayer != nothing
-            chainBackProp!(X,Y,model, cLayer.prevLayer, cLayer.backCount)
+            chainBackProp!(X,Y,model, cLayer.prevLayer, cLayer.backCount, tMiniBatch=tMiniBatch)
         end #if cLayer.prevLayer == nothing
     end #if cLayer==nothing
 
@@ -303,51 +321,58 @@ export chainBackProp!
 
 
 
-function updateParams!(model::Model, grads::Dict, tMiniBatch::Integer)
-    W, B, V, S, layers = model.W, model.B, model.V, model.S, model.layers
+function updateParams!(model::Model,
+                       cLayer::Layer,
+                       tMiniBatch::Integer)
+
     optimizer = model.optimizer
-    dW, dB = grads["dW"], grads["dB"]
-    L = length(layers)
     α = model.α
     β1, β2, ϵAdam = model.β1, model.β2, model.ϵAdam
 
     #initialize the needed variables to hold the corrected values
     #it is being init here cause these are not needed elsewhere
-    VCorrected, SCorrected = deepInitVS(W,B,optimizer)
+    VCorrected = Dict(:dw=>similar(cLayer.dW), :db=>similar(cLayer.dB))
+    SCorrected = Dict(:dw=>similar(cLayer.dW), :db=>similar(cLayer.dB))
     if optimizer==:adam || optimizer==:momentum
-        for i=1:L
-            V[:dw][i] .= β1 .* V[:dw][i] .+ (1-β1) .* dW[i]
-            V[:db][i] .= β1 .* V[:db][i] .+ (1-β1) .* dB[i]
+
+        cLayer.V[:dw] .= β1 .* cLayer.V[:dw] .+ (1-β1) .* cLayer.dW
+        cLayer.V[:db] .= β1 .* cLayer.V[:db] .+ (1-β1) .* cLayer.dB
+
+        ##correcting
+        VCorrected[:dw] .= cLayer.V[:dw] ./ (1-β1^tMiniBatch)
+        VCorrected[:db] .= cLayer.V[:db] ./ (1-β1^tMiniBatch)
+
+        if optimizer==:adam
+            cLayer.S[:dw] .= β2 .* cLayer.S[:dw] .+ (1-β2) .* (cLayer.dW.^2)
+            cLayer.S[:db] .= β2 .* cLayer.S[:db] .+ (1-β2) .* (cLayer.dB.^2)
 
             ##correcting
-            VCorrected[:dw][i] .= V[:dw][i] ./ (1-β1^tMiniBatch)
-            VCorrected[:db][i] .= V[:db][i] ./ (1-β1^tMiniBatch)
+            SCorrected[:dw] .= cLayer.S[:dw] ./ (1-β2^tMiniBatch)
+            SCorrected[:db] .= cLayer.S[:db] ./ (1-β2^tMiniBatch)
 
-            if optimizer==:adam
-                S[:dw][i] .= β2 .* S[:dw][i] .+ (1-β2) .* (dW[i].^2)
-                S[:db][i] .= β2 .* S[:db][i] .+ (1-β2) .* (dB[i].^2)
+            ##update parameters with adam
+            cLayer.W .-= (α .* (VCorrected[:dw] ./ (sqrt.(SCorrected[:dw]) .+ ϵAdam)))
+            cLayer.B .-= (α .* (VCorrected[:db] ./ (sqrt.(SCorrected[:db]) .+ ϵAdam)))
 
-                ##correcting
-                SCorrected[:dw][i] .= S[:dw][i] ./ (1-β2^tMiniBatch)
-                SCorrected[:db][i] .= S[:db][i] ./ (1-β2^tMiniBatch)
+        else#if optimizer==:momentum
 
-                ##update parameters with adam
-                W[i] .-= (α .* (VCorrected[:dw][i] ./ (sqrt.(SCorrected[:dw][i]) .+ ϵAdam)))
-                B[i] .-= (α .* (VCorrected[:db][i] ./ (sqrt.(SCorrected[:db][i]) .+ ϵAdam)))
-            else#if optimizer==:momentum
-                W[i] .-= (α .* VCorrected[:dw][i])
-                B[i] .-= (α .* VCorrected[:db][i])
-            end #if optimizer==:adam
-        end #for i=1:L
+            cLayer.W .-= (α .* VCorrected[:dw])
+            cLayer.B .-= (α .* VCorrected[:db])
+
+        end #if optimizer==:adam
     else
-        W .-= (α .* dW)
-        B .-= (α .* dB)
+        cLayer.W .-= (α .* cLayer.dW)
+        cLayer.B .-= (α .* cLayer.dB)
     end #if optimizer==:adam || optimizer==:momentum
-    model.W, model.B = W, B
+
     return
 end #updateParams!
 
 export updateParams!
+
+
+
+
 
 """
     Repeat the trainging for a single preceptron
