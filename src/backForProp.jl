@@ -242,7 +242,7 @@ function backProp!(X::Array,
 
     try ##in case it is the input layer
         cLayer.dW = cLayer.dZ*cLayer.prevLayer.A' ./m
-    catch
+    catch e
         cLayer.dW = cLayer.dZ*X' ./m
     end #try/cathc
 
