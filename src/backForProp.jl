@@ -489,8 +489,7 @@ function train(X_train,
             Y = Y_train[:, batchInd]
 
             a = chainForProp(X,
-                             Y,
-                             model)
+                             model.outLayer)
 
             minCost = sum(eval(:($lossFun($a, $Y))))/size(X)[2]
 
