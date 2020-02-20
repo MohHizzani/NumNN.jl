@@ -171,9 +171,9 @@ function outBackProp!(model::Model, Y, cnt::Integer; tMiniBatch::Integer=1)
 
         outLayer.dB = 1/m .* sum(outLayer.dZ, dims=2)
 
-        updateParams!(model,
-                      outLayer,
-                      tMiniBatch)
+        # updateParams!(model,
+        #               outLayer,
+        #               tMiniBatch)
 
     end #if outLayer.backCount < cnt
 
@@ -194,15 +194,16 @@ function backProp!(X::Array,
     outLayer = model.outLayer
     prevLayer = cLayer.prevLayer
     lossFun = model.lossFun
+    keepProb = 1.0
     try
-        global keepProb = cLayer.keepProb
+        keepProb = cLayer.keepProb
     catch
 
     end
     m = size(X)[2]
-
+    A, Z = [], []
     try
-        global A, Z = cLayer.A, cLayer.Z
+        A, Z = cLayer.A, cLayer.Z
     catch
 
     end
@@ -226,6 +227,7 @@ function backProp!(X::Array,
             cLayer.backCount += 1
             return nothing
         end #if cLayer isa AddLayer
+        dA = []
         for nextLayer in cLayer.nextLayers
             try
                 dA .+= nextLayer.W'nextLayer.dZ
@@ -264,9 +266,9 @@ function backProp!(X::Array,
 
     cLayer.backCount += 1
 
-    updateParams!(model,
-                  cLayer,
-                  tMiniBatch)
+    # updateParams!(model,
+    #               cLayer,
+    #               tMiniBatch)
 
     end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
 
