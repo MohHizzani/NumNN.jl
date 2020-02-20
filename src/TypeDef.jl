@@ -24,6 +24,7 @@ mutable struct FCLayer <: Layer
     V::Dict{Symbol,Array{T,N} where {T,N}}
     S::Dict{Symbol,Array{T,N} where {T,N}}
     backCount::Integer
+    updateCount::Integer
     """
         pointer to previous layer
     """
@@ -62,6 +63,7 @@ mutable struct FCLayer <: Layer
             Dict(:dw => Matrix{T}(undef, 0, 0), :db => Matrix{T}(undef, 0, 0)),
             Dict(:dw => Matrix{T}(undef, 0, 0), :db => Matrix{T}(undef, 0, 0)),
             0,
+            0,
             prevLayer,
             Array{Layer,1}(undef,0)
         )#
@@ -77,6 +79,7 @@ mutable struct AddLayer <: Layer
     numNodes::Integer
     forwCount::Integer
     backCount::Integer
+    updateCount::Integer
     A::Array{T,N} where {T,N}
     dZ::Array{T,N} where {T,N}
     function AddLayer(; numNodes = 0)
@@ -84,7 +87,7 @@ mutable struct AddLayer <: Layer
         # T = eltype(l1.W)
         new(Array{Layer,1}(undef,0),
             Array{Layer,1}(undef,0),
-            numNodes, 0, 0,
+            numNodes, 0, 0, 0,
             Matrix{Nothing}(undef, 0, 0),
             Matrix{Nothing}(undef, 0, 0))
     end #function AddLayer
