@@ -126,6 +126,9 @@ function isbool(y::Array{T}) where {T}
 end
 
 
+#TODO remove all tMiniBatch from update functions
+
+
 
 """
     do the back propagation for the output layer
@@ -325,12 +328,18 @@ export chainBackProp!
 
 function updateParams!(model::Model,
                        cLayer::Layer,
-                       tMiniBatch::Integer)
+                       cnt::Integer = -1;
+                       tMiniBatch::Integer = 1)
 
     optimizer = model.optimizer
     α = model.α
     β1, β2, ϵAdam = model.β1, model.β2, model.ϵAdam
 
+    if cLayer.updateCount >= cnt
+        return nothing
+    end #if cLayer.updateCount >= cnt
+
+    cLayer.updateCount += 1
     #initialize the needed variables to hold the corrected values
     #it is being init here cause these are not needed elsewhere
     VCorrected = Dict(:dw=>similar(cLayer.dW), :db=>similar(cLayer.dB))
@@ -367,14 +376,47 @@ function updateParams!(model::Model,
         cLayer.B .-= (α .* cLayer.dB)
     end #if optimizer==:adam || optimizer==:momentum
 
-    return
+    return nothing
 end #updateParams!
 
 export updateParams!
 
 
 
+function chainUpdateParams!(model::Model,
+                           cLayer::L=nothing,
+                           cnt = -1;
+                           tMiniBatch::Integer = 1) where {L<:Union{Layer,Nothing}}
 
+    if cnt < 0
+        cnt = model.outLayer.updateCount + 1
+    end
+
+
+    if cLayer==nothing
+        updateParams!(model, model.outLayer, cnt, tMiniBatch=tMiniBatch)
+        chainUpdateParams!(model, model.outLayer.prevLayer, cnt, tMiniBatch=tMiniBatch)
+
+    elseif cLayer isa AddLayer
+        #update the AddLayer updateCounter
+        if cLayer.updateCount < cnt
+            cLayer.updateCount += 1
+        end
+        for prevLayer in cLayer.prevLayer
+            chainUpdateParams!(model, prevLayer, cnt, tMiniBatch=tMiniBatch)
+        end #for
+    else #if cLayer==nothing
+        updateParams!(model, cLayer, cnt, tMiniBatch=tMiniBatch)
+        if cLayer.prevLayer != nothing
+            chainUpdateParams!(model, cLayer.prevLayer, cnt, tMiniBatch=tMiniBatch)
+        end #if cLayer.prevLayer == nothing
+    end #if cLayer==nothing
+
+    return nothing
+end #function chainUpdateParams!
+
+
+export chainUpdateParams!
 
 """
     Repeat the trainging (forward/backward propagation)
@@ -436,6 +478,8 @@ function train(X_train,
                            model,
                            tMiniBatch = j)
 
+            chainUpdateParams!(model; tMiniBatch = j)
+
         end #for j=1:nB iterate over the mini batches
 
         if m%batchSize != 0
@@ -460,6 +504,7 @@ function train(X_train,
                            model,
                            tMiniBatch = nB+1)
 
+            chainUpdateParams!(model; tMiniBatch = nB+1)
         end
 
         push!(Costs, sum(minCosts)/length(minCosts))
