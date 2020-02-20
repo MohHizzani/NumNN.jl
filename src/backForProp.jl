@@ -130,7 +130,7 @@ end
 """
     do the back propagation for the output layer
 """
-function outBackProp!(model::Model, Y, cnt::Integer; tMiniBatch::Integer)
+function outBackProp!(model::Model, Y, cnt::Integer; tMiniBatch::Integer=1)
     outLayer = model.outLayer
     prevLayer = outLayer.prevLayer
     lossFun = model.lossFun
@@ -375,12 +375,20 @@ export updateParams!
 
 
 """
-    Repeat the trainging for a single preceptron
+    Repeat the trainging (forward/backward propagation)
+
+    inputs:
+    X_train := the training input
+    Y_train := the training labels
+    model   := the model to train
+    epochs  := the number of repetitions of the training phase
+    ;
+    kwarg:
+    batchSize := the size of training when mini batch training
+    printCostsIntervals := the interval (every what to print the current cost value)
+    useProgBar := (true, false) value to use prograss bar
 
 
-    returns:
-        W := Array of matrices of size (n[l], n[l-1])
-        B := Array of matrices of size (n[l], 1)
 """
 function train(X_train,
                Y_train,
@@ -388,12 +396,13 @@ function train(X_train,
                epochs;
                batchSize = 64,
                printCostsInterval = 0,
-               useProgBar = false,
-               ϵ=10^-6)
-    layers, lossFun, α, W, B = model.layers, model.lossFun, model.α, model.W, model.B
+               useProgBar = false)
+
+    outLayer, lossFun, α = model.outLayer, model.lossFun, model.α
     Costs = []
 
     m = size(X_train)[2]
+    c = size(Y_train)[1]
     nB = m ÷ batchSize
     shufInd = randperm(m)
 
@@ -410,16 +419,22 @@ function train(X_train,
             X = X_train[:, batchInd]
             Y = Y_train[:, batchInd]
 
-            cache = forwardProp(X,
-                                Y,
-                                model)
-            push!(minCosts, cache["Cost"])
-            grads = backProp(X,Y,
-                             model,
-                             cache)
+            a = chainForProp(X,
+                             model.outLayer)
+            minCost = sum(eval(:($lossFun($a, $Y))))/batchSize
 
-            updateParams!(model, grads, j)
-        end
+            if lossFun==:binaryCrossentropy
+                minCost /= c
+            end #if lossFun==:binaryCrossentropy
+
+            push!(minCosts, minCost)
+
+
+            chainBackProp!(X,Y,
+                           model,
+                           tMiniBatch = j)
+
+        end #for j=1:nB iterate over the mini batches
 
         if m%batchSize != 0
             downInd = (nB)*batchSize+1
@@ -427,15 +442,22 @@ function train(X_train,
             X = X_train[:, batchInd]
             Y = Y_train[:, batchInd]
 
-            cache = forwardProp(X,
-                                Y,
-                                model)
-            push!(minCosts, cache["Cost"])
-            grads = backProp(X,Y,
-                             model,
-                             cache)
+            a = chainForProp(X,
+                             Y,
+                             model)
 
-            updateParams!(model, grads, nB+1)
+            minCost = sum(eval(:($lossFun($a, $Y))))/size(X)[2]
+
+            if lossFun==:binaryCrossentropy
+                minCost /= c
+            end #if lossFun==:binaryCrossentropy
+
+            push!(minCosts, minCost)
+
+            chainBackProp!(X,Y,
+                           model,
+                           tMiniBatch = nB+1)
+
         end
 
         push!(Costs, sum(minCosts)/length(minCosts))
@@ -449,8 +471,7 @@ function train(X_train,
     end
 
     # model.W, model.B = W, B
-    return Dict("model"=>model,
-                "Costs"=>Costs)
+    return Costs
 end #train
 
 export train
