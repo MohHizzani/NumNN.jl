@@ -136,7 +136,7 @@ mutable struct Conv1D <: ConvLayer
     function Conv1D(c,
                     f::Tuple{Integer};
                     prevLayer=nothing,
-                    strides::Tuple{Integer}=(1),
+                    strides::Tuple{Integer}=(1,),
                     padding::Symbol=:same,
                     activation::Symbol=:noAct,
                     keepProb=1.0)
