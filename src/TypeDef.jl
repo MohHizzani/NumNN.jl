@@ -95,6 +95,40 @@ end
 
 export AddLayer
 
+
+mutable struct Activation <: Layer
+    actFun::Symbol
+    numNodes::Integer
+    channels::Integer
+
+    nextLayers::Array{Layer,1}
+    prevLayer::L where {L<:Union{Layer,Nothing}}
+
+    forwCount::Integer
+    backCount::Integer
+    updateCount::Integer
+
+    A::Array{T,N} where {T,N}
+    dZ::Array{T,N} where {T,N}
+
+    function Activation(actFun=:relu)
+        new(
+            actFun,
+            0, #numNodes
+            0, #channels
+            Array{Layer,1}(undef,0),
+            nothing,
+            0,
+            0,
+            0,
+            Matrix{Nothing}(undef, 0, 0),
+            Matrix{Nothing}(undef, 0, 0),
+        )
+    end #function Activation
+end #mutable struct Activation
+
+
+
 mutable struct Model
     # layers::Array{Layer,1}
     outLayer::Layer
@@ -154,7 +188,7 @@ mutable struct Model
             β2,
         )
     end #inner-constructor
-    
+
 end #Model
 
 export Model
