@@ -7,7 +7,9 @@ Y = oneHot(Y; classes = [0,1,2,3,4])
 ####create some Layers
 
 X = Conv2D(10, (3,3))(x)
+X = Activation(:relu)(X)
 X = Conv2D(20, (3,3))(X)
 X = Conv2D(20, (1,1))(X)
 #### test initialization
+
 deepInitWB!(x, X; dtype=Float64)
