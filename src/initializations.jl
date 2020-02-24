@@ -27,7 +27,7 @@ end #initWB
 
 
 function initWB(
-    cLayer<:ConvLayer,
+    cLayer::CL,
     f::Tuple,
     cl, #the channels of current layer
     cl_1, #the channels of the previous layer
@@ -35,7 +35,7 @@ function initWB(
     He = true,
     coef = 0.01,
     zro = false,
-) where {T}
+) where {T, CL <: ConvLayer}
     if He
         coef = sqrt(2 / cl_1)
     end
@@ -111,7 +111,7 @@ function deepInitWB!(
                 _w, _b = initWB(
                     outLayer,
                     outLayer.f,
-                    outLayer.c,
+                    outLayer.channels,
                     size(X)[end-1],
                     T;
                     He = He,
@@ -170,8 +170,8 @@ function deepInitWB!(
                 _w, _b = initWB(
                     outLayer,
                     outLayer.f,
-                    outLayer.c,
-                    prevLayer.c,
+                    outLayer.channels,
+                    prevLayer.channels,
                     T;
                     He = He,
                     coef = coef,
