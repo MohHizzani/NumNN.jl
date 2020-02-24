@@ -49,7 +49,7 @@ mutable struct Conv2D <: ConvLayer
                     f::Tuple{Integer, Integer};
                     prevLayer=nothing,
                     strides::Tuple{Integer, Integer}=(1, 1),
-                    padding::Symbol=:same,
+                    padding::Symbol=:valid,
                     activation::Symbol=:noAct,
                     keepProb=1.0)
 
@@ -137,7 +137,7 @@ mutable struct Conv1D <: ConvLayer
                     f::Tuple{Integer};
                     prevLayer=nothing,
                     strides::Tuple{Integer}=(1,),
-                    padding::Symbol=:same,
+                    padding::Symbol=:valid,
                     activation::Symbol=:noAct,
                     keepProb=1.0)
 
@@ -226,7 +226,7 @@ mutable struct Conv3D <: ConvLayer
                     f::Tuple{Integer, Integer, Integer};
                     prevLayer=nothing,
                     strides::Tuple{Integer, Integer, Integer}=(1, 1, 1),
-                    padding::Symbol=:same,
+                    padding::Symbol=:valid,
                     activation::Symbol=:noAct,
                     keepProb=1.0)
 
