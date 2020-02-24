@@ -59,6 +59,20 @@ function (l::Conv3D)(li_1::Layer)
     return l
 end
 
+function (l::Activation)(li_1::Layer)
+    l.prevLayer = li_1
+    try
+        l.numNodes = li_1.numNodes
+    catch e
+        l.channels = li_1.channels
+    end
+
+    if ! in(l,li_1.nextLayers)
+        push!(li_1.nextLayers, l)
+    end
+    return l
+end
+
 function (l::AddLayer)(ls::Array{L,1}) where {L<:Layer}
     for li in ls
         if !in(li,l.prevLayer)
