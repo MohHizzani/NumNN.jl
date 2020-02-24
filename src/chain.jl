@@ -34,6 +34,31 @@ function (l::FCLayer)(li_1::Layer)
     return l
 end #function (l::FCLayer)(li_1::Layer)
 
+
+function (l::Conv1D)(li_1::Layer)
+    l.prevLayer = li_1
+    if ! in(l,li_1.nextLayers)
+        push!(li_1.nextLayers, l)
+    end
+    return l
+end
+
+function (l::Conv2D)(li_1::Layer)
+    l.prevLayer = li_1
+    if ! in(l,li_1.nextLayers)
+        push!(li_1.nextLayers, l)
+    end
+    return l
+end
+
+function (l::Conv3D)(li_1::Layer)
+    l.prevLayer = li_1
+    if ! in(l,li_1.nextLayers)
+        push!(li_1.nextLayers, l)
+    end
+    return l
+end
+
 function (l::AddLayer)(ls::Array{L,1}) where {L<:Layer}
     for li in ls
         if !in(li,l.prevLayer)
@@ -54,5 +79,21 @@ function (l::FCLayer)(x::Array)
     l.prevLayer = nothing
     return l
 end #function (l::FCLayer)(x::Array)
+
+function (l::Conv1D)(x::Array)
+    l.prevLayer = nothing
+    return l
+end
+
+function (l::Conv2D)(x::Array)
+    l.prevLayer = nothing
+    return l
+end
+
+function (l::Conv3D)(x::Array)
+    l.prevLayer = nothing
+    return l
+end
+
 
 export l
