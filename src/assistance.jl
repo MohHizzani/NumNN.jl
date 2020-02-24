@@ -5,6 +5,7 @@
 function oneHot(Y; classes = [], numC = 0)
     if numC > 0
         c = numC
+        Cs = sort(unique(Y))
     elseif length(classes) > 0
         Cs = sort(classes)
         c = length(Cs)
