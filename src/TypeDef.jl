@@ -122,6 +122,7 @@ mutable struct Model
     ϵAdam::AbstractFloat
     β1::AbstractFloat
     β2::AbstractFloat
+
     function Model(
         X,
         Y,
@@ -153,6 +154,7 @@ mutable struct Model
             β2,
         )
     end #inner-constructor
+    
 end #Model
 
 export Model
