@@ -42,3 +42,50 @@ function resetCount!(outLayer::Layer,
 end #function resetForwCount
 
 export resetCount!
+
+
+###Padding functions
+
+
+"""
+    pad zeros to the Array Ai with amount of p values
+
+    inputs:
+        Ai := Array of type T and dimension N
+        p  := integer determinde the amount of zeros padding
+              i.e.
+              if Ai is a 3-dimensional array the padding will be for the first
+                  dimension
+              if Ai is a 4-dimensional array the padding will be for the first 2
+                  dimensions
+              if Ai is a 5-dimensional array the padding will be for the first 3
+                  dimensions
+
+    output:
+        PaddinView array where it contains the padded values and the original
+            data without copying it
+"""
+function padding(Ai::Array{T,4},
+                 p::Integer) where {T}
+
+    n_H, c, n_D, m = size(Ai)
+    return PaddedView(0, Ai, (2*p+n_H, 2*p+n_W, c, m), (1+p, 1+p, 1, 1))
+end #function padding(Ai::Array{T,4}
+
+
+function padding(Ai::Array{T,3},
+                 p::Integer) where {T}
+
+    n_H, c, m = size(Ai)
+    return PaddedView(0, Ai, (2*p+n_H, c, m), (1+p, 1, 1))
+end #function padding(Ai::Array{T,3}
+
+
+function padding(Ai::Array{T,5},
+                 p::Integer) where {T}
+
+    n_H, n_W, n_D, c, m = size(Ai)
+    return PaddedView(0, Ai, (2*p+n_H, 2*p+n_W, 2*p+n_D, c, m), (1+p, 1+p, 1+p, 1, 1))
+end #function padding(Ai::Array{T,5}
+
+export padding
