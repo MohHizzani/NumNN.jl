@@ -3,6 +3,10 @@ abstract type Layer end
 
 export Layer
 
+
+### FCLayer
+
+
 mutable struct FCLayer <: Layer
     numNodes::Integer
     actFun::Symbol
@@ -73,6 +77,9 @@ end #struct FCLayer
 export FCLayer
 
 
+### AddLayer
+
+
 mutable struct AddLayer <: Layer
     nextLayers::Array{Layer,1}
     prevLayer::Array{Layer,1}
@@ -95,6 +102,9 @@ end
 
 export AddLayer
 
+
+
+### Activation
 
 mutable struct Activation <: Layer
     actFun::Symbol
@@ -128,6 +138,30 @@ mutable struct Activation <: Layer
 end #mutable struct Activation
 
 
+export Activation
+
+
+
+### Input
+
+mutable struct Input <: Layer
+    A::Array{T,N} where {T,N}
+    nextLayers::Array{Layer,1}
+    prevLayer::L where {L<:Union{Layer,Nothing}}
+    
+    function Input(X::Array{T,N}) where {T,N}
+        new(X,
+            Array{Layer,1}(undef,0),
+            nothing)
+    end #function Layer
+end #mutable struct Input
+
+
+export Input
+
+
+
+### Model
 
 mutable struct Model
     # layers::Array{Layer,1}
