@@ -44,7 +44,7 @@ function initWB(
     else
         W = [randn(T, f..., cl_1) .* coef for i=1:cl]
     end
-    B = [zeros(T, repeat([1],length(f))...,cl_1) for i=1:cl]
+    B = zeros(T, repeat([1],length(f))...,cl)
     return W, B
 end #initWB
 
@@ -91,7 +91,7 @@ function deepInitWB!(
 
     prevLayer = outLayer.prevLayer
     forwCount = outLayer.forwCount
-    if prevLayer == nothing
+    if prevLayer isa Input
         if forwCount < cnt
             outLayer.forwCount += 1
             if outLayer isa FCLayer
@@ -179,7 +179,7 @@ function deepInitWB!(
                 )
                 outLayer.W, outLayer.B = _w, _b
                 outLayer.dW, outLayer.dB = [zeros(T, size(w)...) for w in _w],
-                                            [zeros(T, size(b)...) for b in _b]
+                                            deepcopy(_b)
             end #if outLayer isa FCLayer
 
         end #if forwCount < cnt
@@ -202,7 +202,7 @@ function deepInitVS!(outLayer::Layer, optimizer::Symbol, cnt::Integer = -1)
     prevLayer = outLayer.prevLayer
 
     if optimizer == :adam || optimizer == :momentum
-        if prevLayer == nothing
+        if prevLayer isa Input
             if outLayer.forwCount < cnt
                 outLayer.forwCount += 1
                 outLayer.V[:dw] = deepcopy(outLayer.dW)
