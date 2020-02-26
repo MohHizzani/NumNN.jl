@@ -1,3 +1,5 @@
+using PaddedViews
+
 
 """
     convert array of integer classes into one Hot coding
@@ -25,7 +27,7 @@ export oneHot
 function resetCount!(outLayer::Layer,
                      cnt::Symbol)
     prevLayer = outLayer.prevLayer
-    if prevLayer == nothing
+    if prevLayer isa Input
         # if outLayer.forwCount != 0
             eval(:($outLayer.$cnt = 0))
         # end #if outLayer.forwCount != 0
@@ -66,10 +68,14 @@ export resetCount!
             data without copying it
 """
 function padding(Ai::Array{T,4},
-                 p::Integer) where {T}
+                 p_H::Integer,
+                 p_W::Integer=-1) where {T}
 
-    n_H, c, n_D, m = size(Ai)
-    return PaddedView(0, Ai, (2*p+n_H, 2*p+n_W, c, m), (1+p, 1+p, 1, 1))
+    if p_W < 0
+        p_W = p_H
+    end
+    n_H, n_W, c, m = size(Ai)
+    return PaddedView(0, Ai, (2*p_H+n_H, 2*p_W+n_W, c, m), (1+p_H, 1+p_W, 1, 1))
 end #function padding(Ai::Array{T,4}
 
 
@@ -82,10 +88,20 @@ end #function padding(Ai::Array{T,3}
 
 
 function padding(Ai::Array{T,5},
-                 p::Integer) where {T}
+                 p_H::Integer,
+                 p_W::Integer=-1,
+                 p_D::Integer=-1) where {T}
 
+    if p_W < 0
+        p_W = p_H
+    end
+    if p_D < 0
+        p_D = p_H
+    end
     n_H, n_W, n_D, c, m = size(Ai)
-    return PaddedView(0, Ai, (2*p+n_H, 2*p+n_W, 2*p+n_D, c, m), (1+p, 1+p, 1+p, 1, 1))
+    return PaddedView(0, Ai,
+                        (2*p_H+n_H, 2*p_W+n_W, 2*p_D+n_D, c, m),
+                        (1+p_H, 1+p_W, 1+p_D, 1, 1))
 end #function padding(Ai::Array{T,5}
 
 export padding
