@@ -7,12 +7,13 @@
 """
 function initWB(
     cLayer::FCLayer,
-    s::Tuple,
     p::Type{T} = Float64::Type{Float64};
     He = true,
     coef = 0.01,
     zro = false,
 ) where {T}
+
+    s = (cLayer.numNodes, cLayer.prevLayer.numNodes)
     if He
         coef = sqrt(2 / s[end])
     end
@@ -28,23 +29,27 @@ end #initWB
 
 function initWB(
     cLayer::CL,
-    f::Tuple,
-    cl, #the channels of current layer
-    cl_1, #the channels of the previous layer
     p::Type{T} = Float64::Type{Float64};
     He = true,
     coef = 0.01,
     zro = false,
-) where {T, CL <: ConvLayer}
+) where {T,CL<:ConvLayer}
+
+
+    f = cLayer.f
+    cl = cLayer.channels
+    cl_1 = cLayer.prevLayer.channels
     if He
         coef = sqrt(2 / cl_1)
     end
+
+
     if zro
-        W = [zeros(T, f...,cl_1) for i=1:cl]
+        W = [zeros(T, f..., cl_1) for i = 1:cl]
     else
-        W = [randn(T, f..., cl_1) .* coef for i=1:cl]
+        W = [randn(T, f..., cl_1) .* coef for i = 1:cl]
     end
-    B = zeros(T, repeat([1],length(f))...,cl)
+    B = zeros(T, repeat([1], length(f))..., cl)
     return W, B
 end #initWB
 
@@ -94,41 +99,17 @@ function deepInitWB!(
     if prevLayer isa Input
         if forwCount < cnt
             outLayer.forwCount += 1
-            if outLayer isa FCLayer
-                _w, _b = initWB(
-                    outLayer,
-                    (outLayer.numNodes,
-                    size(X)[1]),
-                    T;
-                    He = He,
-                    coef = coef,
-                    zro = zro,
-                )
-                outLayer.W, outLayer.B = _w, _b
-                outLayer.dW, outLayer.dB = zeros(T, size(_w)...),
-                    zeros(T, size(_b)...)
-            elseif outLayer isa ConvLayer
-                _w, _b = initWB(
-                    outLayer,
-                    outLayer.f,
-                    outLayer.channels,
-                    size(X)[end-1],
-                    T;
-                    He = He,
-                    coef = coef,
-                    zro = zro,
-                )
-                outLayer.W, outLayer.B = _w, _b
-                outLayer.dW, outLayer.dB = [zeros(T, size(w)...) for w in _w],
-                                            [zeros(T, size(b)...) for b in _b]
-            end #if outLayer isa FCLayer
+            outLayer.W, outLayer.B =
+                initWB(outLayer, T; He = He, coef = coef, zro = zro)
+
+            outLayer.dW, outLayer.dB = initWB(outLayer, T; zro = true)
 
         end #if forwCount < cnt
     elseif isa(outLayer, AddLayer)
         if forwCount < cnt
             outLayer.forwCount += 1
             for prevLayer in outLayer.prevLayer
-                    deepInitWB!(
+                deepInitWB!(
                     X,
                     prevLayer,
                     cnt;
@@ -153,34 +134,10 @@ function deepInitWB!(
                 zro = zro,
                 dtype = dtype,
             )
-            if outLayer isa FCLayer
-                _w, _b = initWB(
-                    (outLayer.numNodes,
-                    prevLayer.numNodes),
-                    T;
-                    He = He,
-                    coef = coef,
-                    zro = zro,
-                )
-                outLayer.W, outLayer.B = _w, _b
-                outLayer.dW, outLayer.dB = zeros(T, size(_w)...),
-                    zeros(T, size(_b)...)
 
-            elseif outLayer isa ConvLayer
-                _w, _b = initWB(
-                    outLayer,
-                    outLayer.f,
-                    outLayer.channels,
-                    prevLayer.channels,
-                    T;
-                    He = He,
-                    coef = coef,
-                    zro = zro,
-                )
-                outLayer.W, outLayer.B = _w, _b
-                outLayer.dW, outLayer.dB = [zeros(T, size(w)...) for w in _w],
-                                            deepcopy(_b)
-            end #if outLayer isa FCLayer
+            outLayer.W, outLayer.B =
+                initWB(outLayer, T; He = He, coef = coef, zro = zro)
+            outLayer.dW, outLayer.dB = initWB(outLayer, T; zro = zro)
 
         end #if forwCount < cnt
 
