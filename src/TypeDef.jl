@@ -148,11 +148,24 @@ mutable struct Input <: Layer
     A::Array{T,N} where {T,N}
     nextLayers::Array{Layer,1}
     prevLayer::L where {L<:Union{Layer,Nothing}}
-    
+    channels::Integer
+    numNodes::Integer
     function Input(X::Array{T,N}) where {T,N}
+        if N==2
+            channels = size(X)[1]
+        elseif N==3
+            channels = size(X)[2]
+        elseif N==4
+            channels = size(X)[3]
+        elseif N==5
+            channels = size(X)[4]
+        end
         new(X,
             Array{Layer,1}(undef,0),
-            nothing)
+            nothing,
+            channels,
+            channels,
+            )
     end #function Layer
 end #mutable struct Input
 
