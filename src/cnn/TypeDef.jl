@@ -25,8 +25,8 @@ mutable struct Conv2D <: ConvLayer
 
 
 
-    B::Array{Array{F,3},1} where {F}
-    dB::Array{Array{F,3},1} where {F}
+    B::Array{F,3} where {F}
+    dB::Array{F,3} where {F}
 
     actFun::Symbol
     keepProb::AbstractFloat
@@ -35,8 +35,8 @@ mutable struct Conv2D <: ConvLayer
     dZ::Array{T,4} where {T}
     A::Array{T,4} where {T}
 
-    V::Dict{Symbol, Array{Array{T,3},1} where {T}}
-    S::Dict{Symbol, Array{Array{T,3},1} where {T}}
+    V::Dict{Symbol, Array}
+    S::Dict{Symbol, Array}
 
     forwCount::Integer
     backCount::Integer
@@ -67,17 +67,17 @@ mutable struct Conv2D <: ConvLayer
             padding,
             [Array{T,3}(undef,0,0,0) for i=1:c], #W
             [Array{T,3}(undef,0,0,0) for i=1:c], #dW
-            [Array{T,3}(undef,0,0,0) for i=1:c], #B
-            [Array{T,3}(undef,0,0,0) for i=1:c], #dB
+            Array{T,3}(undef,0,0,0), #B
+            Array{T,3}(undef,0,0,0), #dB
             activation,
             keepProb,
             Array{T,4}(undef, 0,0,0,0), #Z
             Array{T,4}(undef, 0,0,0,0), #dZ
             Array{T,4}(undef, 0,0,0,0), #A
             Dict(:dw=>[Array{T,3}(undef,0,0,0) for i=1:c],
-                 :db=>[Array{T,3}(undef,0,0,0) for i=1:c]), #V
+                 :db=>Array{T,3}(undef,0,0,0)), #V
             Dict(:dw=>[Array{T,3}(undef,0,0,0) for i=1:c],
-                 :db=>[Array{T,3}(undef,0,0,0) for i=1:c]), #S
+                 :db=>Array{T,3}(undef,0,0,0)), #S
             0, #forwCount
             0, #backCount
             0, #updateCount
@@ -99,12 +99,12 @@ mutable struct Conv1D <: ConvLayer
     """
         filter size
     """
-    f::Tuple{Integer}
+    f::Integer
 
     """
         stides size
     """
-    s::Tuple{Integer}
+    s::Integer
 
     padding::Symbol
 
@@ -113,8 +113,8 @@ mutable struct Conv1D <: ConvLayer
 
 
 
-    B::Array{Array{F,2},1} where {F}
-    dB::Array{Array{F,2},1} where {F}
+    B::Array{F,2} where {F}
+    dB::Array{F,2} where {F}
 
     actFun::Symbol
     keepProb::AbstractFloat
@@ -123,8 +123,8 @@ mutable struct Conv1D <: ConvLayer
     dZ::Array{T,3} where {T}
     A::Array{T,3} where {T}
 
-    V::Dict{Symbol, Array{Array{T,2},1} where {T}}
-    S::Dict{Symbol, Array{Array{T,2},1} where {T}}
+    V::Dict{Symbol, Array}
+    S::Dict{Symbol, Array}
 
     forwCount::Integer
     backCount::Integer
@@ -134,9 +134,9 @@ mutable struct Conv1D <: ConvLayer
     nextLayers::Array{Layer,1}
 
     function Conv1D(c,
-                    f::Tuple{Integer};
+                    f::Integer;
                     prevLayer=nothing,
-                    strides::Tuple{Integer}=(1,),
+                    strides::Integer=1,
                     padding::Symbol=:valid,
                     activation::Symbol=:noAct,
                     keepProb=1.0)
@@ -155,17 +155,17 @@ mutable struct Conv1D <: ConvLayer
             padding,
             [Array{T,2}(undef,0,0) for i=1:c], #W
             [Array{T,2}(undef,0,0) for i=1:c], #dW
-            [Array{T,2}(undef,0,0) for i=1:c], #B
-            [Array{T,2}(undef,0,0) for i=1:c], #dB
+            Array{T,2}(undef,0,0), #B
+            Array{T,2}(undef,0,0), #dB
             activation,
             keepProb,
             Array{T,3}(undef, 0,0,0), #Z
             Array{T,3}(undef, 0,0,0), #dZ
             Array{T,3}(undef, 0,0,0), #A
             Dict(:dw=>[Array{T,2}(undef,0,0) for i=1:c],
-                 :db=>[Array{T,2}(undef,0,0) for i=1:c]), #V
+                 :db=>Array{T,2}(undef,0,0)), #V
             Dict(:dw=>[Array{T,2}(undef,0,0) for i=1:c],
-                 :db=>[Array{T,2}(undef,0,0) for i=1:c]), #S
+                 :db=>Array{T,2}(undef,0,0)), #S
             0, #forwCount
             0, #backCount
             0, #updateCount
@@ -202,8 +202,8 @@ mutable struct Conv3D <: ConvLayer
 
 
 
-    B::Array{Array{F,4},1} where {F}
-    dB::Array{Array{F,4},1} where {F}
+    B::Array{F,4} where {F}
+    dB::Array{F,4} where {F}
 
     actFun::Symbol
     keepProb::AbstractFloat
@@ -212,8 +212,8 @@ mutable struct Conv3D <: ConvLayer
     dZ::Array{T,5} where {T}
     A::Array{T,5} where {T}
 
-    V::Dict{Symbol, Array{Array{T,4},1} where {T}}
-    S::Dict{Symbol, Array{Array{T,4},1} where {T}}
+    V::Dict{Symbol, Array}
+    S::Dict{Symbol, Array}
 
     forwCount::Integer
     backCount::Integer
@@ -244,17 +244,17 @@ mutable struct Conv3D <: ConvLayer
             padding,
             [Array{T,4}(undef,0,0,0,0) for i=1:c], #W
             [Array{T,4}(undef,0,0,0,0) for i=1:c], #dW
-            [Array{T,4}(undef,0,0,0,0) for i=1:c], #B
-            [Array{T,4}(undef,0,0,0,0) for i=1:c], #dB
+            Array{T,4}(undef,0,0,0,0), #B
+            Array{T,4}(undef,0,0,0,0), #dB
             activation,
             keepProb,
             Array{T,5}(undef, 0,0,0,0,0), #Z
             Array{T,5}(undef, 0,0,0,0,0), #dZ
             Array{T,5}(undef, 0,0,0,0,0), #A
             Dict(:dw=>[Array{T,4}(undef,0,0,0,0) for i=1:c],
-                 :db=>[Array{T,4}(undef,0,0,0,0) for i=1:c]), #V
+                 :db=>Array{T,4}(undef,0,0,0,0)), #V
             Dict(:dw=>[Array{T,4}(undef,0,0,0,0) for i=1:c],
-                 :db=>[Array{T,4}(undef,0,0,0,0) for i=1:c]), #S
+                 :db=>Array{T,4}(undef,0,0,0,0)), #S
             0, #forwCount
             0, #backCount
             0, #updateCount
