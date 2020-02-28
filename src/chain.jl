@@ -5,9 +5,10 @@
     the input of the model X
 """
 function chain(X, arr::Array{L,1}) where {L<:Layer}
-    prevLayer = nothing
-    La = eltype(arr)
-    a = nothing
+    if ! (arr[1] isa Input)
+        X = Input(X)
+    end
+
     for l=1:length(arr)
         if l==1
             X = arr[l](X)
