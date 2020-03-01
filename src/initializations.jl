@@ -1,3 +1,6 @@
+
+### single layer initWB
+
 """
     initialize W and B for layer with inputs of size of (nl_1) and layer size
         of (nl)
@@ -5,7 +8,7 @@
     returns:
         W: of size of (nl, nl_1)
 """
-function initWB(
+function initWB!(
     cLayer::FCLayer,
     p::Type{T} = Float64::Type{Float64};
     He = true,
@@ -23,11 +26,15 @@ function initWB(
         W = randn(T, s...) .* coef
     end
     B = zeros(T, (s[1], 1))
-    return W, B
+
+    cLayer.W, cLayer.B = W, B
+    cLayer.dW = zeros(T, s...)
+    cLayer.dB = deepcopy(B)
+    return nothing
 end #initWB
 
 
-function initWB(
+function initWB!(
     cLayer::CL,
     p::Type{T} = Float64::Type{Float64};
     He = true,
@@ -50,10 +57,63 @@ function initWB(
         W = [randn(T, f..., cl_1) .* coef for i = 1:cl]
     end
     B = zeros(T, repeat([1], length(f))..., cl)
-    return W, B
+
+    cLayer.W, cLayer.B = W, B
+    cLayer.dW = [zeros(T, f..., cl_1) for i = 1:cl]
+    cLayer.dB = deepcopy(B)
+    return nothing
 end #initWB
 
-export initWB
+
+
+function initWB!(
+    cLayer::Activation,
+    p::Type{T} = Float64::Type{Float64};
+    He = true,
+    coef = 0.01,
+    zro = false,
+) where {T}
+
+    return nothing
+end
+
+
+function initWB!(
+    cLayer::BatchNorm,
+    p::Type{T} = Float64::Type{Float64};
+    He = true,
+    coef = 0.01,
+    zro = false,
+) where {T}
+
+    cn = 0
+    try
+        cn = cLayer.prevLayer.channels
+    catch e
+        cn = cLayer.prevLayer.numNodes
+    end #try/catch
+    if He
+        coef = sqrt(2 / cn)
+    end
+    if !zro
+        cLayer.W = T(randn() * coef)
+    else
+        cLayer.W = zero(T)
+    end
+    cLayer.dW = zero(T)
+    cLayer.B = zero(T)
+    cLayer.dB = zero(T)
+
+    return nothing
+end #function initWB!(cLayer::BatchNorm
+
+
+
+export initWB!
+
+
+
+### deepInitWB!
 
 """
     initialize W's and B's using
@@ -99,11 +159,7 @@ function deepInitWB!(
     if prevLayer isa Input
         if forwCount < cnt
             outLayer.forwCount += 1
-            outLayer.W, outLayer.B =
-                initWB(outLayer, T; He = He, coef = coef, zro = zro)
-
-            outLayer.dW, outLayer.dB = initWB(outLayer, T; zro = true)
-
+            initWB!(outLayer, T; He = He, coef = coef, zro = zro)
         end #if forwCount < cnt
     elseif isa(outLayer, AddLayer)
         if forwCount < cnt
@@ -135,10 +191,7 @@ function deepInitWB!(
                 dtype = dtype,
             )
 
-            outLayer.W, outLayer.B =
-                initWB(outLayer, T; He = He, coef = coef, zro = zro)
-            outLayer.dW, outLayer.dB = initWB(outLayer, T; zro = zro)
-
+            initWB!(outLayer, T; He = He, coef = coef, zro = zro)
         end #if forwCount < cnt
 
     end #if prevLayer == nothing
@@ -149,6 +202,47 @@ end #deepInitWB
 export deepInitWB!
 
 
+### single layer initVS
+
+
+function initVS!(
+    cLayer::FoC,
+    optimizer::Symbol
+    ) where {FoC <: Union{FCLayer, <:ConvLayer}}
+
+    cLayer.V[:dw] = deepcopy(cLayer.dW)
+    cLayer.V[:db] = deepcopy(cLayer.dB)
+    if optimizer == :adam
+        cLayer.S = deepcopy(cLayer.V)
+    end #if optimizer == :adam
+
+    return nothing
+end #function initVS!
+
+function initVS!(
+    cLayer::IoA,
+    optimizer::Symbol
+    ) where {IoA <: Union{Input, Activation}}
+
+    return nothing
+end #
+
+function initVS!(
+    cLayer::BatchNorm,
+    optimizer::Symbol,
+    )
+
+    T = typeof(cLayer.W)
+    cLayer.V = Dict(:dw=>zero(T), :db=>zero(T))
+    cLayer.S = deepcopy(cLayer.V)
+
+    return nothing
+end 
+
+
+export initVS!
+
+### deepInitVS!
 
 function deepInitVS!(outLayer::Layer, optimizer::Symbol, cnt::Integer = -1)
 
@@ -162,11 +256,7 @@ function deepInitVS!(outLayer::Layer, optimizer::Symbol, cnt::Integer = -1)
         if prevLayer isa Input
             if outLayer.forwCount < cnt
                 outLayer.forwCount += 1
-                outLayer.V[:dw] = deepcopy(outLayer.dW)
-                outLayer.V[:db] = deepcopy(outLayer.dB)
-                if optimizer == :adam
-                    outLayer.S = deepcopy(outLayer.V)
-                end #if optimizer == :adam
+                initVS!(outLayer, optimizer)
             end #if outLayer.forwCount < cnt
         elseif isa(outLayer, AddLayer)
             if outLayer.forwCount < cnt
@@ -179,11 +269,7 @@ function deepInitVS!(outLayer::Layer, optimizer::Symbol, cnt::Integer = -1)
             if outLayer.forwCount < cnt
                 outLayer.forwCount += 1
                 deepInitVS!(prevLayer, optimizer, cnt)
-                outLayer.V[:dw] = deepcopy(outLayer.dW)
-                outLayer.V[:db] = deepcopy(outLayer.dB)
-                if optimizer == :adam
-                    outLayer.S = deepcopy(outLayer.V)
-                end #if optimizer == :adam
+                initVS!(outLayer, optimizer)
             end #if outLayer.forwCount < cnt
         end #if prevLayer == nothing
 
