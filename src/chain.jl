@@ -64,6 +64,9 @@ function (l::Activation)(li_1::Layer)
     l.prevLayer = li_1
     try
         l.numNodes = li_1.numNodes
+        if !(li_1.numNodes>0)
+            l.channels = li_1.channels
+        end
     catch e
         l.channels = li_1.channels
     end
@@ -109,6 +112,24 @@ function (l::Conv3D)(x::Array)
     l.prevLayer = nothing
     return l
 end
+
+function (l::BatchNorm)(li_1::Layer)
+    l.prevLayer = li_1
+    try
+        l.numNodes = li_1.numNodes
+        if !(li_1.numNodes>0)
+            l.channels = li_1.channels
+        end
+    catch e
+        l.channels = li_1.channels
+    end
+
+    if ! in(l,li_1.nextLayers)
+        push!(li_1.nextLayers, l)
+    end
+    return l
+
+end #function (l::BatchNorm)
 
 
 export l
