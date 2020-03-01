@@ -1,4 +1,4 @@
-
+using Statistics
 ###FCLayer forprop
 
 function layerForProp!(cLayer::FCLayer)
@@ -104,7 +104,15 @@ function layerForProp!(cLayer::Conv3D)
 end #function layerForProp!(cLayer::Conv3D)
 
 
+###BatchNorm
 
+function layerForProp!(cLayer::BatchNorm)
+    Ai = cLayer.prevLayer.A
+    cLayer.Z = Ai .- mean(Ai, dims=1:cLayer.dim)
+    cLayer.Z ./= sqrt.(var(Ai, dims=1:cLayer.dim) .+ cLayer.ϵ)
+    cLayer.A = cLayer.W .* cLayer.Z .+ cLayer.B
 
+    return nothing
+end #function layerForProp!(cLayer::BatchNorm)
 
 export layerForProp!
