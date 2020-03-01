@@ -150,6 +150,9 @@ mutable struct Input <: Layer
     prevLayer::L where {L<:Union{Layer,Nothing}}
     channels::Integer
     numNodes::Integer
+    forwCount::Integer
+    backCount::Integer
+    updateCount::Integer
     function Input(X::Array{T,N}) where {T,N}
         if N==2
             channels = size(X)[1]
@@ -165,6 +168,9 @@ mutable struct Input <: Layer
             nothing,
             channels,
             channels,
+            0,
+            0,
+            0,
             )
     end #function Layer
 end #mutable struct Input
@@ -173,6 +179,66 @@ end #mutable struct Input
 export Input
 
 
+### BatchNorm
+
+mutable struct BatchNorm <: Layer
+    numNodes::Integer
+    channels::Integer
+
+    nextLayers::Array{Layer,1}
+    prevLayer::L where {L<:Union{Layer,Nothing}}
+
+    forwCount::Integer
+    backCount::Integer
+    updateCount::Integer
+
+    W::N where {N <: Number}
+    dW::N where {N <: Number}
+
+    B::N where {N <: Number}
+    dB::N where {N <: Number}
+
+    V::Dict{Symbol, N where {N <: Number}}
+    S::Dict{Symbol, N where {N <: Number}}
+
+    Z::Array{T, M} where {T,M}
+    dZ::Array{T, M} where {T,M}
+    A::Array{T, M} where {T,M}
+
+    dim::Integer
+
+    ϵ::AbstractFloat
+
+
+    function BatchNorm(;dim=1, ϵ=1e-10)
+        new(
+            0, #numNodes
+            0, #channels
+            Array{Layer,1}(undef,0), #nextLayers
+            nothing, #prevLayer
+            0, #forwCount
+            0, #backCount
+            0, #updateCount
+            randn(), #W
+            0, #dW
+            0, #B
+            0, #dB
+            Dict(:dw=>0,
+                 :db=>0), #V
+            Dict(:dw=>0,
+                 :db=>0), #S
+            Array{Any,1}(undef,0), #Z
+            Array{Any,1}(undef,0), #dZ
+            Array{Any,1}(undef,0), #A
+            dim,
+            ϵ,
+        )
+    end #function BatchNorm
+
+
+end #mutable struct BatchNorm
+
+export BatchNorm
 
 ### Model
 
