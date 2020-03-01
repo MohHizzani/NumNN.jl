@@ -1,4 +1,10 @@
 
+abstract type lossFun end
+
+export lossFun
+
+### binaryCrossentropy
+
 """
     return the average cross entropy loss over vector of labels and predictions
 
@@ -12,6 +18,9 @@
     output:
         J := scaler value of the cross entropy loss
 """
+
+abstract type binaryCrossentropy <: lossFun end
+
 function binaryCrossentropy(a, y)
 
     aNew = prevnextfloat.(a)
@@ -33,6 +42,9 @@ end #dbinaryCrossentropy
 export dbinaryCrossentropy
 
 
+### categoricalCrossentropy
+
+abstract type categoricalCrossentropy <: lossFun
 
 function categoricalCrossentropy(a, y)
     aNew = prevnextfloat.(a)
