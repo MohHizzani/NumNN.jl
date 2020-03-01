@@ -1,7 +1,7 @@
 
-abstract type actFuns end
+abstract type actFun end
 
-export actFuns
+export actFun
 
 
 
@@ -10,7 +10,7 @@ export actFuns
 
 ### sigmoid
 
-abstract type σ <: actFuns end
+abstract type σ <: actFun end
 
 """
     return the Sigmoid output
@@ -47,7 +47,7 @@ end #predictpredict(probs::Array{T, 2},
 
 ### relu
 
-abstract type relu <: actFuns end
+abstract type relu <: actFun end
 
 
 """
@@ -73,7 +73,7 @@ export drelu
 ### softmax
 
 
-abstract type softmaxFamily <: actFuns end
+abstract type softmaxFamily <: actFun end
 
 abstract type softmax <: softmaxFamily end
 
@@ -139,7 +139,7 @@ export predict
 
 ### tanh
 
-abstract type tanh <: actFuns end
+abstract type tanh <: actFun end
 
 
 Base.tanh(Z::Array{T,N}) where {T,N} = tanh.(Z)
@@ -152,7 +152,7 @@ export dtanh, tanh
 ### noAct
 
 
-abstract type noAct <: actFuns end
+abstract type noAct <: actFun end
 
 function noAct(Z)
     return Z
