@@ -77,6 +77,17 @@ function initWB!(
     return nothing
 end
 
+function initWB!(
+    cLayer::Input,
+    p::Type{T} = Float64::Type{Float64};
+    He = true,
+    coef = 0.01,
+    zro = false,
+) where {T}
+
+    return nothing
+end
+
 
 function initWB!(
     cLayer::BatchNorm,
@@ -107,7 +118,7 @@ function initWB!(
     return nothing
 end #function initWB!(cLayer::BatchNorm
 
-
+initWB!(cLayer::P) where {P <: PoolLayer} = nothing
 
 export initWB!
 
@@ -156,7 +167,7 @@ function deepInitWB!(
 
     prevLayer = outLayer.prevLayer
     forwCount = outLayer.forwCount
-    if prevLayer isa Input
+    if outLayer isa Input
         if forwCount < cnt
             outLayer.forwCount += 1
             initWB!(outLayer, T; He = He, coef = coef, zro = zro)
@@ -237,8 +248,9 @@ function initVS!(
     cLayer.S = deepcopy(cLayer.V)
 
     return nothing
-end 
+end
 
+initVS!(cLayer::P) where {P <: PoolLayer} = nothing
 
 export initVS!
 
@@ -253,7 +265,7 @@ function deepInitVS!(outLayer::Layer, optimizer::Symbol, cnt::Integer = -1)
     prevLayer = outLayer.prevLayer
 
     if optimizer == :adam || optimizer == :momentum
-        if prevLayer isa Input
+        if outLayer isa Input
             if outLayer.forwCount < cnt
                 outLayer.forwCount += 1
                 initVS!(outLayer, optimizer)

@@ -4,6 +4,7 @@ abstract type ConvLayer <: Layer end
 
 export ConvLayer
 
+### Convolution layers
 
 mutable struct Conv2D <: ConvLayer
     channels::Integer
@@ -268,3 +269,354 @@ mutable struct Conv3D <: ConvLayer
 end #mutable struct Conv3D
 
 export Conv3D
+
+
+###  Pooling layers
+
+abstract type PoolLayer <: Layer end
+
+export PoolLayer
+
+mutable struct MaxPool2D <: PoolLayer
+    channels::Integer
+
+    """
+        filter size
+    """
+    f::Tuple{Integer, Integer}
+
+    """
+        stides size
+    """
+    s::Tuple{Integer, Integer}
+
+    padding::Symbol
+
+    dZ::Array{T,4} where {T}
+    A::Array{T,4} where {T}
+
+    forwCount::Integer
+    backCount::Integer
+    updateCount::Integer
+
+    prevLayer::L where {L<:Union{Layer,Nothing}}
+    nextLayers::Array{Layer,1}
+
+    function MaxPool2D(f::Tuple{Integer,Integer}=(2,2);
+                       prevLayer=nothing,
+                       strides::Tuple{Integer,Integer}=(1,1),
+                       padding::Symbol=:valid,
+                       )
+        if prevLayer == nothing
+           T = Any
+        elseif prevLayer isa Array
+           T = eltype(prevLayer)
+        else
+           T = eltype(prevLayer.W)
+        end
+
+        return new(
+                   0, #channels
+                   f,
+                   strides,
+                   padding,
+                   Array{T,4}(undef,0), #dZ
+                   Array{T,4}(undef,0), #A
+                   0, #forwCount
+                   0, #backCount
+                   0, #updateCount
+                   prevLayer,
+                   Array{Layer,1}(undef,0),
+                   )
+    end #function MaxPool2D
+
+end #mutable struct MaxPool2D
+
+export MaxPool2D
+
+mutable struct MaxPool1D <: PoolLayer
+    channels::Integer
+
+    """
+        filter size
+    """
+    f::Integer
+
+    """
+        stides size
+    """
+    s::Integer
+
+    padding::Symbol
+
+    dZ::Array{T,3} where {T}
+    A::Array{T,3} where {T}
+
+    forwCount::Integer
+    backCount::Integer
+    updateCount::Integer
+
+    prevLayer::L where {L<:Union{Layer,Nothing}}
+    nextLayers::Array{Layer,1}
+
+    function MaxPool1D(f::Integer=2;
+                       prevLayer=nothing,
+                       strides::Integer=1,
+                       padding::Symbol=:valid,
+                       )
+        if prevLayer == nothing
+           T = Any
+        elseif prevLayer isa Array
+           T = eltype(prevLayer)
+        else
+           T = eltype(prevLayer.W)
+        end
+
+        return new(
+                   0, #channels
+                   f,
+                   strides,
+                   padding,
+                   Array{T,3}(undef,0), #dZ
+                   Array{T,3}(undef,0), #A
+                   0, #forwCount
+                   0, #backCount
+                   0, #updateCount
+                   prevLayer,
+                   Array{Layer,1}(undef,0),
+                   )
+    end #function MaxPool1D
+
+end #mutable struct MaxPool1D
+
+export MaxPool1D
+
+mutable struct MaxPool3D <: PoolLayer
+    channels::Integer
+
+    """
+        filter size
+    """
+    f::Tuple{Integer, Integer, Integer}
+
+    """
+        stides size
+    """
+    s::Tuple{Integer, Integer, Integer}
+
+    padding::Symbol
+
+    dZ::Array{T,5} where {T}
+    A::Array{T,5} where {T}
+
+    forwCount::Integer
+    backCount::Integer
+    updateCount::Integer
+
+    prevLayer::L where {L<:Union{Layer,Nothing}}
+    nextLayers::Array{Layer,1}
+
+    function MaxPool3D(f::Tuple{Integer,Integer,Integer}=(2,2,2);
+                       prevLayer=nothing,
+                       strides::Tuple{Integer,Integer,Integer}=(1,1,1),
+                       padding::Symbol=:valid,
+                       )
+        if prevLayer == nothing
+           T = Any
+        elseif prevLayer isa Array
+           T = eltype(prevLayer)
+        else
+           T = eltype(prevLayer.W)
+        end
+
+        return new(
+                   0, #channels
+                   f,
+                   strides,
+                   padding,
+                   Array{T,5}(undef,0), #dZ
+                   Array{T,5}(undef,0), #A
+                   0, #forwCount
+                   0, #backCount
+                   0, #updateCount
+                   prevLayer,
+                   Array{Layer,1}(undef,0),
+                   )
+    end #function MaxPool3D
+
+end #mutable struct MaxPool3D
+
+export MaxPool3D
+
+
+
+mutable struct AveragePool2D <: PoolLayer
+    channels::Integer
+
+    """
+        filter size
+    """
+    f::Tuple{Integer, Integer}
+
+    """
+        stides size
+    """
+    s::Tuple{Integer, Integer}
+
+    padding::Symbol
+
+    dZ::Array{T,4} where {T}
+    A::Array{T,4} where {T}
+
+    forwCount::Integer
+    backCount::Integer
+    updateCount::Integer
+
+    prevLayer::L where {L<:Union{Layer,Nothing}}
+    nextLayers::Array{Layer,1}
+
+    function AveragePool2D(f::Tuple{Integer,Integer}=(2,2);
+                       prevLayer=nothing,
+                       strides::Tuple{Integer,Integer}=(1,1),
+                       padding::Symbol=:valid,
+                       )
+        if prevLayer == nothing
+           T = Any
+        elseif prevLayer isa Array
+           T = eltype(prevLayer)
+        else
+           T = eltype(prevLayer.W)
+        end
+
+        return new(
+                   0, #channels
+                   f,
+                   strides,
+                   padding,
+                   Array{T,4}(undef,0), #dZ
+                   Array{T,4}(undef,0), #A
+                   0, #forwCount
+                   0, #backCount
+                   0, #updateCount
+                   prevLayer,
+                   Array{Layer,1}(undef,0),
+                   )
+    end #function AveragePool2D
+
+end #mutable struct AveragePool2D
+
+export AveragePool2D
+
+mutable struct AveragePool1D <: PoolLayer 
+    channels::Integer
+
+    """
+        filter size
+    """
+    f::Integer
+
+    """
+        stides size
+    """
+    s::Integer
+
+    padding::Symbol
+
+    dZ::Array{T,3} where {T}
+    A::Array{T,3} where {T}
+
+    forwCount::Integer
+    backCount::Integer
+    updateCount::Integer
+
+    prevLayer::L where {L<:Union{Layer,Nothing}}
+    nextLayers::Array{Layer,1}
+
+    function AveragePool1D(f::Integer=2;
+                       prevLayer=nothing,
+                       strides::Integer=1,
+                       padding::Symbol=:valid,
+                       )
+        if prevLayer == nothing
+           T = Any
+        elseif prevLayer isa Array
+           T = eltype(prevLayer)
+        else
+           T = eltype(prevLayer.W)
+        end
+
+        return new(
+                   0, #channels
+                   f,
+                   strides,
+                   padding,
+                   Array{T,3}(undef,0), #dZ
+                   Array{T,3}(undef,0), #A
+                   0, #forwCount
+                   0, #backCount
+                   0, #updateCount
+                   prevLayer,
+                   Array{Layer,1}(undef,0),
+                   )
+    end #function AveragePool1D
+
+end #mutable struct AveragePool1D
+
+export AveragePool1D
+
+mutable struct AveragePool3D <: PoolLayer
+    channels::Integer
+
+    """
+        filter size
+    """
+    f::Tuple{Integer, Integer, Integer}
+
+    """
+        stides size
+    """
+    s::Tuple{Integer, Integer, Integer}
+
+    padding::Symbol
+
+    dZ::Array{T,5} where {T}
+    A::Array{T,5} where {T}
+
+    forwCount::Integer
+    backCount::Integer
+    updateCount::Integer
+
+    prevLayer::L where {L<:Union{Layer,Nothing}}
+    nextLayers::Array{Layer,1}
+
+    function AveragePool3D(f::Tuple{Integer,Integer,Integer}=(2,2,2);
+                       prevLayer=nothing,
+                       strides::Tuple{Integer,Integer,Integer}=(1,1,1),
+                       padding::Symbol=:valid,
+                       )
+        if prevLayer == nothing
+           T = Any
+        elseif prevLayer isa Array
+           T = eltype(prevLayer)
+        else
+           T = eltype(prevLayer.W)
+        end
+
+        return new(
+                   0, #channels
+                   f,
+                   strides,
+                   padding,
+                   Array{T,5}(undef,0), #dZ
+                   Array{T,5}(undef,0), #A
+                   0, #forwCount
+                   0, #backCount
+                   0, #updateCount
+                   prevLayer,
+                   Array{Layer,1}(undef,0),
+                   )
+    end #function AveragePool3D
+
+end #mutable struct AveragePool3D
+
+export AveragePool3D
