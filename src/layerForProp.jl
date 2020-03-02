@@ -1,4 +1,14 @@
 using Statistics
+
+###Input Layer
+function layerForProp!(cLayer::Input, X::AoN=nothing) where {AoN <: Union{Array, Nothing}}
+    if X != nothing
+        cLayer(X)
+    end
+    return nothing
+end
+
+
 ###FCLayer forprop
 
 function layerForProp!(cLayer::FCLayer)

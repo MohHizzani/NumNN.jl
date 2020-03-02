@@ -132,4 +132,19 @@ function (l::BatchNorm)(li_1::Layer)
 end #function (l::BatchNorm)
 
 
+function (l::Input)(X::AbstractArray{T,N}) where {T,N}
+    l.A = X
+    if N==2
+        channels = size(X)[1]
+    elseif N==3
+        channels = size(X)[2]
+    elseif N==4
+        channels = size(X)[3]
+    elseif N==5
+        channels = size(X)[4]
+    end
+    l.channels = l.numNodes = channels
+    return l
+end #function (l::Input)(X::AbstractArray{T,N})
+
 export l
