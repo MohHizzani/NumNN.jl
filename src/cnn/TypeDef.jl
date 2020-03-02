@@ -1,6 +1,7 @@
 
+abstract type PaddableLayer <: Layer end
 
-abstract type ConvLayer <: Layer end
+abstract type ConvLayer <: PaddableLayer end
 
 export ConvLayer
 
@@ -273,11 +274,15 @@ export Conv3D
 
 ###  Pooling layers
 
-abstract type PoolLayer <: Layer end
+abstract type PoolLayer <: PaddableLayer end
 
 export PoolLayer
 
-mutable struct MaxPool2D <: PoolLayer
+abstract type MaxPoolLayer <: PoolLayer end
+
+export MaxPoolLayer
+
+mutable struct MaxPool2D <: MaxPoolLayer
     channels::Integer
 
     """
@@ -304,15 +309,20 @@ mutable struct MaxPool2D <: PoolLayer
 
     function MaxPool2D(f::Tuple{Integer,Integer}=(2,2);
                        prevLayer=nothing,
-                       strides::Tuple{Integer,Integer}=(1,1),
+                       strides::S=nothing,
                        padding::Symbol=:valid,
-                       )
+                       ) where {S <: Union{Tuple{Integer,Integer}, Nothing}}
+
         if prevLayer == nothing
            T = Any
         elseif prevLayer isa Array
            T = eltype(prevLayer)
         else
            T = eltype(prevLayer.W)
+        end
+
+        if strides == nothing
+            strides = f
         end
 
         return new(
@@ -334,7 +344,7 @@ end #mutable struct MaxPool2D
 
 export MaxPool2D
 
-mutable struct MaxPool1D <: PoolLayer
+mutable struct MaxPool1D <: MaxPoolLayer
     channels::Integer
 
     """
@@ -361,15 +371,20 @@ mutable struct MaxPool1D <: PoolLayer
 
     function MaxPool1D(f::Integer=2;
                        prevLayer=nothing,
-                       strides::Integer=1,
+                       strides::S=nothing,
                        padding::Symbol=:valid,
-                       )
+                       ) where {S <: Union{Integer, Nothing}}
+
         if prevLayer == nothing
            T = Any
         elseif prevLayer isa Array
            T = eltype(prevLayer)
         else
            T = eltype(prevLayer.W)
+        end
+
+        if strides == nothing
+            strides = f
         end
 
         return new(
@@ -391,7 +406,7 @@ end #mutable struct MaxPool1D
 
 export MaxPool1D
 
-mutable struct MaxPool3D <: PoolLayer
+mutable struct MaxPool3D <: MaxPoolLayer
     channels::Integer
 
     """
@@ -418,15 +433,20 @@ mutable struct MaxPool3D <: PoolLayer
 
     function MaxPool3D(f::Tuple{Integer,Integer,Integer}=(2,2,2);
                        prevLayer=nothing,
-                       strides::Tuple{Integer,Integer,Integer}=(1,1,1),
+                       strides::S=nothing,
                        padding::Symbol=:valid,
-                       )
+                       ) where {S <: Union{Tuple{Integer,Integer,Integer}, Nothing}}
+
         if prevLayer == nothing
            T = Any
         elseif prevLayer isa Array
            T = eltype(prevLayer)
         else
            T = eltype(prevLayer.W)
+        end
+
+        if strides == nothing
+            strides = f
         end
 
         return new(
@@ -449,8 +469,13 @@ end #mutable struct MaxPool3D
 export MaxPool3D
 
 
+#### AveragePoolLayer
 
-mutable struct AveragePool2D <: PoolLayer
+abstract type AveragePoolLayer <: PoolLayer end
+
+export AveragePoolLayer
+
+mutable struct AveragePool2D <: AveragePoolLayer
     channels::Integer
 
     """
@@ -477,15 +502,20 @@ mutable struct AveragePool2D <: PoolLayer
 
     function AveragePool2D(f::Tuple{Integer,Integer}=(2,2);
                        prevLayer=nothing,
-                       strides::Tuple{Integer,Integer}=(1,1),
+                       strides::S=nothing,
                        padding::Symbol=:valid,
-                       )
+                       ) where {S <: Union{Tuple{Integer,Integer}, Nothing}}
+
         if prevLayer == nothing
            T = Any
         elseif prevLayer isa Array
            T = eltype(prevLayer)
         else
            T = eltype(prevLayer.W)
+        end
+
+        if strides == nothing
+            strides = f
         end
 
         return new(
@@ -507,7 +537,7 @@ end #mutable struct AveragePool2D
 
 export AveragePool2D
 
-mutable struct AveragePool1D <: PoolLayer 
+mutable struct AveragePool1D <: AveragePoolLayer
     channels::Integer
 
     """
@@ -534,15 +564,20 @@ mutable struct AveragePool1D <: PoolLayer
 
     function AveragePool1D(f::Integer=2;
                        prevLayer=nothing,
-                       strides::Integer=1,
+                       strides::S=nothing,
                        padding::Symbol=:valid,
-                       )
+                       ) where {S <: Union{Integer, Nothing}}
+
         if prevLayer == nothing
            T = Any
         elseif prevLayer isa Array
            T = eltype(prevLayer)
         else
            T = eltype(prevLayer.W)
+        end
+
+        if strides == nothing
+            strides = f
         end
 
         return new(
@@ -564,7 +599,7 @@ end #mutable struct AveragePool1D
 
 export AveragePool1D
 
-mutable struct AveragePool3D <: PoolLayer
+mutable struct AveragePool3D <: AveragePoolLayer
     channels::Integer
 
     """
@@ -591,15 +626,20 @@ mutable struct AveragePool3D <: PoolLayer
 
     function AveragePool3D(f::Tuple{Integer,Integer,Integer}=(2,2,2);
                        prevLayer=nothing,
-                       strides::Tuple{Integer,Integer,Integer}=(1,1,1),
+                       strides::S=nothing,
                        padding::Symbol=:valid,
-                       )
+                       ) where {S <: Union{Tuple{Integer,Integer,Integer}, Nothing}}
+
         if prevLayer == nothing
            T = Any
         elseif prevLayer isa Array
            T = eltype(prevLayer)
         else
            T = eltype(prevLayer.W)
+        end
+
+        if strides == nothing
+            strides = f
         end
 
         return new(
