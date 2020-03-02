@@ -44,7 +44,7 @@ export dbinaryCrossentropy
 
 ### categoricalCrossentropy
 
-abstract type categoricalCrossentropy <: lossFun
+abstract type categoricalCrossentropy <: lossFun end
 
 function categoricalCrossentropy(a, y)
     aNew = prevnextfloat.(a)
