@@ -62,6 +62,7 @@ end
 
 function (l::MaxPool1D)(li_1::Layer)
     l.prevLayer = li_1
+    l.channels = li_1.channels
     if ! in(l,li_1.nextLayers)
         push!(li_1.nextLayers, l)
     end
@@ -70,6 +71,7 @@ end
 
 function (l::MaxPool2D)(li_1::Layer)
     l.prevLayer = li_1
+    l.channels = li_1.channels
     if ! in(l,li_1.nextLayers)
         push!(li_1.nextLayers, l)
     end
@@ -78,6 +80,7 @@ end
 
 function (l::MaxPool3D)(li_1::Layer)
     l.prevLayer = li_1
+    l.channels = li_1.channels
     if ! in(l,li_1.nextLayers)
         push!(li_1.nextLayers, l)
     end
@@ -86,6 +89,7 @@ end
 
 function (l::AveragePool1D)(li_1::Layer)
     l.prevLayer = li_1
+    l.channels = li_1.channels
     if ! in(l,li_1.nextLayers)
         push!(li_1.nextLayers, l)
     end
@@ -94,6 +98,7 @@ end
 
 function (l::AveragePool2D)(li_1::Layer)
     l.prevLayer = li_1
+    l.channels = li_1.channels
     if ! in(l,li_1.nextLayers)
         push!(li_1.nextLayers, l)
     end
@@ -102,6 +107,7 @@ end
 
 function (l::AveragePool3D)(li_1::Layer)
     l.prevLayer = li_1
+    l.channels = li_1.channels
     if ! in(l,li_1.nextLayers)
         push!(li_1.nextLayers, l)
     end
