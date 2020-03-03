@@ -118,29 +118,32 @@ include("layerBackProp.jl")
 function chainBackProp!(X,Y,
                        model::Model,
                        cLayer::L=nothing,
-                       cnt = -1;
-                       tMiniBatch::Integer) where {L<:Union{Layer,Nothing}}
+                       cnt = -1
+                       ) where {L<:Union{Layer,Nothing}}
     if cnt < 0
         cnt = model.outLayer.backCount+1
     end
 
     if cLayer==nothing
-        outBackProp!(model, Y, cnt, tMiniBatch=tMiniBatch)
-        chainBackProp!(X,Y,model, model.outLayer.prevLayer, model.outLayer.backCount, tMiniBatch=tMiniBatch)
+        layerBackProp!(model.outLayer, model, labels=Y)
+        model.outLayer.backCount += 1
+        chainBackProp!(X,Y,model, model.outLayer.prevLayer, model.outLayer.backCount)
 
     elseif cLayer isa AddLayer
-        backProp!(X, model, cLayer, cnt, tMiniBatch=tMiniBatch)
+        layerBackProp!(cLayer, model)
+        cLayer.backCount += 1
         for prevLayer in cLayer.prevLayer
-            chainBackProp!(X,Y,model, prevLayer, cLayer.backCount, tMiniBatch=tMiniBatch)
+            chainBackProp!(X,Y,model, prevLayer, cLayer.backCount)
         end #for
     else #if cLayer==nothing
-        backProp!(X,model,cLayer, cnt, tMiniBatch=tMiniBatch)
-        if cLayer.prevLayer != nothing
-            chainBackProp!(X,Y,model, cLayer.prevLayer, cLayer.backCount, tMiniBatch=tMiniBatch)
+        layerBackProp!(cLayer, model)
+        cLayer.backCount += 1
+        if !(cLayer isa Input)
+            chainBackProp!(X,Y,model, cLayer.prevLayer, cLayer.backCount)
         end #if cLayer.prevLayer == nothing
     end #if cLayer==nothing
 
-
+    return nothing
 end #backProp
 
 export chainBackProp!
