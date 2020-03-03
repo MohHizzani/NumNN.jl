@@ -9,8 +9,8 @@ function convolve!(cLayer::Conv1D,
     W = cLayer.W
     B = cLayer.B
     for mi=1:m, ci=1:c, hi=1:n_H
-        h_start = hi*s_H
-        h_end = hi*s_H + f_H -1
+        h_start = hi*s_H - (s_H == 1 ? 0 : 1)
+        h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
         ai = Ai[h_start:h_end, :, mi]
         cLayer.Z[hi, ci, mi] = W[ci] ⋅ ai
     end #for
@@ -33,10 +33,10 @@ function convolve!(cLayer::Conv2D,
     W = cLayer.W
     B = cLayer.B
     for mi=1:m, ci=1:c, wi=1:n_W, hi=1:n_H
-        h_start = hi*s_H
-        h_end = hi*s_H + f_H -1
-        w_start = wi*s_W
-        w_end = wi*s_W + f_W -1
+        h_start = hi* s_H - (s_H == 1 ? 0 : 1)
+        h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
+        w_start = wi*s_W - (s_W == 1 ? 0 : 1)
+        w_end = wi*s_W - (s_W == 1 ? 0 : 1) + f_W -1
         ai = Ai[h_start:h_end, w_start:w_end, :, mi]
         cLayer.Z[hi, wi, ci, mi] = W[ci] ⋅ ai
     end #for
@@ -58,12 +58,12 @@ function convolve!(cLayer::Conv3D,
     W = cLayer.W
     B = cLayer.B
     for mi=1:m, ci=1:c, wi=1:n_W, hi=1:n_H, di=1:n_D
-        h_start = hi*s_H
-        h_end = hi*s_H + f_H -1
-        w_start = wi*s_W
-        w_end = wi*s_W + f_W -1
-        d_start = di*s_D
-        d_end = di*s_D + f_D -1
+        h_start = hi*s_H - (s_H == 1 ? 0 : 1)
+        h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
+        w_start = wi*s_W - (s_W == 1 ? 0 : 1)
+        w_end = wi*s_W - (s_W == 1 ? 0 : 1) + f_W -1
+        d_start = di*s_D - (s_D == 1 ? 0 : 1)
+        d_end = di*s_D - (s_D == 1 ? 0 : 1) + f_D -1
         ai = Ai[h_start:h_end, w_start:w_end, d_start:d_end, :, mi]
         cLayer.Z[hi, wi, di, ci, mi] = W[ci] ⋅ ai
     end #for
