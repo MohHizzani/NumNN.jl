@@ -146,6 +146,7 @@ export Activation
 
 mutable struct Input <: Layer
     A::Array{T,N} where {T,N}
+    dZ::Array{T,N} where {T,N}
     nextLayers::Array{Layer,1}
     prevLayer::L where {L<:Union{Layer,Nothing}}
     channels::Integer
@@ -163,7 +164,10 @@ mutable struct Input <: Layer
         elseif N==5
             channels = size(X)[4]
         end
+        dZ = similar(X)
+        dZ .= 0
         new(X,
+            dZ,
             Array{Layer,1}(undef,0),
             nothing,
             channels,
