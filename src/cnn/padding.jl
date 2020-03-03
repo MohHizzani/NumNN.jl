@@ -13,7 +13,7 @@ function padding(cLayer::P) where {P <: PaddableLayer}
         elseif cLayer.padding == :valid
             Ai = cLayer.prevLayer.A
         end
-    elseif ndim = 4
+    elseif ndim == 4
         n_Hi, n_Wi, ci, m = size(cLayer.prevLayer.A)
         s_H, s_W = cLayer.s
         f_H, f_W = cLayer.f
@@ -26,7 +26,7 @@ function padding(cLayer::P) where {P <: PaddableLayer}
             Ai = cLayer.prevLayer.A
         end
 
-    elseif ndim = 5
+    elseif ndim == 5
         n_Hi, n_Wi, n_Di, ci, m = size(cLayer.prevLayer.A)
         s_H, s_W, s_D = cLayer.s
         f_H, f_W, f_D = cLayer.f
