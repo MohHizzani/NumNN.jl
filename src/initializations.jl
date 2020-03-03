@@ -118,7 +118,16 @@ function initWB!(
     return nothing
 end #function initWB!(cLayer::BatchNorm
 
-initWB!(cLayer::P) where {P <: PoolLayer} = nothing
+function initWB!(
+    cLayer::P,
+    p::Type{T} = Float64::Type{Float64};
+    He = true,
+    coef = 0.01,
+    zro = false,
+) where {T, P <: PoolLayer}
+
+    return nothing
+end
 
 export initWB!
 
@@ -250,7 +259,7 @@ function initVS!(
     return nothing
 end
 
-initVS!(cLayer::P) where {P <: PoolLayer} = nothing
+initVS!(cLayer::P, optimizer::Symbol) where {P <: PoolLayer} = nothing
 
 export initVS!
 
