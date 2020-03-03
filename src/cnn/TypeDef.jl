@@ -330,8 +330,8 @@ mutable struct MaxPool2D <: MaxPoolLayer
                    f,
                    strides,
                    padding,
-                   Array{T,4}(undef,0), #dZ
-                   Array{T,4}(undef,0), #A
+                   Array{T,4}(undef,0,0,0,0), #dZ
+                   Array{T,4}(undef,0,0,0,0), #A
                    0, #forwCount
                    0, #backCount
                    0, #updateCount
@@ -392,8 +392,8 @@ mutable struct MaxPool1D <: MaxPoolLayer
                    f,
                    strides,
                    padding,
-                   Array{T,3}(undef,0), #dZ
-                   Array{T,3}(undef,0), #A
+                   Array{T,3}(undef,0,0,0), #dZ
+                   Array{T,3}(undef,0,0,0), #A
                    0, #forwCount
                    0, #backCount
                    0, #updateCount
@@ -454,8 +454,8 @@ mutable struct MaxPool3D <: MaxPoolLayer
                    f,
                    strides,
                    padding,
-                   Array{T,5}(undef,0), #dZ
-                   Array{T,5}(undef,0), #A
+                   Array{T,5}(undef,0,0,0,0,0), #dZ
+                   Array{T,5}(undef,0,0,0,0,0), #A
                    0, #forwCount
                    0, #backCount
                    0, #updateCount
