@@ -158,7 +158,7 @@ function layerBackProp!(cLayer::AddLayer, model::Model, labels=nothing)
     end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
 
     return nothing
-end #function layerBackProp!(cLayer::Activation
+end #function layerBackProp!(cLayer::AddLayer
 
 
 
