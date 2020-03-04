@@ -111,7 +111,6 @@ end #dsoftmax
 
 export softmax, dsoftmax
 
-Base.eachslice(A::AbstractArray, B::AbstractArray; dims::Integer) = (eachslice(A, dims=dims), eachslice(B,dims=dims))
 
 function predict(
     actFun::Type{S},
@@ -124,7 +123,11 @@ function predict(
     if labels isa AbstractArray
         acc = 0
         bool_labels = Bool.(labels)
-        for (lab, pred) in eachslice(labels, Ŷ_bool; dims=N)
+        ax = axes(bool_labels)[1:end-1]
+        endax = axes(bool_labels)[end]
+        for i in endax
+            lab = bool_labels[ax...,i]
+            pred = Ŷ_bool[ax...,i]
             acc += (lab == pred) ? 1 : 0
         end
         acc /= size(labels)[end]
@@ -142,9 +145,11 @@ export predict
 abstract type tanh <: actFun end
 
 
-Base.tanh(Z::Array{T,N}) where {T,N} = tanh.(Z)
+Base.tanh(Z::Array{T,N}) where {T,N} = Base.tanh.(Z)
 
-dtanh(Z::Array{T,N}) where {T,N} = 1 .- (tanh.(Z)).^2
+tanh(Z::Array{T,N}) where {T,N} = Base.tanh.(Z)
+
+dtanh(Z::Array{T,N}) where {T,N} = 1 .- (Base.tanh.(Z)).^2
 
 export dtanh, tanh
 
