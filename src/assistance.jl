@@ -27,7 +27,7 @@ export oneHot
 function resetCount!(outLayer::Layer,
                      cnt::Symbol)
     prevLayer = outLayer.prevLayer
-    if prevLayer isa Input
+    if outLayer isa Input
         # if outLayer.forwCount != 0
             eval(:($outLayer.$cnt = 0))
         # end #if outLayer.forwCount != 0
