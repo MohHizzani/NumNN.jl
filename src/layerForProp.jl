@@ -23,7 +23,7 @@ end #function layerForProp!(cLayer::FCLayer)
 ###AddLayer forprop
 
 function layerForProp!(cLayer::AddLayer)
-    cLayer.A = similar(cLayer.prevLayer.A)
+    cLayer.A = similar(cLayer.prevLayer[1].A)
     cLayer.A .= 0
     for prevLayer in cLayer.prevLayer
         cLayer.A .+= prevLayer.A
