@@ -127,21 +127,28 @@ function chainBackProp!(X,Y,
 
     if cLayer==nothing
         layerBackProp!(model.outLayer, model, labels=Y)
-        model.outLayer.backCount += 1
-        chainBackProp!(X,Y,model, model.outLayer.prevLayer, model.outLayer.backCount)
+
+        chainBackProp!(X,Y,model, model.outLayer.prevLayer, cnt)
 
     elseif cLayer isa AddLayer
         layerBackProp!(cLayer, model)
-        cLayer.backCount += 1
-        for prevLayer in cLayer.prevLayer
-            chainBackProp!(X,Y,model, prevLayer, cLayer.backCount)
-        end #for
+
+        if !(cLayer.backCount < cnt) #in case layerBackProp did not do the bach
+                                     #prop becasue the next layers are not all
+                                     #done yet
+            for prevLayer in cLayer.prevLayer
+                chainBackProp!(X,Y,model, prevLayer, cnt)
+            end #for
+        end
     else #if cLayer==nothing
         layerBackProp!(cLayer, model)
-        cLayer.backCount += 1
-        if !(cLayer isa Input)
-            chainBackProp!(X,Y,model, cLayer.prevLayer, cLayer.backCount)
-        end #if cLayer.prevLayer == nothing
+        if !(cLayer.backCount < cnt)#in case layerBackProp did not do the bach
+                                     #prop becasue the next layers are not all
+                                     #done yet
+            if !(cLayer isa Input)
+                chainBackProp!(X,Y,model, cLayer.prevLayer, cnt)
+            end #if cLayer.prevLayer == nothing
+        end
     end #if cLayer==nothing
 
     return nothing
