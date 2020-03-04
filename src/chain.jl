@@ -110,7 +110,7 @@ end #function (l::BatchNorm)
 
 function (l::Input)(X::AbstractArray{T,N}) where {T,N}
     l.A = X
-    channels = ndim(X)-1
+    channels = ndims(X)-1
     l.channels = l.numNodes = channels
     return l
 end #function (l::Input)(X::AbstractArray{T,N})
