@@ -84,6 +84,7 @@ mutable struct AddLayer <: Layer
     nextLayers::Array{Layer,1}
     prevLayer::Array{Layer,1}
     numNodes::Integer
+    channels::Integer
     forwCount::Integer
     backCount::Integer
     updateCount::Integer

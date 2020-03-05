@@ -62,7 +62,15 @@ function (l::AddLayer)(ls::Array{L,1}) where {L<:Layer}
             push!(li.nextLayers, l)
         end
     end #for
-    l.numNodes = ls[1].numNodes
+    try
+        channels = ls[1].numNodes
+        if !(channels>0)
+            channels = ls[1].channels
+        end
+        l.numNodes = channels
+    catch e
+        channels = ls[1].channels
+    end
     return l
 end #function (l::AddLayer)(li::Array{Layer,1})
 
@@ -110,7 +118,7 @@ end #function (l::BatchNorm)
 
 function (l::Input)(X::AbstractArray{T,N}) where {T,N}
     l.A = X
-    channels = ndims(X)-1
+    channels = size(X)[end-1]
     l.channels = l.numNodes = channels
     return l
 end #function (l::Input)(X::AbstractArray{T,N})
