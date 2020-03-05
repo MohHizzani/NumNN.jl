@@ -5,6 +5,7 @@ function layerForProp!(cLayer::Input, X::AoN=nothing) where {AoN <: Union{Array,
     if X != nothing
         cLayer(X)
     end
+    cLayer.forwCount += 1
     return nothing
 end
 
@@ -16,6 +17,7 @@ function layerForProp!(cLayer::FCLayer)
     actFun = cLayer.actFun
     Z = cLayer.Z
     cLayer.A = eval(:($actFun($Z)))
+    cLayer.forwCount += 1
     return nothing
 end #function layerForProp!(cLayer::FCLayer)
 
@@ -28,6 +30,7 @@ function layerForProp!(cLayer::AddLayer)
     for prevLayer in cLayer.prevLayer
         cLayer.A .+= prevLayer.A
     end
+    cLayer.forwCount += 1
     return nothing
 end #function layerForProp!(cLayer::AddLayer)
 
@@ -38,7 +41,7 @@ function layerForProp!(cLayer::Activation)
     actFun = cLayer.actFun
     Ai = cLayer.prevLayer.A
     cLayer.A = eval(:($actFun($Ai)))
-
+    cLayer.forwCount += 1
     return nothing
 end #function layerForProp!(cLayer::Activation)
 
@@ -50,7 +53,7 @@ function layerForProp!(cLayer::BatchNorm)
     cLayer.Z = Ai .- mean(Ai, dims=1:cLayer.dim)
     cLayer.Z ./= sqrt.(var(Ai, dims=1:cLayer.dim) .+ cLayer.ϵ)
     cLayer.A = cLayer.W .* cLayer.Z .+ cLayer.B
-
+    cLayer.forwCount += 1
     return nothing
 end #function layerForProp!(cLayer::BatchNorm)
 

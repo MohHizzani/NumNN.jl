@@ -28,13 +28,11 @@ function chainForProp!(X, cLayer::Layer, cnt::Integer=-1)
 
     if cLayer isa Input
         if cLayer.forwCount < cnt
-            cLayer.forwCount += 1
             layerForProp!(cLayer, X)
         end #if cLayer.forwCount < cnt
         return nothing
     elseif isa(cLayer, AddLayer) #if typeof(cLayer)==AddLayer
         if cLayer.forwCount < cnt
-            cLayer.forwCount += 1
             for prevLayer in cLayer.prevLayer
                 chainForProp!(X, prevLayer, cnt)
             end
@@ -44,7 +42,6 @@ function chainForProp!(X, cLayer::Layer, cnt::Integer=-1)
         return nothing
     else #if cLayer.prevLayer==nothing
         if cLayer.forwCount < cnt
-            cLayer.forwCount += 1
             chainForProp!(X, cLayer.prevLayer, cnt)
             layerForProp!(cLayer)
         end #if cLayer.forwCount < cnt
