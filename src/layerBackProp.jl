@@ -1,6 +1,6 @@
 
 
-function layerBackProp!(
+function layerBackProp(
     cLayer::Layer,
     model::Model,
     actFun::SoS,
@@ -12,8 +12,10 @@ function layerBackProp!(
     dlossFun = Symbol("d",lossFun)
     A = cLayer.A
     Y = labels
-    cLayer.dZ = eval(:($dlossFun($A, $Y)))
-    return nothing
+    dZ = eval(:($dlossFun($A, $Y)))
+
+    cLayer.dA = cLayer.W'dZ
+    return dZ
 end #softmax or σ layerBackProp
 
 
@@ -30,26 +32,19 @@ function layerBackProp!(cLayer::FCLayer, model::Model; labels=nothing)
 
     actFun = cLayer.actFun
 
+    dZ = []
     if cLayer.actFun == model.outLayer.actFun
 
-        layerBackProp!(cLayer, model, eval(:($actFun)), labels)
+        dZ = layerBackProp(cLayer, model, eval(:($actFun)), labels)
 
     elseif all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
         dA = []
         for nextLayer in cLayer.nextLayers
             try
-                dA .+= nextLayer.W'nextLayer.dZ
-            catch e
-                if e isa ErrorException #in case nextLayer does not has W parameter
-                    try
-                        dA .+= nextLayer.dZ
-                    catch e1 #in case it is the first time
-                        dA = nextLayer.dZ #need to initialize dA
-                    end
-                elseif e isa DimensionMismatch #in case W exists but first time
-                    dA = nextLayer.W'nextLayer.dZ #to initialize dA
-                end
-            end #try/catch
+                dA .+= nextLayer.dA
+            catch e #in case first time DimensionMismatch
+                dA = nextLayer.dA
+            end
         end #for
 
         keepProb = cLayer.keepProb
@@ -63,14 +58,14 @@ function layerBackProp!(cLayer::FCLayer, model::Model; labels=nothing)
 
         Z = cLayer.Z
 
-        cLayer.dZ = dA .* eval(:($dActFun($Z)))
+        dZ = dA .* eval(:($dActFun($Z)))
 
     else #in case not every next layer done backprop
         return nothing
 
     end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
 
-    cLayer.dW = cLayer.dZ*cLayer.prevLayer.A' ./m
+    cLayer.dW = dZ*cLayer.prevLayer.A' ./m
 
     if regulization > 0
         if regulization==1
@@ -80,7 +75,9 @@ function layerBackProp!(cLayer::FCLayer, model::Model; labels=nothing)
         end
     end
 
-    cLayer.dB = 1/m .* sum(cLayer.dZ, dims=2)
+    cLayer.dB = 1/m .* sum(dZ, dims=2)
+
+    cLayer.dA = cLayer.W'dZ
 
     cLayer.backCount += 1
 
@@ -100,25 +97,18 @@ function layerBackProp!(cLayer::Activation, model::Model; labels=nothing)
 
     actFun = cLayer.actFun
 
+    dZ = []
     if cLayer.actFun == model.outLayer.actFun
 
-        layerBackProp!(cLayer, model, eval(:($actFun)), labels)
+        dZ = layerBackProp(cLayer, model, eval(:($actFun)), labels)
 
     elseif all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
         dA = []
         for nextLayer in cLayer.nextLayers
             try
-                dA .+= nextLayer.W'nextLayer.dZ
-            catch e
-                if e isa ErrorException #in case nextLayer does not has W parameter
-                    try
-                        dA .+= nextLayer.dZ
-                    catch e1 #in case it is the first time
-                        dA = nextLayer.dZ #need to initialize dA
-                    end
-                elseif e isa DimensionMismatch #in case W exists but first time
-                    dA = nextLayer.W'nextLayer.dZ #to initialize dA
-                end
+                dA .+= nextLayer.dA
+            catch e #if first time DimensionMismatch
+                dA = nextLayer.dA
             end #try/catch
         end #for
 
@@ -137,12 +127,14 @@ function layerBackProp!(cLayer::Activation, model::Model; labels=nothing)
 
         Z = cLayer.prevLayer.A
 
-        cLayer.dZ = dA .* eval(:($dActFun($Z)))
+        dZ = dA .* eval(:($dActFun($Z)))
 
     else #in case not every next layer done backprop
         return nothing
 
     end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+
+    cLayer.dA = dZ
 
     cLayer.backCount += 1
 
@@ -163,21 +155,13 @@ function layerBackProp!(cLayer::AddLayer, model::Model; labels=nothing)
         dA = []
         for nextLayer in cLayer.nextLayers
             try
-                dA .+= nextLayer.W'nextLayer.dZ
+                dA .+= nextLayer.dA
             catch e
-                if e isa ErrorException #in case nextLayer does not has W parameter
-                    try
-                        dA .+= nextLayer.dZ
-                    catch e1 #in case it is the first time
-                        dA = nextLayer.dZ #need to initialize dA
-                    end
-                elseif e isa DimensionMismatch #in case W exists but first time
-                    dA = nextLayer.W'nextLayer.dZ #to initialize dA
-                end
+                dA = nextLayer.dA #to initialize dA
             end #try/catch
         end #for
 
-        cLayer.dZ = dA
+        cLayer.dA = dA
 
 
     else #in case not every next layer done backprop
@@ -204,21 +188,13 @@ function layerBackProp!(cLayer::Input, model::Model; labels=nothing)
         dA = []
         for nextLayer in cLayer.nextLayers
             try
-                dA .+= nextLayer.W'nextLayer.dZ
+                dA .+= nextLayer.dA
             catch e
-                if e isa ErrorException #in case nextLayer does not has W parameter
-                    try
-                        dA .+= nextLayer.dZ
-                    catch e1 #in case it is the first time
-                        dA = nextLayer.dZ #need to initialize dA
-                    end
-                elseif e isa DimensionMismatch #in case W exists but first time
-                    dA = nextLayer.W'nextLayer.dZ #to initialize dA
-                end
+                dA = nextLayer.dA #need to initialize dA
             end #try/catch
         end #for
 
-        cLayer.dZ = dA
+        cLayer.dA = dA
 
     else #in case not every next layer done backprop
         return nothing
@@ -229,6 +205,83 @@ function layerBackProp!(cLayer::Input, model::Model; labels=nothing)
 
     return nothing
 end #function layerBackProp!(cLayer::Input
+
+
+function layerBackProp!(cLayer::BatchNorm, model::Model; labels=nothing)
+    prevLayer = cLayer.prevLayer
+    lossFun = model.lossFun
+
+    m = size(cLayer.A)[end]
+
+    A = cLayer.A
+
+    normDim = cLayer.dim
+
+    regulization, λ = model.regulization, model.λ
+    dZ = []
+    if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+        dA = []
+        for nextLayer in cLayer.nextLayers
+            try
+                dA .+= nextLayer.dA
+            catch e
+                dA = nextLayer.dA #need to initialize dA
+            end #try/catch
+        end #for
+
+
+        Z = cLayer.Z
+
+        dZ = cLayer.W .* dA
+
+    else #in case not every next layer done backprop
+        return nothing
+
+    end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+
+    cLayer.dW = sum(dZ .* cLayer.Z, dims=1:normDim)
+
+    if regulization > 0
+        if regulization==1
+            cLayer.dW .+= (λ/2m)
+        else
+            cLayer.dW .+= (λ/m) .* cLayer.W
+        end
+    end
+
+    cLayer.dB = sum(dZ, dims=1:normDim)
+
+    N = prod(size(dZ)[1:normDim])
+
+    dẐ1 = dZ ./ sqrt.(cLayer.var .+ cLayer.ϵ)
+
+    dẐ = dZ .* cLayer.Ai_μ
+
+    dẐ .*= (-1 ./ (cLayer.var .+ cLayer.ϵ))
+
+    dẐ .*= (0.5) ./ sqrt.(cLayer.var .+ cLayer.ϵ)
+
+    dẐ .*= (1 / N)
+
+    dẐ .*= 2 .* cLayer.Ai_μ
+
+    dẐ .*= (1-1/N)
+
+    dẐ .+= dẐ1
+
+    dẐ1 = .-dẐ
+
+    dẐ1 .*= (1/N)
+
+    dẐ .+= dẐ1
+
+    cLayer.dA = dẐ
+
+    cLayer.backCount += 1
+
+    return nothing
+
+end #function layerBackProp(cLayer::BatchNorm)
 
 
 export layerBackProp!
