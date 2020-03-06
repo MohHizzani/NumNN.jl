@@ -100,21 +100,44 @@ function initWB!(
     cn = 0
     try
         cn = cLayer.prevLayer.channels
+        if cn == 0
+            try
+                cn = cLayer.prevLayer.numNodes
+            catch e1
+
+            end
+        end #if cn ==0
     catch e
         cn = cLayer.prevLayer.numNodes
     end #try/catch
     if He
         coef = sqrt(2 / cn)
     end
-    if !zro
-        cLayer.W = T(randn() * coef)
-    else
-        cLayer.W = zero(T)
-    end
-    cLayer.dW = zero(T)
-    cLayer.B = zero(T)
-    cLayer.dB = zero(T)
+    N = ndims(cLayer.prevLayer.A)
+    normDim = cLayer.dim
+    S = size(cLayer.prevLayer.A)
+    paramS = Array{Integer,1}(undef,0)
+    for i=1:N
+        if S[i] < 1 || i <= normDim
+            push!(paramS, 1)
+        else
+            push!(paramS, S[i])
+        end #if S[i] < 1
+    end #for
 
+    if !zro
+        W = T.(randn(paramS...) .* coef)
+    else
+        W = zeros(T, paramS...)
+    end
+
+    if !(size(cLayer.W) == size(W))
+        cLayer.W = W
+        cLayer.dW = zeros(T, paramS...)
+        cLayer.B = zeros(T, paramS...)
+        cLayer.dB = zeros(T, paramS...)
+
+    end #if !(size(cLayer.W) == size(W))
     return nothing
 end #function initWB!(cLayer::BatchNorm
 
@@ -253,7 +276,7 @@ function initVS!(
     )
 
     T = typeof(cLayer.W)
-    cLayer.V = Dict(:dw=>zero(T), :db=>zero(T))
+    cLayer.V = Dict(:dw=>deepcopy(cLayer.dW), :db=>deepcopy(cLayer.dB))
     cLayer.S = deepcopy(cLayer.V)
 
     return nothing
