@@ -15,18 +15,20 @@ mutable struct FCLayer <: Layer
         drop-out keeping node probability
     """
     keepProb::AbstractFloat
-    W::Array{T,N} where {T,N}
-    B::Array{T,N} where {T,N}
-    dW::Array{T,N} where {T,N}
-    dB::Array{T,N} where {T,N}
+    W::Array{T,2} where {T}
+    B::Array{T,2} where {T}
+    dW::Array{T,2} where {T}
+    dB::Array{T,2} where {T}
     ### adding Z & A place holder for recursive calling
     ### and a counter for how many it was called
-    Z::Array{T,N} where {T,N}
-    dZ::Array{T,N} where {T,N}
-    A::Array{T,N} where {T,N}
+    Z::Array{T,2} where {T}
+    dA::Array{T,2} where {T}
+    A::Array{T,2} where {T}
+
+    V::Dict{Symbol,Array{T,2} where {T,N}}
+    S::Dict{Symbol,Array{T,2} where {T,N}}
+
     forwCount::Integer
-    V::Dict{Symbol,Array{T,N} where {T,N}}
-    S::Dict{Symbol,Array{T,N} where {T,N}}
     backCount::Integer
     updateCount::Integer
     """
@@ -56,16 +58,16 @@ mutable struct FCLayer <: Layer
             numNodes,
             actFun,
             keepProb,
-            Matrix{T}(undef, nl, nl_1),
-            Matrix{T}(undef, nl, 1),
             Matrix{T}(undef, 0, 0),
             Matrix{T}(undef, 0, 0),
             Matrix{T}(undef, 0, 0),
             Matrix{T}(undef, 0, 0),
             Matrix{T}(undef, 0, 0),
+            Matrix{T}(undef, 0, 0),
+            Matrix{T}(undef, 0, 0),
+            Dict(:dw => Matrix{T}(undef, 0, 0), :db => Matrix{T}(undef, 0, 0)),
+            Dict(:dw => Matrix{T}(undef, 0, 0), :db => Matrix{T}(undef, 0, 0)),
             0,
-            Dict(:dw => Matrix{T}(undef, 0, 0), :db => Matrix{T}(undef, 0, 0)),
-            Dict(:dw => Matrix{T}(undef, 0, 0), :db => Matrix{T}(undef, 0, 0)),
             0,
             0,
             prevLayer,
@@ -81,23 +83,32 @@ export FCLayer
 
 
 mutable struct AddLayer <: Layer
-    nextLayers::Array{Layer,1}
-    prevLayer::Array{Layer,1}
     numNodes::Integer
     channels::Integer
+
+    A::Array{T,N} where {T,N}
+    dA::Array{T,N} where {T,N}
+
     forwCount::Integer
     backCount::Integer
     updateCount::Integer
-    A::Array{T,N} where {T,N}
-    dZ::Array{T,N} where {T,N}
+
+    nextLayers::Array{Layer,1}
+    prevLayer::Array{Layer,1}
     function AddLayer(; numNodes = 0)
         # numNodes = l1.numNodes
         # T = eltype(l1.W)
-        new(Array{Layer,1}(undef,0),
-            Array{Layer,1}(undef,0),
-            numNodes, 0, 0, 0,
+        new(
+            numNodes,
+            numNodes,
             Matrix{Nothing}(undef, 0, 0),
-            Matrix{Nothing}(undef, 0, 0))
+            Matrix{Nothing}(undef, 0, 0),
+            0,
+            0,
+            0,
+            Array{Layer,1}(undef,0), #nextLayers
+            Array{Layer,1}(undef,0), #prevLayer
+            )
     end #function AddLayer
 end
 
@@ -112,29 +123,30 @@ mutable struct Activation <: Layer
     numNodes::Integer
     channels::Integer
 
-    nextLayers::Array{Layer,1}
-    prevLayer::L where {L<:Union{Layer,Nothing}}
 
     forwCount::Integer
     backCount::Integer
     updateCount::Integer
 
     A::Array{T,N} where {T,N}
-    dZ::Array{T,N} where {T,N}
+    dA::Array{T,N} where {T,N}
+
+    nextLayers::Array{Layer,1}
+    prevLayer::L where {L<:Union{Layer,Nothing}}
 
     function Activation(actFun=:relu)
         new(
             actFun,
             0, #numNodes
             0, #channels
+            0,
+            0,
+            0,
+            Matrix{Nothing}(undef, 0, 0),
+            Matrix{Nothing}(undef, 0, 0),
             Array{Layer,1}(undef,0),
             nothing,
-            0,
-            0,
-            0,
-            Matrix{Nothing}(undef, 0, 0),
-            Matrix{Nothing}(undef, 0, 0),
-        )
+            )
     end #function Activation
 end #mutable struct Activation
 
@@ -146,15 +158,19 @@ export Activation
 ### Input
 
 mutable struct Input <: Layer
-    A::Array{T,N} where {T,N}
-    dZ::Array{T,N} where {T,N}
-    nextLayers::Array{Layer,1}
-    prevLayer::L where {L<:Union{Layer,Nothing}}
     channels::Integer
     numNodes::Integer
+
+    A::Array{T,N} where {T,N}
+    dA::Array{T,N} where {T,N}
+
     forwCount::Integer
     backCount::Integer
     updateCount::Integer
+
+    nextLayers::Array{Layer,1}
+    prevLayer::L where {L<:Union{Layer,Nothing}}
+
     function Input(X::Array{T,N}) where {T,N}
         if N==2
             channels = size(X)[1]
@@ -165,17 +181,18 @@ mutable struct Input <: Layer
         elseif N==5
             channels = size(X)[4]
         end
-        dZ = similar(X)
-        dZ .= 0
-        new(X,
-            dZ,
+        dA = similar(X)
+        dA .= 0
+        new(
+            channels,
+            channels,
+            X,
+            dA,
+            0,
+            0,
+            0,
             Array{Layer,1}(undef,0),
             nothing,
-            channels,
-            channels,
-            0,
-            0,
-            0,
             )
     end #function Layer
 end #mutable struct Input
@@ -190,54 +207,63 @@ mutable struct BatchNorm <: Layer
     numNodes::Integer
     channels::Integer
 
-    nextLayers::Array{Layer,1}
-    prevLayer::L where {L<:Union{Layer,Nothing}}
+    dim::Integer
+
+    ϵ::AbstractFloat
+
+    μ::Array{T,N} where{T,N}
+    var::Array{T,N} where {T,N}
+
+    W::Array{T, N} where {T,N}
+    dW::Array{T, N} where {T,N}
+
+    B::Array{T, N} where {T,N}
+    dB::Array{T, N} where {T,N}
+
+    V::Dict{Symbol,Array}
+    S::Dict{Symbol,Array}
+
+    Z::Array{T, M} where {T,M}
+    Ai_μ::Array{T, M} where {T,M}
+    Ai_μ_s::Array{T, M} where {T,M}
+    dA::Array{T, M} where {T,M}
+    A::Array{T, M} where {T,M}
 
     forwCount::Integer
     backCount::Integer
     updateCount::Integer
 
-    W::N where {N <: Number}
-    dW::N where {N <: Number}
-
-    B::N where {N <: Number}
-    dB::N where {N <: Number}
-
-    V::Dict{Symbol, N where {N <: Number}}
-    S::Dict{Symbol, N where {N <: Number}}
-
-    Z::Array{T, M} where {T,M}
-    dZ::Array{T, M} where {T,M}
-    A::Array{T, M} where {T,M}
-
-    dim::Integer
-
-    ϵ::AbstractFloat
+    nextLayers::Array{Layer,1}
+    prevLayer::L where {L<:Union{Layer,Nothing}}
 
 
     function BatchNorm(;dim=1, ϵ=1e-10)
         new(
             0, #numNodes
             0, #channels
-            Array{Layer,1}(undef,0), #nextLayers
-            nothing, #prevLayer
+            dim,
+            ϵ,
+            Array{Any,1}(undef,0), #μ
+            Array{Any,1}(undef,0), #var
+            Array{Any,1}(undef,0), #W
+            Array{Any,1}(undef,0), #dW
+            Array{Any,1}(undef,0), #B
+            Array{Any,1}(undef,0), #dB
+            Dict(:dw=>Array{Any,1}(undef,0),
+                 :db=>Array{Any,1}(undef,0)), #V
+            Dict(:dw=>Array{Any,1}(undef,0),
+                 :db=>Array{Any,1}(undef,0)), #S
+            Array{Any,1}(undef,0), #Z
+            Array{Any,1}(undef,0), #Ai_μ
+            Array{Any,1}(undef,0), #Ai_μ_s
+            Array{Any,1}(undef,0), #dA
+            Array{Any,1}(undef,0), #A
             0, #forwCount
             0, #backCount
             0, #updateCount
-            randn(), #W
-            0, #dW
-            0, #B
-            0, #dB
-            Dict(:dw=>0,
-                 :db=>0), #V
-            Dict(:dw=>0,
-                 :db=>0), #S
-            Array{Any,1}(undef,0), #Z
-            Array{Any,1}(undef,0), #dZ
-            Array{Any,1}(undef,0), #A
-            dim,
-            ϵ,
-        )
+            Array{Layer,1}(undef,0), #nextLayers
+            nothing, #prevLayer
+            )
     end #function BatchNorm
 
 
