@@ -49,9 +49,16 @@ end #function layerForProp!(cLayer::Activation)
 ###BatchNorm
 
 function layerForProp!(cLayer::BatchNorm)
+
+    initWB!(cLayer)
+
     Ai = cLayer.prevLayer.A
-    cLayer.Z = Ai .- mean(Ai, dims=1:cLayer.dim)
-    cLayer.Z ./= sqrt.(var(Ai, dims=1:cLayer.dim) .+ cLayer.ϵ)
+    cLayer.μ = mean(Ai, dims=1:cLayer.dim)
+    cLayer.Ai_μ = Ai .- cLayer.μ
+    N = prod(size(Ai)[1:cLayer.dim])
+    cLayer.Ai_μ_s = cLayer.Ai_μ .^ 2
+    cLayer.var = sum(cLayer.Ai_μ_s, dims=1:cLayer.dim) ./ N
+    cLayer.Z = cLayer.Ai_μ ./ sqrt.(cLayer.var .+ cLayer.ϵ)
     cLayer.A = cLayer.W .* cLayer.Z .+ cLayer.B
     cLayer.forwCount += 1
     return nothing
