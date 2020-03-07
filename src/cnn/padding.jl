@@ -1,33 +1,42 @@
 ###Padding functions
 
-function padding(cLayer::P) where {P <: PaddableLayer}
+function padding(
+                 cLayer::P,
+                 Ai::AoN=nothing,
+                 ) where {P <: PaddableLayer, AoN <: Union{AbstractArray, Nothing}}
+
     ndim = ndims(cLayer.A)
+
+    if Ai == nothing
+        Ai = cLayer.prevLayer.A
+    end
+
     if ndim == 3
-        n_Hi, ci, m = size(cLayer.prevLayer.A)
+        n_Hi, ci, m = size(Ai)
         s_H = cLayer.s
         f_H = cLayer.f
         if cLayer.padding == :same
             p_H = Integer(ceil((s_H*(n_Hi-1)-n_Hi+f_H)/2))
             n_H = n_Hi
-            Ai = padding(cLayer.prevLayer.A, p_H)
+            Ai = padding(Ai, p_H)
         elseif cLayer.padding == :valid
-            Ai = cLayer.prevLayer.A
+            Ai = Ai
         end
     elseif ndim == 4
-        n_Hi, n_Wi, ci, m = size(cLayer.prevLayer.A)
+        n_Hi, n_Wi, ci, m = size(Ai)
         s_H, s_W = cLayer.s
         f_H, f_W = cLayer.f
         if cLayer.padding == :same
             p_H = Integer(ceil((s_H*(n_Hi-1)-n_Hi+f_H)/2))
             p_W = Integer(ceil((s_W*(n_Wi-1)-n_Wi+f_W)/2))
             n_H, n_W = n_Hi, n_Wi
-            Ai = padding(cLayer.prevLayer.A, p_H, p_W)
+            Ai = padding(Ai, p_H, p_W)
         elseif cLayer.padding == :valid
-            Ai = cLayer.prevLayer.A
+            Ai = Ai
         end
 
     elseif ndim == 5
-        n_Hi, n_Wi, n_Di, ci, m = size(cLayer.prevLayer.A)
+        n_Hi, n_Wi, n_Di, ci, m = size(Ai)
         s_H, s_W, s_D = cLayer.s
         f_H, f_W, f_D = cLayer.f
         if cLayer.padding == :same
@@ -35,9 +44,9 @@ function padding(cLayer::P) where {P <: PaddableLayer}
             p_W = Integer(ceil((s_W*(n_Wi-1)-n_Wi+f_W)/2))
             p_D = Integer(ceil((s_D*(n_Di-1)-n_Di+f_D)/2))
             n_H, n_W, n_D = n_Hi, n_Wi, n_D
-            Ai = padding(cLayer.prevLayer.A, p_H, p_W, p_D)
+            Ai = padding(Ai, p_H, p_W, p_D)
         elseif cLayer.padding == :valid
-            Ai = cLayer.prevLayer.A
+            Ai = Ai
         end #if cLayer.padding == :same
     end
     return Ai
