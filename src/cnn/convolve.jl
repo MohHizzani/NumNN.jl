@@ -200,15 +200,15 @@ function dconvolve!(
     end #for
 
 
-        n_Hi, n_Wi, n_Di, ci, m = size(cLayer.prevLayer.A)
-        n_Hj, n_Wj, n_Dj, ci, m = size(dAi)
-        p_H = (n_Hi - n_Hj) ÷ 2
-        p_W = (n_Wi - n_Wj) ÷ 2
-        p_D = (n_Di - n_Dj) ÷ 2
+    n_Hi, n_Wi, n_Di, ci, m = size(cLayer.prevLayer.A)
+    n_Hj, n_Wj, n_Dj, ci, m = size(dAi)
+    p_H = (n_Hi - n_Hj) ÷ 2
+    p_W = (n_Wi - n_Wj) ÷ 2
+    p_D = (n_Di - n_Dj) ÷ 2
 
-        cLayer.dA = dAi[p_H:end-p_H,p_W:end-p_W,p_D:end-p_D,:,:]
+    cLayer.dA = dAi[p_H:end-p_H,p_W:end-p_W,p_D:end-p_D,:,:]
 
-        @assert size(cLayer.prevLayer.A) == size(cLayer.dA)
+    @assert size(cLayer.prevLayer.A) == size(cLayer.dA)
 
 
     return nothing
