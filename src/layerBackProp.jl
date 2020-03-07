@@ -1,7 +1,7 @@
 
 
 function layerBackProp(
-    cLayer::Layer,
+    cLayer::FCLayer,
     model::Model,
     actFun::SoS,
     labels::AbstractArray,
@@ -18,6 +18,23 @@ function layerBackProp(
     return dZ
 end #softmax or σ layerBackProp
 
+
+function layerBackProp(
+    cLayer::Activation,
+    model::Model,
+    actFun::SoS,
+    labels::AbstractArray,
+    ) where {SoS <: Union{Type{softmax}, Type{σ}}}
+
+
+    lossFun = model.lossFun
+    dlossFun = Symbol("d",lossFun)
+    A = cLayer.A
+    Y = labels
+    dZ = eval(:($dlossFun($A, $Y)))
+
+    return dZ
+end #softmax or σ layerBackProp
 
 
 function layerBackProp!(cLayer::FCLayer, model::Model; labels=nothing)
@@ -125,7 +142,7 @@ function layerBackProp!(cLayer::Activation, model::Model; labels=nothing)
 
         dActFun = Symbol("d",cLayer.actFun)
 
-        Z = cLayer.prevLayer.A
+        Z = cLayer.prevLayer.A #this is the Activation layer
 
         dZ = dA .* eval(:($dActFun($Z)))
 
