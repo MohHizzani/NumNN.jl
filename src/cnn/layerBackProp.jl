@@ -64,3 +64,48 @@ function layerBackProp!(cLayer::ConvLayer, model::Model; labels=nothing)
 
     return nothing
 end #function layerBackProp!(cLayer::Input
+
+
+### Pooling Layers
+
+function layerBackProp!(cLayer::OneD) where {OneD <: Union{MaxPool1D, AveragePool1D}}
+
+    Ai = padding(cLayer)
+    dAi = similar(Ai)
+    dAi .= 0
+
+    dpooling!(cLayer, Ai, dAi)
+
+    cLayer.forwCount += 1
+
+    return nothing
+
+end #unction layerBackProp!(cLayer::OneD) where {OneD <: Union{MaxPool1D, AveragePool1D}}
+
+function layerBackProp!(cLayer::TwoD) where {TwoD <: Union{MaxPool2D, AveragePool2D}}
+
+    Ai = padding(cLayer)
+    dAi = similar(Ai)
+    dAi .= 0
+
+    dpooling!(cLayer, Ai, dAi)
+
+    cLayer.forwCount += 1
+
+    return nothing
+
+end #function layerBackProp!(cLayer::TwoD) where {TwoD <: Union{MaxPool2D, AveragePool2D}}
+
+function layerBackProp!(cLayer::ThreeD) where {ThreeD <: Union{MaxPool3D, AveragePool3D}}
+
+    Ai = padding(cLayer)
+    dAi = similar(Ai)
+    dAi .= 0
+
+    dpooling!(cLayer, Ai, dAi)
+
+    cLayer.forwCount += 1
+
+    return nothing
+
+end #function layerBackProp!(cLayer::ThreeD) where {ThreeD <: Union{MaxPool3D, AveragePool3D}}
