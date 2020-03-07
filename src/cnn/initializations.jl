@@ -18,14 +18,14 @@ function initWB!(
 
 
     if zro
-        W = [zeros(T, f..., cl_1) for i = 1:cl]
+        W = zeros(T, f..., cl_1, cl)
     else
-        W = [randn(T, f..., cl_1) .* coef for i = 1:cl]
+        W = T.(randn(f..., cl_1, cl) .* coef)
     end
-    B = zeros(T, repeat([1], length(f))..., cl)
+    B = zeros(T, repeat([1], length(f)+1)..., cl)
 
     cLayer.W, cLayer.B = W, B
-    cLayer.dW = [zeros(T, f..., cl_1) for i = 1:cl]
+    cLayer.dW = zeros(T, f..., cl_1, cl)
     cLayer.dB = deepcopy(B)
     return nothing
 end #initWB
