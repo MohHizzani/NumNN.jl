@@ -34,7 +34,7 @@ mutable struct Conv2D <: ConvLayer
     keepProb::AbstractFloat
 
     Z::Array{T,4} where {T}
-    dZ::Array{T,4} where {T}
+    dA::Array{T,4} where {T}
     A::Array{T,4} where {T}
 
     V::Dict{Symbol, Array{F, 4}  where {F}}
@@ -74,7 +74,7 @@ mutable struct Conv2D <: ConvLayer
             activation,
             keepProb,
             Array{T,4}(undef, 0,0,0,0), #Z
-            Array{T,4}(undef, 0,0,0,0), #dZ
+            Array{T,4}(undef, 0,0,0,0), #dA
             Array{T,4}(undef, 0,0,0,0), #A
             Dict(:dw=>Array{T,4}(undef,0,0,0,0),
                  :db=>Array{T,4}(undef,0,0,0,0)), #V
@@ -122,7 +122,7 @@ mutable struct Conv1D <: ConvLayer
     keepProb::AbstractFloat
 
     Z::Array{T,3} where {T}
-    dZ::Array{T,3} where {T}
+    dA::Array{T,3} where {T}
     A::Array{T,3} where {T}
 
     V::Dict{Symbol, Array{F, 3}  where {F}}
@@ -162,7 +162,7 @@ mutable struct Conv1D <: ConvLayer
             activation,
             keepProb,
             Array{T,3}(undef, 0,0,0), #Z
-            Array{T,3}(undef, 0,0,0), #dZ
+            Array{T,3}(undef, 0,0,0), #dA
             Array{T,3}(undef, 0,0,0), #A
             Dict(:dw=>Array{T,3}(undef,0,0,0),
                  :db=>Array{T,3}(undef,0,0,0)), #V
@@ -211,7 +211,7 @@ mutable struct Conv3D <: ConvLayer
     keepProb::AbstractFloat
 
     Z::Array{T,5} where {T}
-    dZ::Array{T,5} where {T}
+    dA::Array{T,5} where {T}
     A::Array{T,5} where {T}
 
     V::Dict{Symbol, Array{F, 5}  where {F}}
@@ -251,7 +251,7 @@ mutable struct Conv3D <: ConvLayer
             activation,
             keepProb,
             Array{T,5}(undef, 0,0,0,0,0), #Z
-            Array{T,5}(undef, 0,0,0,0,0), #dZ
+            Array{T,5}(undef, 0,0,0,0,0), #dA
             Array{T,5}(undef, 0,0,0,0,0), #A
             Dict(:dw=>Array{T,5}(undef,0,0,0,0,0),
                  :db=>Array{T,5}(undef,0,0,0,0,0)), #V
@@ -297,7 +297,7 @@ mutable struct MaxPool2D <: MaxPoolLayer
 
     padding::Symbol
 
-    dZ::Array{T,4} where {T}
+    dA::Array{T,4} where {T}
     A::Array{T,4} where {T}
 
     forwCount::Integer
@@ -330,7 +330,7 @@ mutable struct MaxPool2D <: MaxPoolLayer
                    f,
                    strides,
                    padding,
-                   Array{T,4}(undef,0,0,0,0), #dZ
+                   Array{T,4}(undef,0,0,0,0), #dA
                    Array{T,4}(undef,0,0,0,0), #A
                    0, #forwCount
                    0, #backCount
@@ -359,7 +359,7 @@ mutable struct MaxPool1D <: MaxPoolLayer
 
     padding::Symbol
 
-    dZ::Array{T,3} where {T}
+    dA::Array{T,3} where {T}
     A::Array{T,3} where {T}
 
     forwCount::Integer
@@ -392,7 +392,7 @@ mutable struct MaxPool1D <: MaxPoolLayer
                    f,
                    strides,
                    padding,
-                   Array{T,3}(undef,0,0,0), #dZ
+                   Array{T,3}(undef,0,0,0), #dA
                    Array{T,3}(undef,0,0,0), #A
                    0, #forwCount
                    0, #backCount
@@ -421,7 +421,7 @@ mutable struct MaxPool3D <: MaxPoolLayer
 
     padding::Symbol
 
-    dZ::Array{T,5} where {T}
+    dA::Array{T,5} where {T}
     A::Array{T,5} where {T}
 
     forwCount::Integer
@@ -454,7 +454,7 @@ mutable struct MaxPool3D <: MaxPoolLayer
                    f,
                    strides,
                    padding,
-                   Array{T,5}(undef,0,0,0,0,0), #dZ
+                   Array{T,5}(undef,0,0,0,0,0), #dA
                    Array{T,5}(undef,0,0,0,0,0), #A
                    0, #forwCount
                    0, #backCount
@@ -490,7 +490,7 @@ mutable struct AveragePool2D <: AveragePoolLayer
 
     padding::Symbol
 
-    dZ::Array{T,4} where {T}
+    dA::Array{T,4} where {T}
     A::Array{T,4} where {T}
 
     forwCount::Integer
@@ -523,7 +523,7 @@ mutable struct AveragePool2D <: AveragePoolLayer
                    f,
                    strides,
                    padding,
-                   Array{T,4}(undef,0), #dZ
+                   Array{T,4}(undef,0), #dA
                    Array{T,4}(undef,0), #A
                    0, #forwCount
                    0, #backCount
@@ -552,7 +552,7 @@ mutable struct AveragePool1D <: AveragePoolLayer
 
     padding::Symbol
 
-    dZ::Array{T,3} where {T}
+    dA::Array{T,3} where {T}
     A::Array{T,3} where {T}
 
     forwCount::Integer
@@ -585,7 +585,7 @@ mutable struct AveragePool1D <: AveragePoolLayer
                    f,
                    strides,
                    padding,
-                   Array{T,3}(undef,0), #dZ
+                   Array{T,3}(undef,0), #dA
                    Array{T,3}(undef,0), #A
                    0, #forwCount
                    0, #backCount
@@ -614,7 +614,7 @@ mutable struct AveragePool3D <: AveragePoolLayer
 
     padding::Symbol
 
-    dZ::Array{T,5} where {T}
+    dA::Array{T,5} where {T}
     A::Array{T,5} where {T}
 
     forwCount::Integer
@@ -647,7 +647,7 @@ mutable struct AveragePool3D <: AveragePoolLayer
                    f,
                    strides,
                    padding,
-                   Array{T,5}(undef,0), #dZ
+                   Array{T,5}(undef,0), #dA
                    Array{T,5}(undef,0), #A
                    0, #forwCount
                    0, #backCount

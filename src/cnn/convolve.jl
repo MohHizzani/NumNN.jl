@@ -110,8 +110,8 @@ function dconvolve!(
         ai = Ai[h_start:h_end, :, mi]
         dAi[h_start:h_end, :, mi] .+= cLayer.Z[hi, ci, mi] .* W[:,:,ci]
 
-        cLayer.dW[:,:,ci] .+= (ai .* cLayer.dZ[hi, ci, mi])
-        cLayer.dB[:,:,ci] .+= cLayer.dZ[hi,ci,mi]
+        cLayer.dW[:,:,ci] .+= (ai .* dZ[hi, ci, mi])
+        cLayer.dB[:,:,ci] .+= dZ[hi,ci,mi]
     end #for
 
     cLayer.dA = dAi
@@ -145,8 +145,8 @@ function dconvolve!(
         ai = Ai[h_start:h_end, w_start:w_end, :, mi]
         dAi[h_start:h_end, w_start:w_end, :, mi] .+= cLayer.Z[hi, wi, ci, mi] .* W[:,:,:,ci]
 
-        cLayer.dW[:,:,:,ci] .+= (ai .* cLayer.dZ[hi, wi, ci, mi])
-        cLayer.dB[:,:.:,ci] .+= cLayer.dZ[hi, wi,ci,mi]
+        cLayer.dW[:,:,:,ci] .+= (ai .* dZ[hi, wi, ci, mi])
+        cLayer.dB[:,:.:,ci] .+= dZ[hi, wi,ci,mi]
     end #for
 
     cLayer.dA = dAi
@@ -182,8 +182,8 @@ function dconvolve!(
         ai = Ai[h_start:h_end, w_start:w_end, d_start:d_end, :, mi]
         dAi[h_start:h_end, w_start:w_end, d_start:d_end, :, mi] .+= cLayer.Z[hi, wi, di, ci, mi] .* W[:,:,:,:,ci]
 
-        cLayer.dW[:,:,:,:,ci] .+= (ai .* cLayer.dZ[hi, wi, ci, mi])
-        cLayer.dB[:,:.:,:,ci] .+= cLayer.dZ[hi,wi,di,ci,mi]
+        cLayer.dW[:,:,:,:,ci] .+= (ai .* dZ[hi, wi, ci, mi])
+        cLayer.dB[:,:.:,:,ci] .+= dZ[hi,wi,di,ci,mi]
     end #for
 
     cLayer.dA = dAi
