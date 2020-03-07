@@ -1,3 +1,5 @@
+using PaddedViews
+
 ###Padding functions
 
 function padding(

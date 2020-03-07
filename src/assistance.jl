@@ -1,5 +1,3 @@
-using PaddedViews
-
 
 """
     convert array of integer classes into one Hot coding
