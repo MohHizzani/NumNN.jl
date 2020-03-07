@@ -114,7 +114,13 @@ function dconvolve!(
         cLayer.dB[:,:,ci] .+= dZ[hi,ci,mi]
     end #for
 
-    cLayer.dA = dAi
+    n_Hi, ci, m = size(cLayer.prevLayer.A)
+    n_Hj, ci, m = size(dAi)
+    p_H = (n_Hi - n_Hj) ÷ 2
+
+    cLayer.dA = dAi[p_H:end-p_H,:,:]
+
+    @assert size(cLayer.prevLayer.A) == size(cLayer.dA)
 
     return nothing
 end #function dconvolve(cLayer::Conv1D
@@ -149,7 +155,14 @@ function dconvolve!(
         cLayer.dB[:,:.:,ci] .+= dZ[hi, wi,ci,mi]
     end #for
 
-    cLayer.dA = dAi
+    n_Hi, n_Wi, ci, m = size(cLayer.prevLayer.A)
+    n_Hj, n_Wj, ci, m = size(dAi)
+    p_H = (n_Hi - n_Hj) ÷ 2
+    p_W = (n_Wi - n_Wj) ÷ 2
+
+    cLayer.dA = dAi[p_H:end-p_H,p_W:end-p_W,:,:]
+
+    @assert size(cLayer.prevLayer.A) == size(cLayer.dA)
 
     return nothing
 end #function dconvolve(cLayer::Conv2D
@@ -186,7 +199,17 @@ function dconvolve!(
         cLayer.dB[:,:.:,:,ci] .+= dZ[hi,wi,di,ci,mi]
     end #for
 
-    cLayer.dA = dAi
+
+        n_Hi, n_Wi, n_Di, ci, m = size(cLayer.prevLayer.A)
+        n_Hj, n_Wj, n_Dj, ci, m = size(dAi)
+        p_H = (n_Hi - n_Hj) ÷ 2
+        p_W = (n_Wi - n_Wj) ÷ 2
+        p_D = (n_Di - n_Dj) ÷ 2
+
+        cLayer.dA = dAi[p_H:end-p_H,p_W:end-p_W,p_D:end-p_D,:,:]
+
+        @assert size(cLayer.prevLayer.A) == size(cLayer.dA)
+
 
     return nothing
 end #function dconvolve(cLayer::Conv3D
