@@ -99,26 +99,22 @@ function dconvolve!(
     lastDim = ndims(Ai)
     n_H, c, m = size(cLayer.Z)
     W = cLayer.W
-    cLayer.dW = deepcopy(W)
-    for w in cLayer.dW
-        w .= 0
-    end
+    cLayer.dW = similar(W)
+    cLayer.dW .= 0
     B = cLayer.B
-    cLayer.dB = deepcopy(B)
+    cLayer.dB = similar(B)
     cLayer.dB .= 0
     for mi=1:m, ci=1:c, hi=1:n_H
         h_start = hi*s_H - (s_H == 1 ? 0 : 1)
         h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
         ai = Ai[h_start:h_end, :, mi]
-        dAi[h_start:h_end, :, mi] .+= cLayer.Z[hi, ci, mi] .* W[ci]
+        dAi[h_start:h_end, :, mi] .+= cLayer.Z[hi, ci, mi] .* W[:,:,ci]
 
-        cLayer.dW[ci] .+= (ai .* cLayer.dZ[hi, ci, mi])
-        cLayer.dB[:,ci] .+= cLayer.dZ[hi,ci,mi]
+        cLayer.dW[:,:,ci] .+= (ai .* cLayer.dZ[hi, ci, mi])
+        cLayer.dB[:,:,ci] .+= cLayer.dZ[hi,ci,mi]
     end #for
-    cLayer.Z .+= B
-    Z = cLayer.Z
-    actFun = cLayer.actFun
-    cLayer.A = eval(:($actFun($Z)))
+
+    cLayer.dA = dAi
 
     return nothing
 end #function dconvolve(cLayer::Conv1D
@@ -136,19 +132,24 @@ function dconvolve!(
     lastDim = ndims(Ai)
     n_H, n_W, c, m = size(cLayer.Z)
     W = cLayer.W
+    cLayer.dW = similar(W)
+    cLayer.dW .= 0
     B = cLayer.B
+    cLayer.dB = similar(B)
+    cLayer.dB .= 0
     for mi=1:m, ci=1:c, wi=1:n_W, hi=1:n_H
         h_start = hi* s_H - (s_H == 1 ? 0 : 1)
         h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
         w_start = wi*s_W - (s_W == 1 ? 0 : 1)
         w_end = wi*s_W - (s_W == 1 ? 0 : 1) + f_W -1
         ai = Ai[h_start:h_end, w_start:w_end, :, mi]
-        cLayer.dZ[hi, wi, ci, mi] = W[ci] ⋅ ai
+        dAi[h_start:h_end, w_start:w_end, :, mi] .+= cLayer.Z[hi, wi, ci, mi] .* W[:,:,:,ci]
+
+        cLayer.dW[:,:,:,ci] .+= (ai .* cLayer.dZ[hi, wi, ci, mi])
+        cLayer.dB[:,:.:,ci] .+= cLayer.dZ[hi, wi,ci,mi]
     end #for
-    cLayer.Z .+= B
-    Z = cLayer.Z
-    actFun = cLayer.actFun
-    cLayer.A = eval(:($actFun($Z)))
+
+    cLayer.dA = dAi
 
     return nothing
 end #function dconvolve(cLayer::Conv2D
@@ -166,7 +167,11 @@ function dconvolve!(
     lastDim = ndims(Ai)
     n_H, n_W, n_D, c, m = size(cLayer.Z)
     W = cLayer.W
+    cLayer.dW = similar(W)
+    cLayer.dW .= 0
     B = cLayer.B
+    cLayer.dB = similar(B)
+    cLayer.dB .= 0
     for mi=1:m, ci=1:c, wi=1:n_W, hi=1:n_H, di=1:n_D
         h_start = hi*s_H - (s_H == 1 ? 0 : 1)
         h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
@@ -175,12 +180,13 @@ function dconvolve!(
         d_start = di*s_D - (s_D == 1 ? 0 : 1)
         d_end = di*s_D - (s_D == 1 ? 0 : 1) + f_D -1
         ai = Ai[h_start:h_end, w_start:w_end, d_start:d_end, :, mi]
-        cLayer.Z[hi, wi, di, ci, mi] = W[ci] ⋅ ai
+        dAi[h_start:h_end, w_start:w_end, d_start:d_end, :, mi] .+= cLayer.Z[hi, wi, di, ci, mi] .* W[:,:,:,:,ci]
+
+        cLayer.dW[:,:,:,:,ci] .+= (ai .* cLayer.dZ[hi, wi, ci, mi])
+        cLayer.dB[:,:.:,:,ci] .+= cLayer.dZ[hi,wi,di,ci,mi]
     end #for
-    cLayer.Z .+= B
-    Z = cLayer.Z
-    actFun = cLayer.actFun
-    cLayer.A = eval(:($actFun($Z)))
+
+    cLayer.dA = dAi
 
     return nothing
 end #function dconvolve(cLayer::Conv3D
