@@ -66,7 +66,7 @@ function layerBackProp!(cLayer::FCLayer, model::Model; labels=nothing)
 
         keepProb = cLayer.keepProb
         if keepProb < 1.0 #to save time of multiplication in case keepProb was one
-           D = rand(cLayer.numNodes,1) .< keepProb
+           D = rand(cLayer.channels,1) .< keepProb
            dA .*= D
            dA ./= keepProb
         end
@@ -132,7 +132,7 @@ function layerBackProp!(cLayer::Activation, model::Model; labels=nothing)
         try
             keepProb = cLayer.keepProb
             if keepProb < 1.0 #to save time of multiplication in case keepProb was one
-               D = rand(cLayer.numNodes,1) .< keepProb
+               D = rand(cLayer.channels,1) .< keepProb
                dA .*= D
                dA ./= keepProb
             end

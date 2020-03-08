@@ -116,7 +116,7 @@ function dpooling!(
     n_Hj, ci, m = size(dAi)
     p_H = (n_Hi - n_Hj) ÷ 2
 
-    cLayer.dA = dAi[p_H:end-p_H,:,:]
+    cLayer.dA = dAi[1+p_H:end-p_H,:,:]
 
     @assert size(cLayer.prevLayer.A) == size(cLayer.dA)
 
@@ -157,7 +157,7 @@ function dpooling!(
     p_H = (n_Hi - n_Hj) ÷ 2
     p_W = (n_Wi - n_Wj) ÷ 2
 
-    cLayer.dA = dAi[p_H:end-p_H,p_W:end-p_W,:,:]
+    cLayer.dA = dAi[1+p_H:end-p_H,1+p_W:end-p_W,:,:]
 
     @assert size(cLayer.prevLayer.A) == size(cLayer.dA)
 
@@ -204,7 +204,7 @@ function dpooling!(
     p_W = (n_Wi - n_Wj) ÷ 2
     p_D = (n_Di - n_Dj) ÷ 2
 
-    cLayer.dA = dAi[p_H:end-p_H,p_W:end-p_W,p_D:end-p_D,:,:]
+    cLayer.dA = dAi[1+p_H:end-p_H,1+p_W:end-p_W,p_D:end-p_D,:,:]
 
     @assert size(cLayer.prevLayer.A) == size(cLayer.dA)
 

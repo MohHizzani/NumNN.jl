@@ -48,7 +48,7 @@ export initWB!
 ### initVS!
 
 function initVS!(
-    cLayer::FCLayer,
+    cLayer::ConvLayer,
     optimizer::Symbol
     )
 

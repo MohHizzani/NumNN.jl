@@ -16,7 +16,7 @@ function initWB!(
     zro = false,
 ) where {T}
 
-    s = (cLayer.numNodes, cLayer.prevLayer.numNodes)
+    s = (cLayer.channels, cLayer.prevLayer.channels)
     if He
         coef = sqrt(2 / s[end])
     end
@@ -69,13 +69,13 @@ function initWB!(
         cn = cLayer.prevLayer.channels
         if cn == 0
             try
-                cn = cLayer.prevLayer.numNodes
+                cn = cLayer.prevLayer.channels
             catch e1
 
             end
         end #if cn ==0
     catch e
-        cn = cLayer.prevLayer.numNodes
+        cn = cLayer.prevLayer.channels
     end #try/catch
     if He
         coef = sqrt(2 / cn)

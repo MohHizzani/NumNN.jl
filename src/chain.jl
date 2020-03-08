@@ -38,14 +38,8 @@ end #function (l::FCLayer)(li_1::Layer)
 
 function (l::Activation)(li_1::Layer)
     l.prevLayer = li_1
-    try
-        l.numNodes = li_1.numNodes
-        if !(li_1.numNodes>0)
-            l.channels = li_1.channels
-        end
-    catch e
-        l.channels = li_1.channels
-    end
+
+    l.channels = li_1.channels
 
     if ! in(l,li_1.nextLayers)
         push!(li_1.nextLayers, l)
@@ -62,15 +56,9 @@ function (l::AddLayer)(ls::Array{L,1}) where {L<:Layer}
             push!(li.nextLayers, l)
         end
     end #for
-    try
-        channels = ls[1].numNodes
-        if !(channels>0)
-            channels = ls[1].channels
-        end
-        l.numNodes = channels
-    catch e
-        channels = ls[1].channels
-    end
+
+    l.channels = ls[1].channels
+
     return l
 end #function (l::AddLayer)(li::Array{Layer,1})
 
@@ -99,14 +87,8 @@ end
 
 function (l::BatchNorm)(li_1::Layer)
     l.prevLayer = li_1
-    try
-        l.numNodes = li_1.numNodes
-        if !(li_1.numNodes>0)
-            l.channels = li_1.channels
-        end
-    catch e
-        l.channels = li_1.channels
-    end
+
+    l.channels = li_1.channels
 
     if ! in(l,li_1.nextLayers)
         push!(li_1.nextLayers, l)
@@ -119,7 +101,7 @@ end #function (l::BatchNorm)
 function (l::Input)(X::AbstractArray{T,N}) where {T,N}
     l.A = X
     channels = size(X)[end-1]
-    l.channels = l.numNodes = channels
+    l.channels = channels
     return l
 end #function (l::Input)(X::AbstractArray{T,N})
 

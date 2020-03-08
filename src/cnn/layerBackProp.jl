@@ -68,7 +68,7 @@ end #function layerBackProp!(cLayer::Input
 
 ### Pooling Layers
 
-function layerBackProp!(cLayer::OneD) where {OneD <: Union{MaxPool1D, AveragePool1D}}
+function layerBackProp!(cLayer::OneD, model::Model; labels=nothing) where {OneD <: Union{MaxPool1D, AveragePool1D}}
 
     Ai = padding(cLayer)
     dAi = similar(Ai)
@@ -82,7 +82,7 @@ function layerBackProp!(cLayer::OneD) where {OneD <: Union{MaxPool1D, AveragePoo
 
 end #unction layerBackProp!(cLayer::OneD) where {OneD <: Union{MaxPool1D, AveragePool1D}}
 
-function layerBackProp!(cLayer::TwoD) where {TwoD <: Union{MaxPool2D, AveragePool2D}}
+function layerBackProp!(cLayer::TwoD, model::Model; labels=nothing) where {TwoD <: Union{MaxPool2D, AveragePool2D}}
 
     Ai = padding(cLayer)
     dAi = similar(Ai)
@@ -96,7 +96,7 @@ function layerBackProp!(cLayer::TwoD) where {TwoD <: Union{MaxPool2D, AveragePoo
 
 end #function layerBackProp!(cLayer::TwoD) where {TwoD <: Union{MaxPool2D, AveragePool2D}}
 
-function layerBackProp!(cLayer::ThreeD) where {ThreeD <: Union{MaxPool3D, AveragePool3D}}
+function layerBackProp!(cLayer::ThreeD, model::Model; labels=nothing) where {ThreeD <: Union{MaxPool3D, AveragePool3D}}
 
     Ai = padding(cLayer)
     dAi = similar(Ai)

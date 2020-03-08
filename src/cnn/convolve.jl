@@ -28,6 +28,11 @@ end #function convolve(cLayer::Conv1D
 function convolve!(cLayer::Conv2D,
                   Ai)
 
+    println("In layer $(typeof(cLayer)) with f = $(cLayer.f) and s = $(cLayer.s)")
+    println("Padding is $(cLayer.padding)")
+    println("Size of A is $(size(cLayer.prevLayer.A))")
+    println("Size of Ai is $(size(Ai))")
+    println("Size of Z is $(size(cLayer.Z))")
     f_H, f_W = cLayer.f
     s_H, s_W = cLayer.s
     lastDim = ndims(Ai)
@@ -108,7 +113,7 @@ function dconvolve!(
         h_start = hi*s_H - (s_H == 1 ? 0 : 1)
         h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
         ai = Ai[h_start:h_end, :, mi]
-        dAi[h_start:h_end, :, mi] .+= cLayer.Z[hi, ci, mi] .* W[:,:,ci]
+        dAi[h_start:h_end, :, mi] .+= dZ[hi, ci, mi] .* W[:,:,ci]
 
         cLayer.dW[:,:,ci] .+= (ai .* dZ[hi, ci, mi])
         cLayer.dB[:,:,ci] .+= dZ[hi,ci,mi]
@@ -118,7 +123,7 @@ function dconvolve!(
     n_Hj, ci, m = size(dAi)
     p_H = (n_Hi - n_Hj) ÷ 2
 
-    cLayer.dA = dAi[p_H:end-p_H,:,:]
+    cLayer.dA = dAi[1+p_H:end-p_H,:,:]
 
     @assert size(cLayer.prevLayer.A) == size(cLayer.dA)
 
@@ -149,10 +154,10 @@ function dconvolve!(
         w_start = wi*s_W - (s_W == 1 ? 0 : 1)
         w_end = wi*s_W - (s_W == 1 ? 0 : 1) + f_W -1
         ai = Ai[h_start:h_end, w_start:w_end, :, mi]
-        dAi[h_start:h_end, w_start:w_end, :, mi] .+= cLayer.Z[hi, wi, ci, mi] .* W[:,:,:,ci]
+        dAi[h_start:h_end, w_start:w_end, :, mi] .+= dZ[hi, wi, ci, mi] .* W[:,:,:,ci]
 
         cLayer.dW[:,:,:,ci] .+= (ai .* dZ[hi, wi, ci, mi])
-        cLayer.dB[:,:.:,ci] .+= dZ[hi, wi,ci,mi]
+        cLayer.dB[:,:,:,ci] .+= dZ[hi, wi,ci,mi]
     end #for
 
     n_Hi, n_Wi, ci, m = size(cLayer.prevLayer.A)
@@ -160,7 +165,7 @@ function dconvolve!(
     p_H = (n_Hi - n_Hj) ÷ 2
     p_W = (n_Wi - n_Wj) ÷ 2
 
-    cLayer.dA = dAi[p_H:end-p_H,p_W:end-p_W,:,:]
+    cLayer.dA = dAi[1+p_H:end-p_H,1+p_W:end-p_W,:,:]
 
     @assert size(cLayer.prevLayer.A) == size(cLayer.dA)
 
@@ -193,10 +198,10 @@ function dconvolve!(
         d_start = di*s_D - (s_D == 1 ? 0 : 1)
         d_end = di*s_D - (s_D == 1 ? 0 : 1) + f_D -1
         ai = Ai[h_start:h_end, w_start:w_end, d_start:d_end, :, mi]
-        dAi[h_start:h_end, w_start:w_end, d_start:d_end, :, mi] .+= cLayer.Z[hi, wi, di, ci, mi] .* W[:,:,:,:,ci]
+        dAi[h_start:h_end, w_start:w_end, d_start:d_end, :, mi] .+= dZ[hi, wi, di, ci, mi] .* W[:,:,:,:,ci]
 
         cLayer.dW[:,:,:,:,ci] .+= (ai .* dZ[hi, wi, ci, mi])
-        cLayer.dB[:,:.:,:,ci] .+= dZ[hi,wi,di,ci,mi]
+        cLayer.dB[:,:,:,:,ci] .+= dZ[hi,wi,di,ci,mi]
     end #for
 
 
@@ -206,7 +211,7 @@ function dconvolve!(
     p_W = (n_Wi - n_Wj) ÷ 2
     p_D = (n_Di - n_Dj) ÷ 2
 
-    cLayer.dA = dAi[p_H:end-p_H,p_W:end-p_W,p_D:end-p_D,:,:]
+    cLayer.dA = dAi[1+p_H:end-p_H,1+p_W:end-p_W,1+p_D:end-p_D,:,:]
 
     @assert size(cLayer.prevLayer.A) == size(cLayer.dA)
 

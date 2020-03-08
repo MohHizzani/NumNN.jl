@@ -8,7 +8,7 @@ export Layer
 
 
 mutable struct FCLayer <: Layer
-    numNodes::Integer
+    channels::Integer
     actFun::Symbol
 
     """
@@ -36,16 +36,16 @@ mutable struct FCLayer <: Layer
     """
     prevLayer::L where {L<:Union{Layer,Nothing}}
     nextLayers::Array{Layer,1}
-    function FCLayer(numNodes, actFun, layerInput = nothing; keepProb = 1.0)
+    function FCLayer(channels, actFun, layerInput = nothing; keepProb = 1.0)
         # W, B
         if isa(layerInput, Layer)
             T = eltype(layerInput.W)
-            nl = numNodes
+            nl = channels
             nl_1 = size(layerInput.W)[1]
             prevLayer = layerInput
         elseif isa(layerInput, Array)
             T = eltype(layerInput)
-            nl = numNodes
+            nl = channels
             nl_1 = size(layerInput)[1]
             prevLayer = nothing
         else
@@ -55,7 +55,7 @@ mutable struct FCLayer <: Layer
             prevLayer = nothing
         end
         new(
-            numNodes,
+            channels,
             actFun,
             keepProb,
             Matrix{T}(undef, 0, 0),
@@ -83,7 +83,6 @@ export FCLayer
 
 
 mutable struct AddLayer <: Layer
-    numNodes::Integer
     channels::Integer
 
     A::Array{T,N} where {T,N}
@@ -95,12 +94,11 @@ mutable struct AddLayer <: Layer
 
     nextLayers::Array{Layer,1}
     prevLayer::Array{Layer,1}
-    function AddLayer(; numNodes = 0)
-        # numNodes = l1.numNodes
+    function AddLayer(; channels = 0)
+        # channels = l1.channels
         # T = eltype(l1.W)
         new(
-            numNodes,
-            numNodes,
+            channels,
             Matrix{Nothing}(undef, 0, 0),
             Matrix{Nothing}(undef, 0, 0),
             0,
@@ -120,7 +118,6 @@ export AddLayer
 
 mutable struct Activation <: Layer
     actFun::Symbol
-    numNodes::Integer
     channels::Integer
 
 
@@ -137,7 +134,6 @@ mutable struct Activation <: Layer
     function Activation(actFun=:relu)
         new(
             actFun,
-            0, #numNodes
             0, #channels
             0,
             0,
@@ -159,7 +155,6 @@ export Activation
 
 mutable struct Input <: Layer
     channels::Integer
-    numNodes::Integer
 
     A::Array{T,N} where {T,N}
     dA::Array{T,N} where {T,N}
@@ -185,7 +180,6 @@ mutable struct Input <: Layer
         dA .= 0
         new(
             channels,
-            channels,
             X,
             dA,
             0,
@@ -204,7 +198,6 @@ export Input
 ### BatchNorm
 
 mutable struct BatchNorm <: Layer
-    numNodes::Integer
     channels::Integer
 
     dim::Integer
@@ -239,7 +232,6 @@ mutable struct BatchNorm <: Layer
 
     function BatchNorm(;dim=1, ϵ=1e-10)
         new(
-            0, #numNodes
             0, #channels
             dim,
             ϵ,
