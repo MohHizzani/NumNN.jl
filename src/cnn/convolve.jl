@@ -28,11 +28,6 @@ end #function convolve(cLayer::Conv1D
 function convolve!(cLayer::Conv2D,
                   Ai)
 
-    println("In layer $(typeof(cLayer)) with f = $(cLayer.f) and s = $(cLayer.s)")
-    println("Padding is $(cLayer.padding)")
-    println("Size of A is $(size(cLayer.prevLayer.A))")
-    println("Size of Ai is $(size(Ai))")
-    println("Size of Z is $(size(cLayer.Z))")
     f_H, f_W = cLayer.f
     s_H, s_W = cLayer.s
     lastDim = ndims(Ai)
