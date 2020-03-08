@@ -270,27 +270,11 @@ function layerBackProp!(cLayer::BatchNorm, model::Model; labels=nothing)
 
     N = prod(size(dZ)[1:normDim])
 
-    dẐ1 = dZ ./ sqrt.(cLayer.var .+ cLayer.ϵ)
+    varep = cLayer.var .+ cLayer.ϵ
 
-    dẐ = dZ .* cLayer.Ai_μ
-
-    dẐ .*= (-1 ./ (cLayer.var .+ cLayer.ϵ))
-
-    dẐ .*= (0.5) ./ sqrt.(cLayer.var .+ cLayer.ϵ)
-
-    dẐ .*= (1 / N)
-
-    dẐ .*= 2 .* cLayer.Ai_μ
-
-    dẐ .*= (1-1/N)
-
-    dẐ .+= dẐ1
-
-    dẐ1 = .-dẐ
-
-    dẐ1 .*= (1/N)
-
-    dẐ .+= dẐ1
+    dẐ = dZ ./ sqrt.(varep) .*
+         (.-(cLayer.Ai_μ_s) .* ((N-1)/N^2) ./ (varep).^2 .+ 1) .*
+         (1-1/N)
 
     cLayer.dA = dẐ
 
