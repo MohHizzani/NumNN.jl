@@ -54,9 +54,9 @@ function layerForProp!(cLayer::BatchNorm)
 
     Ai = cLayer.prevLayer.A
     cLayer.μ = mean(Ai, dims=1:cLayer.dim)
-    cLayer.Ai_μ = Ai .- cLayer.μ
+    Ai_μ = Ai .- cLayer.μ
     N = prod(size(Ai)[1:cLayer.dim])
-    cLayer.Ai_μ_s = cLayer.Ai_μ .^ 2
+    cLayer.Ai_μ_s = Ai_μ .^ 2
     cLayer.var = sum(cLayer.Ai_μ_s, dims=1:cLayer.dim) ./ N
     cLayer.Z = cLayer.Ai_μ ./ sqrt.(cLayer.var .+ cLayer.ϵ)
     cLayer.A = cLayer.W .* cLayer.Z .+ cLayer.B

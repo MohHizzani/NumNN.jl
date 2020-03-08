@@ -217,7 +217,6 @@ mutable struct BatchNorm <: Layer
     S::Dict{Symbol,Array}
 
     Z::Array{T, M} where {T,M}
-    Ai_μ::Array{T, M} where {T,M}
     Ai_μ_s::Array{T, M} where {T,M}
     dA::Array{T, M} where {T,M}
     A::Array{T, M} where {T,M}
@@ -246,7 +245,6 @@ mutable struct BatchNorm <: Layer
             Dict(:dw=>Array{Any,1}(undef,0),
                  :db=>Array{Any,1}(undef,0)), #S
             Array{Any,1}(undef,0), #Z
-            Array{Any,1}(undef,0), #Ai_μ
             Array{Any,1}(undef,0), #Ai_μ_s
             Array{Any,1}(undef,0), #dA
             Array{Any,1}(undef,0), #A
