@@ -25,3 +25,6 @@ Manifest.toml
 
 #Not to includ the test folder
 test
+
+#Not to include the old simpleNN
+simpleNN.jl
