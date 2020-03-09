@@ -5,7 +5,7 @@ function layerUpdateParams!(
                        cLayer::CL,
                        cnt::Integer = -1;
                        tMiniBatch::Integer = 1,
-                       ) where {FoB <: ConvLayer}
+                       ) where {CL <: ConvLayer}
 
    optimizer = model.optimizer
    α = model.α
