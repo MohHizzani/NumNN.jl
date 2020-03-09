@@ -282,7 +282,7 @@ function train(
                                model;
                                tMiniBatch = -1)
 
-                chainUpdateParams!(model; tMinitBatch = j)
+                chainUpdateParams!(model; tMiniBatch = j)
             end #if embedUpdate
 
             # chainUpdateParams!(model; tMiniBatch = j)
@@ -317,7 +317,7 @@ function train(
                                model;
                                tMiniBatch = -1)
 
-                chainUpdateParams!(model; tMinitBatch = nB+1)
+                chainUpdateParams!(model; tMiniBatch = nB+1)
             end #if embedUpdate
 
             # chainUpdateParams!(model; tMiniBatch = nB+1)
