@@ -1,4 +1,5 @@
 using Statistics
+using Distributed
 
 
 function pooling!(cLayer::OneD,
@@ -9,7 +10,7 @@ function pooling!(cLayer::OneD,
     f_H = cLayer.f
     n_H = (n_Hi - f_H) ÷ s_H + 1
 
-    Threads.@threads for mi=1:m
+    @sync @distributed for mi=1:m
         for ci=1:c
             for hi=1:n_H
                 h_start = hi*s_H - (s_H == 1 ? 0 : 1)
@@ -37,7 +38,7 @@ function pooling!(cLayer::TwoD,
     f_H, f_W = cLayer.f
     n_H = (n_Hi - f_H) ÷ s_H + 1
     n_W = (n_Wi - f_W) ÷ s_W + 1
-    Threads.@threads for mi=1:m
+    @sync @distributed for mi=1:m
         for ci=1:c
             for wi=1:n_W, hi=1:n_H
                 h_start = hi* s_H - (s_H == 1 ? 0 : 1)
@@ -69,7 +70,7 @@ function pooling!(cLayer::ThreeD,
     n_W = (n_Wi - f_W) ÷ s_W + 1
     n_D = (n_Di - f_D) ÷ s_D + 1
 
-    Threads.@threads for mi=1:m
+    @sync @distributed for mi=1:m
         for ci=1:c
             for wi=1:n_W, hi=1:n_H, di=1:n_D
                 h_start = hi*s_H - (s_H == 1 ? 0 : 1)
@@ -107,7 +108,7 @@ function dpooling!(
      f_H = cLayer.f
      n_H = (n_Hi - f_H) ÷ s_H + 1
 
-    Threads.@threads for mi=1:m
+    @sync @distributed for mi=1:m
         for ci=1:c, hi=1:n_H
             h_start = hi*s_H - (s_H == 1 ? 0 : 1)
             h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
@@ -147,7 +148,7 @@ function dpooling!(
     n_H = (n_Hi - f_H) ÷ s_H + 1
     n_W = (n_Wi - f_W) ÷ s_W + 1
 
-    Threads.@threads for mi=1:m
+    @sync @distributed for mi=1:m
         for ci=1:c, wi=1:n_W, hi=1:n_H
             h_start = hi* s_H - (s_H == 1 ? 0 : 1)
             h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
@@ -192,7 +193,7 @@ function dpooling!(
     n_W = (n_Wi - f_W) ÷ s_W + 1
     n_D = (n_Di - f_D) ÷ s_D + 1
 
-    Threads.@threads for mi=1:m
+    @sync @distributed for mi=1:m
         for ci=1:c, wi=1:n_W, hi=1:n_H, di=1:n_D
             h_start = hi*s_H - (s_H == 1 ? 0 : 1)
             h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1

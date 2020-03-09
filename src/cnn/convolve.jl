@@ -1,3 +1,6 @@
+using Distributed
+
+
 
 function convolve!(cLayer::Conv1D,
                   Ai)
@@ -8,7 +11,7 @@ function convolve!(cLayer::Conv1D,
     n_H, c, m = size(cLayer.Z)
     W = cLayer.W
     B = cLayer.B
-    Threads.@threads for mi=1:m
+    @sync @distributed for mi=1:m
         for ci=1:c
             for hi=1:n_H
                 h_start = hi*s_H - (s_H == 1 ? 0 : 1)
@@ -36,7 +39,7 @@ function convolve!(cLayer::Conv2D,
     n_H, n_W, c, m = size(cLayer.Z)
     W = cLayer.W
     B = cLayer.B
-    Threads.@threads for mi=1:m
+    @sync @distributed for mi=1:m
         for ci=1:c
             for wi=1:n_W, hi=1:n_H
                 h_start = hi* s_H - (s_H == 1 ? 0 : 1)
@@ -65,7 +68,7 @@ function convolve!(cLayer::Conv3D,
     n_H, n_W, n_D, c, m = size(cLayer.Z)
     W = cLayer.W
     B = cLayer.B
-    Threads.@threads for mi=1:m
+    @sync @distributed for mi=1:m
         for ci=1:c
             for wi=1:n_W, hi=1:n_H, di=1:n_D
                 h_start = hi*s_H - (s_H == 1 ? 0 : 1)
@@ -110,7 +113,7 @@ function dconvolve!(
     B = cLayer.B
     cLayer.dB = similar(B)
     cLayer.dB .= 0
-    Threads.@threads for mi=1:m
+    @sync @distributed for mi=1:m
         for ci=1:c
             for hi=1:n_H
                 h_start = hi*s_H - (s_H == 1 ? 0 : 1)
@@ -152,7 +155,7 @@ function dconvolve!(
     B = cLayer.B
     cLayer.dB = similar(B)
     cLayer.dB .= 0
-    Threads.@threads for mi=1:m
+    @sync @distributed for mi=1:m
         for ci=1:c
             for wi=1:n_W, hi=1:n_H
                 h_start = hi* s_H - (s_H == 1 ? 0 : 1)
@@ -197,7 +200,7 @@ function dconvolve!(
     B = cLayer.B
     cLayer.dB = similar(B)
     cLayer.dB .= 0
-    Threads.@threads for mi=1:m
+    @sync @distributed for mi=1:m
         for ci=1:c
             for wi=1:n_W, hi=1:n_H, di=1:n_D
                 h_start = hi*s_H - (s_H == 1 ? 0 : 1)
