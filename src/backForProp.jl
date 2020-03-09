@@ -116,7 +116,8 @@ include("layerBackProp.jl")
 function chainBackProp!(X,Y,
                        model::Model,
                        cLayer::L=nothing,
-                       cnt = -1
+                       cnt = -1;
+                       tMiniBatch::Integer=-1, #can be used to perform both back and update params
                        ) where {L<:Union{Layer,Nothing}}
     if cnt < 0
         cnt = model.outLayer.backCount+1
@@ -125,25 +126,38 @@ function chainBackProp!(X,Y,
     if cLayer==nothing
         layerBackProp!(model.outLayer, model, labels=Y)
 
-        chainBackProp!(X,Y,model, model.outLayer.prevLayer, cnt)
+        if tMiniBatch > 0
+            layerUpdateParams!(model, model.outLayer, cnt; tMiniBatch=tMiniBatch)
+        end
+
+        chainBackProp!(X,Y,model, model.outLayer.prevLayer, cnt; tMiniBatch=tMiniBatch)
 
     elseif cLayer isa AddLayer
         layerBackProp!(cLayer, model)
+
+        if tMiniBatch > 0
+            layerUpdateParams!(model, model.outLayer, cnt; tMiniBatch=tMiniBatch)
+        end
 
         if !(cLayer.backCount < cnt) #in case layerBackProp did not do the back
                                      #prop becasue the next layers are not all
                                      #done yet
             for prevLayer in cLayer.prevLayer
-                chainBackProp!(X,Y,model, prevLayer, cnt)
+                chainBackProp!(X,Y,model, prevLayer, cnt; tMiniBatch=tMiniBatch)
             end #for
         end
     else #if cLayer==nothing
         layerBackProp!(cLayer, model)
+
+        if tMiniBatch > 0
+            layerUpdateParams!(model, model.outLayer, cnt; tMiniBatch=tMiniBatch)
+        end
+
         if !(cLayer.backCount < cnt)#in case layerBackProp did not do the back
                                      #prop becasue the next layers are not all
                                      #done yet
             if !(cLayer isa Input)
-                chainBackProp!(X,Y,model, cLayer.prevLayer, cnt)
+                chainBackProp!(X,Y,model, cLayer.prevLayer, cnt; tMiniBatch=tMiniBatch)
             end #if cLayer.prevLayer == nothing
         end
     end #if cLayer==nothing
@@ -213,22 +227,27 @@ export chainUpdateParams!
 
 
 """
-function train(X_train,
+function train(
+               X_train,
                Y_train,
                model::Model,
                epochs;
                batchSize = 64,
                printCostsInterval = 0,
-               useProgBar = false)
+               useProgBar = false,
+               embedUpdate = true,
+               )
 
     outLayer, lossFun, α = model.outLayer, model.lossFun, model.α
     Costs = []
 
-    m = size(X_train)[2]
-    c = size(Y_train)[1]
+    m = size(X_train)[end]
+    c = size(Y_train)[end-1]
     nB = m ÷ batchSize
     shufInd = randperm(m)
-
+    N = ndims(X_train)
+    axX = axes(X_train)[1:end-1]
+    axY = axes(Y_train)[1:end-1]
     if useProgBar
         p = Progress(epochs, 1)
     end
@@ -239,11 +258,13 @@ function train(X_train,
             downInd = (j-1)*batchSize+1
             upInd   = j * batchSize
             batchInd = shufInd[downInd:upInd]
-            X = X_train[:, batchInd]
-            Y = Y_train[:, batchInd]
+            X = X_train[axX..., batchInd]
+            Y = Y_train[axY..., batchInd]
 
-            a = chainForProp(X,
-                             model.outLayer)
+            chainForProp!(X,
+                          model.outLayer)
+
+            a = model.outLayer.A
             minCost = sum(eval(:($lossFun($a, $Y))))/batchSize
 
             if lossFun==:binaryCrossentropy
@@ -252,24 +273,33 @@ function train(X_train,
 
             push!(minCosts, minCost)
 
+            if embedUpdate
+                chainBackProp!(X,Y,
+                               model;
+                               tMiniBatch = j)
+            else
+                chainBackProp!(X,Y,
+                               model;
+                               tMiniBatch = -1)
 
-            chainBackProp!(X,Y,
-                           model,
-                           tMiniBatch = j)
+                chainUpdateParams!(model; tMinitBatch = j)
+            end #if embedUpdate
 
-            chainUpdateParams!(model; tMiniBatch = j)
+            # chainUpdateParams!(model; tMiniBatch = j)
 
         end #for j=1:nB iterate over the mini batches
 
         if m%batchSize != 0
             downInd = (nB)*batchSize+1
             batchInd = shufInd[downInd:end]
-            X = X_train[:, batchInd]
-            Y = Y_train[:, batchInd]
+            X = X_train[axX..., batchInd]
+            Y = Y_train[axY..., batchInd]
 
-            a = chainForProp(X,
-                             model.outLayer)
+            chainForProp!(X,
+                         model.outLayer)
 
+
+            a = model.outLayer.A
             minCost = sum(eval(:($lossFun($a, $Y))))/size(X)[2]
 
             if lossFun==:binaryCrossentropy
@@ -278,11 +308,19 @@ function train(X_train,
 
             push!(minCosts, minCost)
 
-            chainBackProp!(X,Y,
-                           model,
-                           tMiniBatch = nB+1)
+            if embedUpdate
+                chainBackProp!(X,Y,
+                               model;
+                               tMiniBatch = nB+1)
+            else
+                chainBackProp!(X,Y,
+                               model;
+                               tMiniBatch = -1)
 
-            chainUpdateParams!(model; tMiniBatch = nB+1)
+                chainUpdateParams!(model; tMinitBatch = nB+1)
+            end #if embedUpdate
+
+            # chainUpdateParams!(model; tMiniBatch = nB+1)
         end
 
         push!(Costs, sum(minCosts)/length(minCosts))
