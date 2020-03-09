@@ -16,7 +16,7 @@ function layerUpdateParams!(
         return nothing
     end #if cLayer.updateCount >= cnt
 
-    if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+    if !all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
         return nothing
     end
 
@@ -76,7 +76,7 @@ function layerUpdateParams!(
         return nothing
     end #if cLayer.updateCount >= cnt
 
-    if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+    if !all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
         return nothing
     end
 
