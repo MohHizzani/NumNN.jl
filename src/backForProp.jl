@@ -136,7 +136,7 @@ function chainBackProp!(X,Y,
         layerBackProp!(cLayer, model)
 
         if tMiniBatch > 0
-            layerUpdateParams!(model, model.outLayer, cnt; tMiniBatch=tMiniBatch)
+            layerUpdateParams!(model, cLayer, cnt; tMiniBatch=tMiniBatch)
         end
 
         if !(cLayer.backCount < cnt) #in case layerBackProp did not do the back
@@ -150,7 +150,7 @@ function chainBackProp!(X,Y,
         layerBackProp!(cLayer, model)
 
         if tMiniBatch > 0
-            layerUpdateParams!(model, model.outLayer, cnt; tMiniBatch=tMiniBatch)
+            layerUpdateParams!(model, cLayer, cnt; tMiniBatch=tMiniBatch)
         end
 
         if !(cLayer.backCount < cnt)#in case layerBackProp did not do the back
@@ -282,7 +282,7 @@ function train(
                                model;
                                tMiniBatch = -1)
 
-                chainUpdateParams!(model; tMinitBatch = j)
+                chainUpdateParams!(model; tMiniBatch = j)
             end #if embedUpdate
 
             # chainUpdateParams!(model; tMiniBatch = j)
@@ -317,7 +317,7 @@ function train(
                                model;
                                tMiniBatch = -1)
 
-                chainUpdateParams!(model; tMinitBatch = nB+1)
+                chainUpdateParams!(model; tMiniBatch = nB+1)
             end #if embedUpdate
 
             # chainUpdateParams!(model; tMiniBatch = nB+1)
