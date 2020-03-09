@@ -136,7 +136,7 @@ function chainBackProp!(X,Y,
         layerBackProp!(cLayer, model)
 
         if tMiniBatch > 0
-            layerUpdateParams!(model, model.outLayer, cnt; tMiniBatch=tMiniBatch)
+            layerUpdateParams!(model, cLayer, cnt; tMiniBatch=tMiniBatch)
         end
 
         if !(cLayer.backCount < cnt) #in case layerBackProp did not do the back
@@ -150,7 +150,7 @@ function chainBackProp!(X,Y,
         layerBackProp!(cLayer, model)
 
         if tMiniBatch > 0
-            layerUpdateParams!(model, model.outLayer, cnt; tMiniBatch=tMiniBatch)
+            layerUpdateParams!(model, cLayer, cnt; tMiniBatch=tMiniBatch)
         end
 
         if !(cLayer.backCount < cnt)#in case layerBackProp did not do the back
