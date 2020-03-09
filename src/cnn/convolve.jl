@@ -9,7 +9,7 @@ function convolve!(cLayer::Conv1D,
     W = cLayer.W
     B = cLayer.B
     Threads.@threads for mi=1:m
-        for ci=1:c
+        Threads.@threads for ci=1:c
             for hi=1:n_H
                 h_start = hi*s_H - (s_H == 1 ? 0 : 1)
                 h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
@@ -37,7 +37,7 @@ function convolve!(cLayer::Conv2D,
     W = cLayer.W
     B = cLayer.B
     Threads.@threads for mi=1:m
-        for ci=1:c
+        Threads.@threads for ci=1:c
             for wi=1:n_W, hi=1:n_H
                 h_start = hi* s_H - (s_H == 1 ? 0 : 1)
                 h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
@@ -66,7 +66,7 @@ function convolve!(cLayer::Conv3D,
     W = cLayer.W
     B = cLayer.B
     Threads.@threads for mi=1:m
-        for ci=1:c
+        Threads.@threads for ci=1:c
             for wi=1:n_W, hi=1:n_H, di=1:n_D
                 h_start = hi*s_H - (s_H == 1 ? 0 : 1)
                 h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
@@ -111,7 +111,7 @@ function dconvolve!(
     cLayer.dB = similar(B)
     cLayer.dB .= 0
     Threads.@threads for mi=1:m
-        for ci=1:c
+        Threads.@threads for ci=1:c
             for hi=1:n_H
                 h_start = hi*s_H - (s_H == 1 ? 0 : 1)
                 h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
@@ -153,7 +153,7 @@ function dconvolve!(
     cLayer.dB = similar(B)
     cLayer.dB .= 0
     Threads.@threads for mi=1:m
-        for ci=1:c
+        Threads.@threads for ci=1:c
             for wi=1:n_W, hi=1:n_H
                 h_start = hi* s_H - (s_H == 1 ? 0 : 1)
                 h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
@@ -198,7 +198,7 @@ function dconvolve!(
     cLayer.dB = similar(B)
     cLayer.dB .= 0
     Threads.@threads for mi=1:m
-        for ci=1:c
+        Threads.@threads for ci=1:c
             for wi=1:n_W, hi=1:n_H, di=1:n_D
                 h_start = hi*s_H - (s_H == 1 ? 0 : 1)
                 h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
