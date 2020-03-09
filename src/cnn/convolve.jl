@@ -110,8 +110,8 @@ function dconvolve!(
     B = cLayer.B
     cLayer.dB = similar(B)
     cLayer.dB .= 0
-    for mi=1:m
-        @async for ci=1:c, hi=1:n_H
+    for mi=1:m, ci=1:c
+        @async for hi=1:n_H
             h_start = hi*s_H - (s_H == 1 ? 0 : 1)
             h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
             ai = Ai[h_start:h_end, :, mi]
@@ -150,8 +150,8 @@ function dconvolve!(
     B = cLayer.B
     cLayer.dB = similar(B)
     cLayer.dB .= 0
-    for mi=1:m
-        @async for ci=1:c, wi=1:n_W, hi=1:n_H
+    for mi=1:m, ci=1:c
+        @async for wi=1:n_W, hi=1:n_H
             h_start = hi* s_H - (s_H == 1 ? 0 : 1)
             h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
             w_start = wi*s_W - (s_W == 1 ? 0 : 1)
@@ -193,8 +193,8 @@ function dconvolve!(
     B = cLayer.B
     cLayer.dB = similar(B)
     cLayer.dB .= 0
-    for mi=1:m
-        @async for ci=1:c, wi=1:n_W, hi=1:n_H, di=1:n_D
+    for mi=1:m, ci=1:c
+        @async for wi=1:n_W, hi=1:n_H, di=1:n_D
             h_start = hi*s_H - (s_H == 1 ? 0 : 1)
             h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
             w_start = wi*s_W - (s_W == 1 ? 0 : 1)
