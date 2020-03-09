@@ -130,7 +130,7 @@ function chainBackProp!(X,Y,
     elseif cLayer isa AddLayer
         layerBackProp!(cLayer, model)
 
-        if !(cLayer.backCount < cnt) #in case layerBackProp did not do the bach
+        if !(cLayer.backCount < cnt) #in case layerBackProp did not do the back
                                      #prop becasue the next layers are not all
                                      #done yet
             for prevLayer in cLayer.prevLayer
@@ -139,7 +139,7 @@ function chainBackProp!(X,Y,
         end
     else #if cLayer==nothing
         layerBackProp!(cLayer, model)
-        if !(cLayer.backCount < cnt)#in case layerBackProp did not do the bach
+        if !(cLayer.backCount < cnt)#in case layerBackProp did not do the back
                                      #prop becasue the next layers are not all
                                      #done yet
             if !(cLayer isa Input)
@@ -154,61 +154,11 @@ end #backProp
 export chainBackProp!
 
 
+###update parameters
 
-function updateParams!(model::Model,
-                       cLayer::Layer,
-                       cnt::Integer = -1;
-                       tMiniBatch::Integer = 1)
+include("layerUpdateParams.jl")
 
-    optimizer = model.optimizer
-    α = model.α
-    β1, β2, ϵAdam = model.β1, model.β2, model.ϵAdam
 
-    if cLayer.updateCount >= cnt
-        return nothing
-    end #if cLayer.updateCount >= cnt
-
-    cLayer.updateCount += 1
-    #initialize the needed variables to hold the corrected values
-    #it is being init here cause these are not needed elsewhere
-    VCorrected = Dict(:dw=>similar(cLayer.dW), :db=>similar(cLayer.dB))
-    SCorrected = Dict(:dw=>similar(cLayer.dW), :db=>similar(cLayer.dB))
-    if optimizer==:adam || optimizer==:momentum
-
-        cLayer.V[:dw] .= β1 .* cLayer.V[:dw] .+ (1-β1) .* cLayer.dW
-        cLayer.V[:db] .= β1 .* cLayer.V[:db] .+ (1-β1) .* cLayer.dB
-
-        ##correcting
-        VCorrected[:dw] .= cLayer.V[:dw] ./ (1-β1^tMiniBatch)
-        VCorrected[:db] .= cLayer.V[:db] ./ (1-β1^tMiniBatch)
-
-        if optimizer==:adam
-            cLayer.S[:dw] .= β2 .* cLayer.S[:dw] .+ (1-β2) .* (cLayer.dW.^2)
-            cLayer.S[:db] .= β2 .* cLayer.S[:db] .+ (1-β2) .* (cLayer.dB.^2)
-
-            ##correcting
-            SCorrected[:dw] .= cLayer.S[:dw] ./ (1-β2^tMiniBatch)
-            SCorrected[:db] .= cLayer.S[:db] ./ (1-β2^tMiniBatch)
-
-            ##update parameters with adam
-            cLayer.W .-= (α .* (VCorrected[:dw] ./ (sqrt.(SCorrected[:dw]) .+ ϵAdam)))
-            cLayer.B .-= (α .* (VCorrected[:db] ./ (sqrt.(SCorrected[:db]) .+ ϵAdam)))
-
-        else#if optimizer==:momentum
-
-            cLayer.W .-= (α .* VCorrected[:dw])
-            cLayer.B .-= (α .* VCorrected[:db])
-
-        end #if optimizer==:adam
-    else
-        cLayer.W .-= (α .* cLayer.dW)
-        cLayer.B .-= (α .* cLayer.dB)
-    end #if optimizer==:adam || optimizer==:momentum
-
-    return nothing
-end #updateParams!
-
-export updateParams!
 
 
 
@@ -223,7 +173,7 @@ function chainUpdateParams!(model::Model,
 
 
     if cLayer==nothing
-        updateParams!(model, model.outLayer, cnt, tMiniBatch=tMiniBatch)
+        layerUpdateParams!(model, model.outLayer, cnt, tMiniBatch=tMiniBatch)
         chainUpdateParams!(model, model.outLayer.prevLayer, cnt, tMiniBatch=tMiniBatch)
 
     elseif cLayer isa AddLayer
@@ -235,8 +185,8 @@ function chainUpdateParams!(model::Model,
             chainUpdateParams!(model, prevLayer, cnt, tMiniBatch=tMiniBatch)
         end #for
     else #if cLayer==nothing
-        updateParams!(model, cLayer, cnt, tMiniBatch=tMiniBatch)
-        if cLayer.prevLayer != nothing
+        layerUpdateParams!(model, cLayer, cnt, tMiniBatch=tMiniBatch)
+        if !(cLayer isa Input)
             chainUpdateParams!(model, cLayer.prevLayer, cnt, tMiniBatch=tMiniBatch)
         end #if cLayer.prevLayer == nothing
     end #if cLayer==nothing
