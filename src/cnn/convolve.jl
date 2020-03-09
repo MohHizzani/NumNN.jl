@@ -8,8 +8,8 @@ function convolve!(cLayer::Conv1D,
     n_H, c, m = size(cLayer.Z)
     W = cLayer.W
     B = cLayer.B
-    for mi=1:m
-        @async for ci=1:c
+    Threads.@threads for mi=1:m
+        for ci=1:c
             for hi=1:n_H
                 h_start = hi*s_H - (s_H == 1 ? 0 : 1)
                 h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
@@ -36,8 +36,8 @@ function convolve!(cLayer::Conv2D,
     n_H, n_W, c, m = size(cLayer.Z)
     W = cLayer.W
     B = cLayer.B
-    for mi=1:m
-        @async for ci=1:c
+    Threads.@threads for mi=1:m
+        for ci=1:c
             for wi=1:n_W, hi=1:n_H
                 h_start = hi* s_H - (s_H == 1 ? 0 : 1)
                 h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
@@ -46,7 +46,7 @@ function convolve!(cLayer::Conv2D,
                 ai = Ai[h_start:h_end, w_start:w_end, :, mi]
                 cLayer.Z[hi, wi, ci, mi] = W[:,:,:,ci] ⋅ ai
             end #for mi=1:m, wi=1:n_W, hi=1:n_H
-            cLayer.Z .+= B[:,:,:,ci]
+            cLayer.Z[:,:,ci,mi] .+= B[:,:,1,ci]
         end #for ci=1:c
     end #for mi=1:m
     Z = cLayer.Z
@@ -65,8 +65,8 @@ function convolve!(cLayer::Conv3D,
     n_H, n_W, n_D, c, m = size(cLayer.Z)
     W = cLayer.W
     B = cLayer.B
-    for mi=1:m
-        @async for ci=1:c
+    Threads.@threads for mi=1:m
+        for ci=1:c
             for wi=1:n_W, hi=1:n_H, di=1:n_D
                 h_start = hi*s_H - (s_H == 1 ? 0 : 1)
                 h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
@@ -110,16 +110,18 @@ function dconvolve!(
     B = cLayer.B
     cLayer.dB = similar(B)
     cLayer.dB .= 0
-    for mi=1:m, ci=1:c
-        @async for hi=1:n_H
-            h_start = hi*s_H - (s_H == 1 ? 0 : 1)
-            h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
-            ai = Ai[h_start:h_end, :, mi]
-            dAi[h_start:h_end, :, mi] .+= dZ[hi, ci, mi] .* W[:,:,ci]
+    Threads.@threads for mi=1:m
+        for ci=1:c
+            for hi=1:n_H
+                h_start = hi*s_H - (s_H == 1 ? 0 : 1)
+                h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
+                ai = Ai[h_start:h_end, :, mi]
+                dAi[h_start:h_end, :, mi] .+= dZ[hi, ci, mi] .* W[:,:,ci]
 
-            cLayer.dW[:,:,ci] .+= (ai .* dZ[hi, ci, mi])
-            cLayer.dB[:,:,ci] .+= dZ[hi,ci,mi]
-        end #for
+                cLayer.dW[:,:,ci] .+= (ai .* dZ[hi, ci, mi])
+                cLayer.dB[:,:,ci] .+= dZ[hi,ci,mi]
+            end #for
+        end #for ci=1:c
     end #for mi=1:m
     n_Hi, ci, m = size(cLayer.prevLayer.A)
     n_Hj, ci, m = size(dAi)
@@ -150,18 +152,20 @@ function dconvolve!(
     B = cLayer.B
     cLayer.dB = similar(B)
     cLayer.dB .= 0
-    for mi=1:m, ci=1:c
-        @async for wi=1:n_W, hi=1:n_H
-            h_start = hi* s_H - (s_H == 1 ? 0 : 1)
-            h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
-            w_start = wi*s_W - (s_W == 1 ? 0 : 1)
-            w_end = wi*s_W - (s_W == 1 ? 0 : 1) + f_W -1
-            ai = Ai[h_start:h_end, w_start:w_end, :, mi]
-            dAi[h_start:h_end, w_start:w_end, :, mi] .+= dZ[hi, wi, ci, mi] .* W[:,:,:,ci]
+    Threads.@threads for mi=1:m
+        for ci=1:c
+            for wi=1:n_W, hi=1:n_H
+                h_start = hi* s_H - (s_H == 1 ? 0 : 1)
+                h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
+                w_start = wi*s_W - (s_W == 1 ? 0 : 1)
+                w_end = wi*s_W - (s_W == 1 ? 0 : 1) + f_W -1
+                ai = Ai[h_start:h_end, w_start:w_end, :, mi]
+                dAi[h_start:h_end, w_start:w_end, :, mi] .+= dZ[hi, wi, ci, mi] .* W[:,:,:,ci]
 
-            cLayer.dW[:,:,:,ci] .+= (ai .* dZ[hi, wi, ci, mi])
-            cLayer.dB[:,:,:,ci] .+= dZ[hi, wi,ci,mi]
-        end #for
+                cLayer.dW[:,:,:,ci] .+= (ai .* dZ[hi, wi, ci, mi])
+                cLayer.dB[:,:,:,ci] .+= dZ[hi, wi,ci,mi]
+            end #for
+        end #for ci=1:c
     end #for mi=1:m
     n_Hi, n_Wi, ci, m = size(cLayer.prevLayer.A)
     n_Hj, n_Wj, ci, m = size(dAi)
@@ -193,20 +197,22 @@ function dconvolve!(
     B = cLayer.B
     cLayer.dB = similar(B)
     cLayer.dB .= 0
-    for mi=1:m, ci=1:c
-        @async for wi=1:n_W, hi=1:n_H, di=1:n_D
-            h_start = hi*s_H - (s_H == 1 ? 0 : 1)
-            h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
-            w_start = wi*s_W - (s_W == 1 ? 0 : 1)
-            w_end = wi*s_W - (s_W == 1 ? 0 : 1) + f_W -1
-            d_start = di*s_D - (s_D == 1 ? 0 : 1)
-            d_end = di*s_D - (s_D == 1 ? 0 : 1) + f_D -1
-            ai = Ai[h_start:h_end, w_start:w_end, d_start:d_end, :, mi]
-            dAi[h_start:h_end, w_start:w_end, d_start:d_end, :, mi] .+= dZ[hi, wi, di, ci, mi] .* W[:,:,:,:,ci]
+    Threads.@threads for mi=1:m
+        for ci=1:c
+            for wi=1:n_W, hi=1:n_H, di=1:n_D
+                h_start = hi*s_H - (s_H == 1 ? 0 : 1)
+                h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
+                w_start = wi*s_W - (s_W == 1 ? 0 : 1)
+                w_end = wi*s_W - (s_W == 1 ? 0 : 1) + f_W -1
+                d_start = di*s_D - (s_D == 1 ? 0 : 1)
+                d_end = di*s_D - (s_D == 1 ? 0 : 1) + f_D -1
+                ai = Ai[h_start:h_end, w_start:w_end, d_start:d_end, :, mi]
+                dAi[h_start:h_end, w_start:w_end, d_start:d_end, :, mi] .+= dZ[hi, wi, di, ci, mi] .* W[:,:,:,:,ci]
 
-            cLayer.dW[:,:,:,:,ci] .+= (ai .* dZ[hi, wi, ci, mi])
-            cLayer.dB[:,:,:,:,ci] .+= dZ[hi,wi,di,ci,mi]
-        end #for
+                cLayer.dW[:,:,:,:,ci] .+= (ai .* dZ[hi, wi, ci, mi])
+                cLayer.dB[:,:,:,:,ci] .+= dZ[hi,wi,di,ci,mi]
+            end #for
+        end #for ci=1:c
     end #for mi=1:m
 
     n_Hi, n_Wi, n_Di, ci, m = size(cLayer.prevLayer.A)
