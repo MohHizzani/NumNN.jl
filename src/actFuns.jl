@@ -37,11 +37,12 @@ function predict(
 
     s = size{probs}
     Ŷ_bool = probs .> T(0.5)
+    acc = nothing
     if labels isa AbstractArray
         acc = sum(Ŷ_bool .== labels)/(s[end-1]*s[end])
-        println("Accuracy = $acc")
+        # println("Accuracy = $acc")
     end
-    return Ŷ_bool
+    return Ŷ_bool, acc
 end #predictpredict(probs::Array{T, 2},
 
 
@@ -120,6 +121,7 @@ function predict(
 
     maximums = maximum(probs, dims=N-1)
     Ŷ_bool = probs .== maximums
+    acc = nothing
     if labels isa AbstractArray
         acc = 0
         bool_labels = Bool.(labels)
@@ -131,11 +133,11 @@ function predict(
             acc += (lab == pred) ? 1 : 0
         end
         acc /= size(labels)[end]
-        println("Accuracy = $acc")
+        # println("Accuracy = $acc")
     end
 
 
-    return Ŷ_bool
+    return Ŷ_bool, acc
 end #predictpredict(probs::Array{T, 2}, :softmax)
 
 export predict

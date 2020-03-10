@@ -166,22 +166,22 @@ mutable struct Input <: Layer
     nextLayers::Array{Layer,1}
     prevLayer::L where {L<:Union{Layer,Nothing}}
 
-    function Input(X::Array{T,N}) where {T,N}
+    function Input(X_shape::Tuple)
+        N = length(X_shape)
         if N==2
-            channels = size(X)[1]
+            channels = X_shape[1]
         elseif N==3
-            channels = size(X)[2]
+            channels = X_shape[2]
         elseif N==4
-            channels = size(X)[3]
+            channels = X_shape[3]
         elseif N==5
-            channels = size(X)[4]
+            channels = X_shape[4]
         end
-        dA = similar(X)
-        dA .= 0
+
         new(
             channels,
-            X,
-            dA,
+            Array{Any,N}(undef, repeat([0],N)...),
+            Array{Any,N}(undef, repeat([0],N)...),
             0,
             0,
             0,
@@ -191,6 +191,10 @@ mutable struct Input <: Layer
     end #function Layer
 end #mutable struct Input
 
+function Input(X::Array{T,N}) where {T,N}
+    X_shape = size(X)
+    Input(X_shape)
+end #function Input(X::Array{T,N}) where {T,N}
 
 export Input
 
@@ -268,6 +272,8 @@ mutable struct Model
     outLayer::Layer
     lossFun::Symbol
 
+    paramsDtype::DataType
+
     """
         regulization type
             0 : means no regulization
@@ -303,9 +309,10 @@ mutable struct Model
         regulization = 0,
         λ = 1.0,
         lossFun = :categoricalCrossentropy,
+        paramsDtype::DataType = Float64,
     )
 
-        deepInitWB!(X, outLayer)
+        deepInitWB!(X, outLayer; dtype = paramsDtype)
         resetCount!(outLayer, :forwCount)
         deepInitVS!(outLayer, optimizer)
         resetCount!(outLayer, :forwCount)
@@ -313,6 +320,7 @@ mutable struct Model
         return new(
             outLayer,
             lossFun,
+            paramsDtype,
             regulization,
             λ,
             α,
