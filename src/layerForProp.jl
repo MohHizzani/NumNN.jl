@@ -3,7 +3,7 @@ using Statistics
 ###Input Layer
 function layerForProp!(cLayer::Input, X::AoN=nothing) where {AoN <: Union{Array, Nothing}}
     if X != nothing
-        cLayer(X)
+        cLayer.A = X
     end
     cLayer.forwCount += 1
     return nothing

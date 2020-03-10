@@ -67,7 +67,7 @@ export chainForProp!
         "Yhat_bools" := the predicted labels
         "accuracy" := the accuracy of the predicted labels
 """
-function predict(
+function predictBatch(
     model::Model,
     X::Array,
     Y=nothing,
@@ -81,6 +81,82 @@ function predict(
     return predict(eval(:($actFun)), Ŷ, labels=Y)
 
 end #predict
+
+
+function predict(
+    model::Model,
+    X_In::AbstractArray,
+    Y_In=nothing;
+    batchSize = 32,
+    printAcc = true,
+    useProgBar = false,
+    )
+
+    outLayer, lossFun, α = model.outLayer, model.lossFun, model.α
+    Costs = []
+
+
+    N = ndims(X_In)
+    T = eltype(X_In)
+    m = size(X_In)[end]
+    # c = size(Y_train)[end-1]
+    nB = m ÷ batchSize
+    N = ndims(X_In)
+    axX = axes(X_In)[1:end-1]
+    Y = nothing
+    if Y_In != nothing
+        axY = axes(Y_In)[1:end-1]
+    end
+    if useProgBar
+        p = Progress((m % batchSize != 0 ? nB+1 : nB), 0.1)
+    end
+
+    Ŷ_out = Array{T,N}(undef,repeat([0],N)...)
+    accuracy = []
+    for j=1:nB
+        downInd = (j-1)*batchSize+1
+        upInd   = j * batchSize
+        X = X_In[axX..., downInd:upInd]
+        if Y_In != nothing
+            Y = Y_In[axY..., downInd:upInd]
+        end
+        Ŷ, acc = predictBatch(model, X, Y)
+        Ŷ_out = cat(Ŷ_out, Ŷ, dims=1:N)
+        if acc != nothing
+            push!(accuracy, acc)
+        end
+        update!(p, j, showvalues=[("Instances $m", j*batchSize)])
+    end
+
+    if m % batchSize != 0
+        downInd = (nB)*batchSize+1
+        X = X_In[axX..., downInd:end]
+        if Y_In != nothing
+            Y = Y_In[axY..., downInd:end]
+        end
+        Ŷ, acc = predict(model, X, Y)
+        Ŷ_out = cat(Ŷ_out, Ŷ, dims=1:N)
+        if acc != nothing
+            push!(accuracy, acc)
+        end
+        update!(p, j, showvalues=[("Instances $m", m)])
+    end
+
+    accuracyM = nothing
+    if !(isempty(accuracy))
+        accuracyM = mean(accuracy)
+    end
+
+    return Ŷ_out, accuracyM
+
+end #function predict(
+    # model::Model,
+    # X_In::AbstractArray,
+    # Y_In=nothing;
+    # batchSize = 32,
+    # printAcc = true,
+    # useProgBar = false,
+    # )
 
 export predict
 
@@ -284,7 +360,9 @@ function train(
 
                 chainUpdateParams!(model; tMiniBatch = j)
             end #if embedUpdate
-
+            if useProgBar
+                update!(p, i; showvalues=[(:Epoch, i), ("Instances ($m)", j*batchSize)])
+            end
             # chainUpdateParams!(model; tMiniBatch = j)
 
         end #for j=1:nB iterate over the mini batches
@@ -329,7 +407,7 @@ function train(
         end
 
         if useProgBar
-            next!(p)
+            next!(p; showvalues = [(:Epoch, i, "Instances ($m)", m)])
         end
     end
 
