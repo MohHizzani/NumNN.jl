@@ -108,18 +108,20 @@ function dpooling!(
      n_H = (n_Hi - f_H) ÷ s_H + 1
 
     Threads.@threads for mi=1:m
-        Threads.@threads for ci=1:c, hi=1:n_H
-            h_start = hi*s_H - (s_H == 1 ? 0 : 1)
-            h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
-            ai = Ai[h_start:h_end, ci, mi]
-            if cLayer isa MaxPoolLayer
-                mask = (maximum(ai) .== ai)
-                dAi[h_start:h_end, ci, mi] .+= (dAi[hi, ci, mi] .* mask)
-            else
-                mask = similar(ai)
-                mask .= 1/prod(size(ai))
-                dAi[h_start:h_end, ci, mi] .+= (dAi[hi, ci, mi] .* mask)
-            end #if cLayer isa MaxPoolLayer
+        Threads.@threads for ci=1:c
+            for hi=1:n_H
+                h_start = hi*s_H - (s_H == 1 ? 0 : 1)
+                h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
+                ai = Ai[h_start:h_end, ci, mi]
+                if cLayer isa MaxPoolLayer
+                    mask = (maximum(ai) .== ai)
+                    dAi[h_start:h_end, ci, mi] .+= (dAi[hi, ci, mi] .* mask)
+                else
+                    mask = similar(ai)
+                    mask .= 1/prod(size(ai))
+                    dAi[h_start:h_end, ci, mi] .+= (dAi[hi, ci, mi] .* mask)
+                end #if cLayer isa MaxPoolLayer
+            end #for hi=1:n_H
         end #for ci=1:c, hi=1:n_H
     end #for
 
@@ -148,20 +150,22 @@ function dpooling!(
     n_W = (n_Wi - f_W) ÷ s_W + 1
 
     Threads.@threads for mi=1:m
-        Threads.@threads for ci=1:c, wi=1:n_W, hi=1:n_H
-            h_start = hi* s_H - (s_H == 1 ? 0 : 1)
-            h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
-            w_start = wi*s_W - (s_W == 1 ? 0 : 1)
-            w_end = wi*s_W - (s_W == 1 ? 0 : 1) + f_W -1
-            ai = Ai[h_start:h_end, w_start:w_end, ci, mi]
-            if cLayer isa MaxPoolLayer
-                mask = (maximum(ai) .== ai)
-                dAi[h_start:h_end, w_start:w_end, ci, mi] .+= (dAi[hi, wi, ci, mi] .* mask)
-            else
-                mask = similar(ai)
-                mask .= 1/prod(size(ai))
-                dAi[h_start:h_end, w_start:w_end, ci, mi] .+= (dAi[hi, wi, ci, mi] .* mask)
-            end #if cLayer isa MaxPoolLayer
+        Threads.@threads for ci=1:c
+            for wi=1:n_W, hi=1:n_H
+                h_start = hi* s_H - (s_H == 1 ? 0 : 1)
+                h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
+                w_start = wi*s_W - (s_W == 1 ? 0 : 1)
+                w_end = wi*s_W - (s_W == 1 ? 0 : 1) + f_W -1
+                ai = Ai[h_start:h_end, w_start:w_end, ci, mi]
+                if cLayer isa MaxPoolLayer
+                    mask = (maximum(ai) .== ai)
+                    dAi[h_start:h_end, w_start:w_end, ci, mi] .+= (dAi[hi, wi, ci, mi] .* mask)
+                else
+                    mask = similar(ai)
+                    mask .= 1/prod(size(ai))
+                    dAi[h_start:h_end, w_start:w_end, ci, mi] .+= (dAi[hi, wi, ci, mi] .* mask)
+                end #if cLayer isa MaxPoolLayer
+            end #for wi=1:n_W, hi=1:n_H
         end #for ci=1:c, wi=1:n_W, hi=1:n_H
     end #for
 
@@ -193,22 +197,24 @@ function dpooling!(
     n_D = (n_Di - f_D) ÷ s_D + 1
 
     Threads.@threads for mi=1:m
-        Threads.@threads for ci=1:c, wi=1:n_W, hi=1:n_H, di=1:n_D
-            h_start = hi*s_H - (s_H == 1 ? 0 : 1)
-            h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
-            w_start = wi*s_W - (s_W == 1 ? 0 : 1)
-            w_end = wi*s_W - (s_W == 1 ? 0 : 1) + f_W -1
-            d_start = di*s_D - (s_D == 1 ? 0 : 1)
-            d_end = di*s_D - (s_D == 1 ? 0 : 1) + f_D -1
-            ai = Ai[h_start:h_end, w_start:w_end, d_start:d_end, ci, mi]
-            if cLayer isa MaxPoolLayer
-                mask = (maximum(ai) .== ai)
-                dAi[h_start:h_end, w_start:w_end, d_start:d_end, ci, mi] .+= (dAi[hi, wi, di, ci, mi] .* mask)
-            else
-                mask = similar(ai)
-                mask .= 1/prod(size(ai))
-                dAi[h_start:h_end, w_start:w_end, d_start:d_end, ci, mi] .+= (dAi[hi, wi, di, ci, mi] .* mask)
-            end #if cLayer isa MaxPoolLayer
+        Threads.@threads for ci=1:c
+            for wi=1:n_W, hi=1:n_H, di=1:n_D
+                h_start = hi*s_H - (s_H == 1 ? 0 : 1)
+                h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
+                w_start = wi*s_W - (s_W == 1 ? 0 : 1)
+                w_end = wi*s_W - (s_W == 1 ? 0 : 1) + f_W -1
+                d_start = di*s_D - (s_D == 1 ? 0 : 1)
+                d_end = di*s_D - (s_D == 1 ? 0 : 1) + f_D -1
+                ai = Ai[h_start:h_end, w_start:w_end, d_start:d_end, ci, mi]
+                if cLayer isa MaxPoolLayer
+                    mask = (maximum(ai) .== ai)
+                    dAi[h_start:h_end, w_start:w_end, d_start:d_end, ci, mi] .+= (dAi[hi, wi, di, ci, mi] .* mask)
+                else
+                    mask = similar(ai)
+                    mask .= 1/prod(size(ai))
+                    dAi[h_start:h_end, w_start:w_end, d_start:d_end, ci, mi] .+= (dAi[hi, wi, di, ci, mi] .* mask)
+                end #if cLayer isa MaxPoolLayer
+            end #for wi=1:n_W, hi=1:n_H, di=1:n_D
         end #for ci=1:c, wi=1:n_W, hi=1:n_H, di=1:n_D
     end #for
 
