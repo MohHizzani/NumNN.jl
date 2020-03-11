@@ -15,6 +15,8 @@ function convolve!(cLayer::Conv1D,
                 h_end = hi*s_H - (s_H == 1 ? 0 : 1) + f_H -1
                 ai = Ai[h_start:h_end, :, mi]
                 cLayer.Z[hi, ci, mi] = W[:,:,ci] ⋅ ai
+                ai = nothing
+                Base.GC.gc()
             end #for mi=1:m, hi=1:n_H
             cLayer.Z .+= B[:,:,ci]
         end #for ci=1:c
@@ -22,6 +24,12 @@ function convolve!(cLayer::Conv1D,
     Z = cLayer.Z
     actFun = cLayer.actFun
     cLayer.A = eval(:($actFun($Z)))
+
+    W = B = Z = nothing
+
+    Ai = nothing
+
+    Base.GC.gc()
 
     return nothing
 end #function convolve(cLayer::Conv1D
@@ -45,6 +53,8 @@ function convolve!(cLayer::Conv2D,
                 w_end = wi*s_W - (s_W == 1 ? 0 : 1) + f_W -1
                 ai = Ai[h_start:h_end, w_start:w_end, :, mi]
                 cLayer.Z[hi, wi, ci, mi] = W[:,:,:,ci] ⋅ ai
+                ai = nothing
+                Base.GC.gc()
             end #for mi=1:m, wi=1:n_W, hi=1:n_H
             cLayer.Z[:,:,ci,mi] .+= B[:,:,1,ci]
         end #for ci=1:c
@@ -52,6 +62,12 @@ function convolve!(cLayer::Conv2D,
     Z = cLayer.Z
     actFun = cLayer.actFun
     cLayer.A = eval(:($actFun($Z)))
+
+    W = B = Z = nothing
+
+    Ai = nothing
+
+    Base.GC.gc()
 
     return nothing
 end #function convolve(cLayer::Conv2D
@@ -76,6 +92,8 @@ function convolve!(cLayer::Conv3D,
                 d_end = di*s_D - (s_D == 1 ? 0 : 1) + f_D -1
                 ai = Ai[h_start:h_end, w_start:w_end, d_start:d_end, :, mi]
                 cLayer.Z[hi, wi, di, ci, mi] = W[:,:,:,:,ci] ⋅ ai
+                ai = nothing
+                Base.GC.gc()
             end #for
             cLayer.Z .+= B[:,:,:,:, ci]
         end #for ci=1:c
@@ -83,6 +101,12 @@ function convolve!(cLayer::Conv3D,
     Z = cLayer.Z
     actFun = cLayer.actFun
     cLayer.A = eval(:($actFun($Z)))
+
+    W = B = Z = nothing
+
+    Ai = nothing
+
+    Base.GC.gc()
 
     return nothing
 end #function convolve(cLayer::Conv3D

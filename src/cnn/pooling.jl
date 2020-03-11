@@ -21,6 +21,8 @@ function pooling!(cLayer::OneD,
                     pool = mean
                 end #if cLayer isa MaxPoolLayer
                 cLayer.A[hi, ci, mi] = pool(ai)
+                ai = nothing
+                Base.GC.gc()
             end #for
         end #for ci=1:c
     end #for mi=1:m, ci=1:c
@@ -51,6 +53,8 @@ function pooling!(cLayer::TwoD,
                     pool = mean
                 end #if cLayer isa MaxPoolLayer
                 cLayer.A[hi, wi, ci, mi] = pool(ai)
+                ai = nothing
+                Base.GC.gc()
             end #for
         end #for ci=1:c
     end #for mi=1:m,
@@ -85,9 +89,12 @@ function pooling!(cLayer::ThreeD,
                     pool = mean
                 end #if cLayer isa MaxPoolLayer
                 cLayer.A[hi, wi, di, ci, mi] = pool(ai)
+                ai = nothing
+                Base.GC.gc()
             end #for
         end #for ci=1:c
     end #for mi=1:m, ci=1:c
+
     return nothing
 end #function pooling!(cLayer::ThreeD,
 

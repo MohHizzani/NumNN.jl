@@ -139,6 +139,8 @@ function predict(
         if acc != nothing
             push!(accuracy, acc)
         end
+        X = Y = Ŷ = nothing
+        Base.GC.gc()
         update!(p, j, showvalues=[("Instances $m", m)])
     end
 
