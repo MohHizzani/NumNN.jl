@@ -20,12 +20,23 @@ mutable struct Conv2D <: ConvLayer
     """
     s::Tuple{Integer, Integer}
 
+    inputS::Tuple
+    outputS::Tuple
+
+
+    """
+        Padding mode `:valid` or `:same`
+    """
     padding::Symbol
 
     W::Array{F, 4} where {F}
     dW::Array{F,4} where {F}
 
-
+    """
+        Unrolled filters
+    """
+    K::Array{F, 2} where {F}
+    dK::Array{F, 2} where {F}
 
     B::Array{F, 4} where {F}
     dB::Array{F, 4} where {F}
@@ -34,11 +45,15 @@ mutable struct Conv2D <: ConvLayer
     keepProb::AbstractFloat
 
     Z::Array{T,4} where {T}
+
     dA::Array{T,4} where {T}
     A::Array{T,4} where {T}
 
     V::Dict{Symbol, Array{F, 4}  where {F}}
     S::Dict{Symbol, Array{F, 4}  where {F}}
+
+    V̂dk::Array{F, 2} where {F}
+    Ŝdk::Array{F, 2} where {F}
 
     forwCount::Integer
     backCount::Integer
@@ -66,9 +81,13 @@ mutable struct Conv2D <: ConvLayer
         new(c,
             f,
             strides,
+            (0,), #inputS
+            (0,), #outputS
             padding,
             Array{T,4}(undef,0,0,0,0), #W
             Array{T,4}(undef,0,0,0,0), #dW
+            Matrix{T}(undef,0,0), #K
+            Matrix{T}(undef,0,0), #dK
             Array{T,4}(undef,0,0,0,0), #B
             Array{T,4}(undef,0,0,0,0), #dB
             activation,
@@ -80,6 +99,8 @@ mutable struct Conv2D <: ConvLayer
                  :db=>Array{T,4}(undef,0,0,0,0)), #V
             Dict(:dw=>Array{T,4}(undef,0,0,0,0),
                  :db=>Array{T,4}(undef,0,0,0,0)), #S
+            Matrix{T}(undef,0,0), #V̂dk
+            Matrix{T}(undef,0,0), #Ŝdk
             0, #forwCount
             0, #backCount
             0, #updateCount
@@ -108,11 +129,19 @@ mutable struct Conv1D <: ConvLayer
     """
     s::Integer
 
+    inputS::Tuple
+    outputS::Tuple
+
     padding::Symbol
 
     W::Array{F, 3}  where {F}
     dW::Array{F, 3}  where {F}
 
+    """
+        Unrolled filters
+    """
+    K::Array{F, 2} where {F}
+    dK::Array{F, 2} where {F}
 
 
     B::Array{F, 3}  where {F}
@@ -127,6 +156,9 @@ mutable struct Conv1D <: ConvLayer
 
     V::Dict{Symbol, Array{F, 3}  where {F}}
     S::Dict{Symbol, Array{F, 3}  where {F}}
+
+    V̂dk::Array{F, 2} where {F}
+    Ŝdk::Array{F, 2} where {F}
 
     forwCount::Integer
     backCount::Integer
@@ -154,9 +186,13 @@ mutable struct Conv1D <: ConvLayer
         new(c,
             f,
             strides,
+            (0,), #inputS
+            (0,), #outputS
             padding,
             Array{T,3}(undef,0,0,0), #W
             Array{T,3}(undef,0,0,0), #dW
+            Matrix{T}(undef,0,0), #K
+            Matrix{T}(undef,0,0), #dK
             Array{T,3}(undef,0,0,0), #B
             Array{T,3}(undef,0,0,0), #dB
             activation,
@@ -168,6 +204,8 @@ mutable struct Conv1D <: ConvLayer
                  :db=>Array{T,3}(undef,0,0,0)), #V
             Dict(:dw=>Array{T,3}(undef,0,0,0),
                  :db=>Array{T,3}(undef,0,0,0)), #S
+            Matrix{T}(undef,0,0), #V̂dk
+            Matrix{T}(undef,0,0), #Ŝdk
             0, #forwCount
             0, #backCount
             0, #updateCount
@@ -197,11 +235,19 @@ mutable struct Conv3D <: ConvLayer
     """
     s::Tuple{Integer, Integer, Integer}
 
+    inputS::Tuple
+    outputS::Tuple
+
     padding::Symbol
 
     W::Array{F, 5}  where {F}
     dW::Array{F, 5}  where {F}
 
+    """
+        Unrolled filters
+    """
+    K::Array{F, 2} where {F}
+    dK::Array{F, 2} where {F}
 
 
     B::Array{F, 5}  where {F}
@@ -216,6 +262,9 @@ mutable struct Conv3D <: ConvLayer
 
     V::Dict{Symbol, Array{F, 5}  where {F}}
     S::Dict{Symbol, Array{F, 5}  where {F}}
+
+    V̂dk::Array{F, 2} where {F}
+    Ŝdk::Array{F, 2} where {F}
 
     forwCount::Integer
     backCount::Integer
@@ -243,9 +292,13 @@ mutable struct Conv3D <: ConvLayer
         new(c,
             f,
             strides,
+            (0,), #inputS
+            (0,), #outputS
             padding,
             Array{T,5}(undef,0,0,0,0,0), #W
             Array{T,5}(undef,0,0,0,0,0), #dW
+            Matrix{T}(undef,0,0), #K
+            Matrix{T}(undef,0,0), #dK
             Array{T,5}(undef,0,0,0,0,0), #B
             Array{T,5}(undef,0,0,0,0,0), #dB
             activation,
@@ -257,6 +310,8 @@ mutable struct Conv3D <: ConvLayer
                  :db=>Array{T,5}(undef,0,0,0,0,0)), #V
             Dict(:dw=>Array{T,5}(undef,0,0,0,0,0),
                  :db=>Array{T,5}(undef,0,0,0,0,0)), #S
+            Matrix{T}(undef,0,0), #V̂dk
+            Matrix{T}(undef,0,0), #Ŝdk
             0, #forwCount
             0, #backCount
             0, #updateCount
@@ -295,6 +350,9 @@ mutable struct MaxPool2D <: MaxPoolLayer
     """
     s::Tuple{Integer, Integer}
 
+    inputS::Tuple
+    outputS::Tuple
+
     padding::Symbol
 
     dA::Array{T,4} where {T}
@@ -329,6 +387,8 @@ mutable struct MaxPool2D <: MaxPoolLayer
                    0, #channels
                    f,
                    strides,
+                   (0,), #inputS
+                   (0,), #outputS
                    padding,
                    Array{T,4}(undef,0,0,0,0), #dA
                    Array{T,4}(undef,0,0,0,0), #A
@@ -356,6 +416,9 @@ mutable struct MaxPool1D <: MaxPoolLayer
         stides size
     """
     s::Integer
+
+    inputS::Tuple
+    outputS::Tuple
 
     padding::Symbol
 
@@ -391,6 +454,8 @@ mutable struct MaxPool1D <: MaxPoolLayer
                    0, #channels
                    f,
                    strides,
+                   (0,), #inputS
+                   (0,), #outputS
                    padding,
                    Array{T,3}(undef,0,0,0), #dA
                    Array{T,3}(undef,0,0,0), #A
@@ -418,6 +483,9 @@ mutable struct MaxPool3D <: MaxPoolLayer
         stides size
     """
     s::Tuple{Integer, Integer, Integer}
+
+    inputS::Tuple
+    outputS::Tuple
 
     padding::Symbol
 
@@ -453,6 +521,8 @@ mutable struct MaxPool3D <: MaxPoolLayer
                    0, #channels
                    f,
                    strides,
+                   (0,), #inputS
+                   (0,), #outputS
                    padding,
                    Array{T,5}(undef,0,0,0,0,0), #dA
                    Array{T,5}(undef,0,0,0,0,0), #A
@@ -488,6 +558,9 @@ mutable struct AveragePool2D <: AveragePoolLayer
     """
     s::Tuple{Integer, Integer}
 
+    inputS::Tuple
+    outputS::Tuple
+
     padding::Symbol
 
     dA::Array{T,4} where {T}
@@ -522,9 +595,11 @@ mutable struct AveragePool2D <: AveragePoolLayer
                    0, #channels
                    f,
                    strides,
+                   (0,), #inputS
+                   (0,), #outputS
                    padding,
-                   Array{T,4}(undef,0), #dA
-                   Array{T,4}(undef,0), #A
+                   Array{T,4}(undef,0,0,0,0), #dA
+                   Array{T,4}(undef,0,0,0,0), #A
                    0, #forwCount
                    0, #backCount
                    0, #updateCount
@@ -549,6 +624,9 @@ mutable struct AveragePool1D <: AveragePoolLayer
         stides size
     """
     s::Integer
+
+    inputS::Tuple
+    outputS::Tuple
 
     padding::Symbol
 
@@ -584,9 +662,11 @@ mutable struct AveragePool1D <: AveragePoolLayer
                    0, #channels
                    f,
                    strides,
+                   (0,), #inputS
+                   (0,), #outputS
                    padding,
-                   Array{T,3}(undef,0), #dA
-                   Array{T,3}(undef,0), #A
+                   Array{T,3}(undef,0,0,0), #dA
+                   Array{T,3}(undef,0,0,0), #A
                    0, #forwCount
                    0, #backCount
                    0, #updateCount
@@ -611,6 +691,9 @@ mutable struct AveragePool3D <: AveragePoolLayer
         stides size
     """
     s::Tuple{Integer, Integer, Integer}
+
+    inputS::Tuple
+    outputS::Tuple
 
     padding::Symbol
 
@@ -646,9 +729,11 @@ mutable struct AveragePool3D <: AveragePoolLayer
                    0, #channels
                    f,
                    strides,
+                   (0,), #inputS
+                   (0,), #outputS
                    padding,
-                   Array{T,5}(undef,0), #dA
-                   Array{T,5}(undef,0), #A
+                   Array{T,5}(undef,0,0,0,0,0), #dA
+                   Array{T,5}(undef,0,0,0,0,0), #A
                    0, #forwCount
                    0, #backCount
                    0, #updateCount

@@ -52,6 +52,7 @@ function initWB!(
     zro = false,
 ) where {T}
 
+    # cLayer.inputS = cLayer.outputS = size(cLayer.A)
     return nothing
 end
 
@@ -136,13 +137,12 @@ export initWB!
 
 """
 function deepInitWB!(
-    X,
     outLayer::Layer,
     cnt = -1;
     He = true,
     coef = 0.01,
     zro = false,
-    dtype = nothing,
+    dtype = Float64,
 )
     if cnt < 0
         cnt = outLayer.forwCount + 1
@@ -166,7 +166,6 @@ function deepInitWB!(
             outLayer.forwCount += 1
             for prevLayer in outLayer.prevLayer
                 deepInitWB!(
-                    X,
                     prevLayer,
                     cnt;
                     He = He,
@@ -182,7 +181,6 @@ function deepInitWB!(
         if forwCount < cnt
             outLayer.forwCount += 1
             deepInitWB!(
-                X,
                 prevLayer,
                 cnt;
                 He = He,

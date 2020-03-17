@@ -11,6 +11,9 @@ mutable struct FCLayer <: Layer
     channels::Integer
     actFun::Symbol
 
+    inputS::Tuple
+    outputS::Tuple
+
     """
         drop-out keeping node probability
     """
@@ -57,6 +60,8 @@ mutable struct FCLayer <: Layer
         new(
             channels,
             actFun,
+            (0,), #inputS
+            (0,), #outputS
             keepProb,
             Matrix{T}(undef, 0, 0),
             Matrix{T}(undef, 0, 0),
@@ -85,6 +90,10 @@ export FCLayer
 mutable struct AddLayer <: Layer
     channels::Integer
 
+    inputS::Tuple
+    outputS::Tuple
+
+
     A::Array{T,N} where {T,N}
     dA::Array{T,N} where {T,N}
 
@@ -99,6 +108,8 @@ mutable struct AddLayer <: Layer
         # T = eltype(l1.W)
         new(
             channels,
+            (0,), #inputS
+            (0,), #outputS
             Matrix{Nothing}(undef, 0, 0),
             Matrix{Nothing}(undef, 0, 0),
             0,
@@ -120,6 +131,8 @@ mutable struct Activation <: Layer
     actFun::Symbol
     channels::Integer
 
+    inputS::Tuple
+    outputS::Tuple
 
     forwCount::Integer
     backCount::Integer
@@ -135,6 +148,8 @@ mutable struct Activation <: Layer
         new(
             actFun,
             0, #channels
+            (0,), #inputS
+            (0,), #outputS
             0,
             0,
             0,
@@ -155,6 +170,9 @@ export Activation
 
 mutable struct Input <: Layer
     channels::Integer
+
+    inputS::Tuple
+    outputS::Tuple
 
     A::Array{T,N} where {T,N}
     dA::Array{T,N} where {T,N}
@@ -180,8 +198,10 @@ mutable struct Input <: Layer
 
         new(
             channels,
-            Array{Any,N}(undef, repeat([0],N)...),
-            Array{Any,N}(undef, repeat([0],N)...),
+            X_shape, #inputS
+            X_shape, #outputS
+            Array{Any,N}(undef, repeat([0],N)...), #A
+            Array{Any,N}(undef, repeat([0],N)...), #dA
             0,
             0,
             0,
@@ -203,6 +223,9 @@ export Input
 
 mutable struct BatchNorm <: Layer
     channels::Integer
+
+    inputS::Tuple
+    outputS::Tuple
 
     dim::Integer
 
@@ -236,6 +259,8 @@ mutable struct BatchNorm <: Layer
     function BatchNorm(;dim=1, ϵ=1e-10)
         new(
             0, #channels
+            (0,), #inputS
+            (0,), #outputS
             dim,
             ϵ,
             Array{Any,1}(undef,0), #μ

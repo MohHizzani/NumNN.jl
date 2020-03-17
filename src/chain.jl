@@ -32,6 +32,8 @@ function (l::FCLayer)(li_1::Layer)
     if ! in(l,li_1.nextLayers)
         push!(li_1.nextLayers, l)
     end
+    l.inputS = li_1.outputS 
+    l.outputS = (l.channels, li_1.outputS[2])
     return l
 end #function (l::FCLayer)(li_1::Layer)
 
@@ -40,6 +42,8 @@ function (l::Activation)(li_1::Layer)
     l.prevLayer = li_1
 
     l.channels = li_1.channels
+
+    l.inputS = l.outputS = li_1.outputS
 
     if ! in(l,li_1.nextLayers)
         push!(li_1.nextLayers, l)
@@ -57,6 +61,7 @@ function (l::AddLayer)(ls::Array{L,1}) where {L<:Layer}
         end
     end #for
 
+    l.inputS = l.outputS = ls[1].outputS
     l.channels = ls[1].channels
 
     return l

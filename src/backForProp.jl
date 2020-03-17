@@ -90,6 +90,8 @@ function predict(
     batchSize = 32,
     printAcc = true,
     useProgBar = false,
+    GCInt = 5,
+    noBool = false,
     )
 
     outLayer, lossFun, α = model.outLayer, model.lossFun, model.α
@@ -121,11 +123,18 @@ function predict(
             Y = Y_In[axY..., downInd:upInd]
         end
         Ŷ, acc = predictBatch(model, X, Y)
-        Ŷ_out = cat(Ŷ_out, Ŷ, dims=1:N)
+        # Ŷ_out = cat(Ŷ_out, Ŷ, dims=1:N)
         if acc != nothing
             push!(accuracy, acc)
         end
-        update!(p, j, showvalues=[("Instances $m", j*batchSize)])
+        if useProgBar
+            update!(p, j, showvalues=[("Instances $m", j*batchSize)])
+        end #if useProgBar
+        # X = Y = nothing
+        Ŷ = nothing
+        # if j%GCInt == 0
+        #     Base.GC.gc()
+        # end
     end
 
     if m % batchSize != 0
@@ -135,18 +144,23 @@ function predict(
             Y = Y_In[axY..., downInd:end]
         end
         Ŷ, acc = predict(model, X, Y)
+
         Ŷ_out = cat(Ŷ_out, Ŷ, dims=1:N)
         if acc != nothing
             push!(accuracy, acc)
         end
-        X = Y = Ŷ = nothing
-        Base.GC.gc()
+        # X = Y = nothing
+        Ŷ = nothing
+        # Base.GC.gc()
         update!(p, j, showvalues=[("Instances $m", m)])
     end
 
     accuracyM = nothing
     if !(isempty(accuracy))
         accuracyM = mean(accuracy)
+    end
+    if noBool
+        Ŷ_out = nothing
     end
 
     return Ŷ_out, accuracyM
@@ -314,6 +328,7 @@ function train(
                printCostsInterval = 0,
                useProgBar = false,
                embedUpdate = true,
+               metrics::Array{Symbol,1} = [:accuracy, :cost],
                )
 
     outLayer, lossFun, α = model.outLayer, model.lossFun, model.α
@@ -329,9 +344,12 @@ function train(
     if useProgBar
         p = Progress(epochs, 1)
     end
-
+    accuracy = []
+    avgCost = 0.0
+    avgAcc = 0.0
     for i=1:epochs
         minCosts = [] #the costs of all mini-batches
+        minAcc = []
         for j=1:nB
             downInd = (j-1)*batchSize+1
             upInd   = j * batchSize
@@ -339,17 +357,26 @@ function train(
             X = X_train[axX..., batchInd]
             Y = Y_train[axY..., batchInd]
 
-            chainForProp!(X,
-                          model.outLayer)
+            if :accuracy in metrics
+                ŷ, acc = predict(model, X, Y; noBool = true, batchSize = batchSize)
+                push!(minAcc, acc)
+                avgAcc = mean([avgAcc, acc])
+            else
+                chainForProp!(X,
+                              model.outLayer)
+            end
 
             a = model.outLayer.A
-            minCost = sum(eval(:($lossFun($a, $Y))))/batchSize
+            if :cost in metrics
+                minCost = sum(eval(:($lossFun($a, $Y))))/batchSize
 
-            if lossFun==:binaryCrossentropy
-                minCost /= c
-            end #if lossFun==:binaryCrossentropy
+                if lossFun==:binaryCrossentropy
+                    minCost /= c
+                end #if lossFun==:binaryCrossentropy
 
-            push!(minCosts, minCost)
+                push!(minCosts, minCost)
+                avgCost = mean([avgCost, minCost])
+            end
 
             if embedUpdate
                 chainBackProp!(X,Y,
@@ -363,7 +390,15 @@ function train(
                 chainUpdateParams!(model; tMiniBatch = j)
             end #if embedUpdate
             if useProgBar
-                update!(p, i; showvalues=[(:Epoch, i), ("Instances ($m)", j*batchSize)])
+                if :accuracy in metrics && :cost in metrics
+                    update!(p, i; showvalues=[(:Epoch, i), ("Instances ($m)", j*batchSize), (:Accuracy, avgAcc), (:Cost, avgCost)])
+                elseif :accuracy in metrics
+                    update!(p, i; showvalues=[(:Epoch, i), ("Instances ($m)", j*batchSize), (:Accuracy, avgAcc)])
+                elseif :cost in metrics
+                    update!(p, i; showvalues=[(:Epoch, i), ("Instances ($m)", j*batchSize), (:Cost, avgCost)])
+                else
+                    update!(p, i; showvalues=[(:Epoch, i), ("Instances ($m)", j*batchSize)])
+                end
             end
             # chainUpdateParams!(model; tMiniBatch = j)
 
@@ -375,18 +410,26 @@ function train(
             X = X_train[axX..., batchInd]
             Y = Y_train[axY..., batchInd]
 
-            chainForProp!(X,
-                         model.outLayer)
+            if :accuracy in metrics
+                ŷ, acc = predict(model, X, Y; noBool = true, batchSize = size(X)[end])
+                push!(minAcc, acc)
+                avgAcc = mean([avgAcc, acc])
 
+            else
+                chainForProp!(X,
+                              model.outLayer)
+            end
 
-            a = model.outLayer.A
-            minCost = sum(eval(:($lossFun($a, $Y))))/size(X)[2]
+            if :cost in metrics
+                a = model.outLayer.A
+                minCost = sum(eval(:($lossFun($a, $Y))))/size(X)[end]
 
-            if lossFun==:binaryCrossentropy
-                minCost /= c
-            end #if lossFun==:binaryCrossentropy
+                if lossFun==:binaryCrossentropy
+                    minCost /= c
+                end #if lossFun==:binaryCrossentropy
 
-            push!(minCosts, minCost)
+                push!(minCosts, minCost)
+            end
 
             if embedUpdate
                 chainBackProp!(X,Y,
@@ -403,13 +446,24 @@ function train(
             # chainUpdateParams!(model; tMiniBatch = nB+1)
         end
 
-        push!(Costs, sum(minCosts)/length(minCosts))
+        push!(accuracy, mean(minAcc))
+        push!(Costs, mean(minCosts))
         if printCostsInterval>0 && i%printCostsInterval==0
             println("N = $i, Cost = $(Costs[end])")
         end
 
         if useProgBar
-            next!(p; showvalues = [(:Epoch, i, "Instances ($m)", m)])
+            if useProgBar
+                if :accuracy in metrics && :cost in metrics
+                    update!(p, i; showvalues=[(:Epoch, i), ("Instances ($m)", m), (:Accuracy, avgAcc), (:Cost, avgCost)])
+                elseif :accuracy in metrics
+                    update!(p, i; showvalues=[(:Epoch, i), ("Instances ($m)", j*batchSize), (:Accuracy, avgAcc)])
+                elseif :cost in metrics
+                    update!(p, i; showvalues=[(:Epoch, i), ("Instances ($m)", j*batchSize), (:Cost, avgCost)])
+                else
+                    update!(p, i; showvalues=[(:Epoch, i), ("Instances ($m)", j*batchSize)])
+                end
+            end
         end
     end
 
