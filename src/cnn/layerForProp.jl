@@ -16,6 +16,9 @@ function layerForProp!(cLayer::Conv1D, Ai::AoN; fastConvolve=false, NNlibConv = 
 
     if NNlibConv
         cLayer.Z = conv(Ai, cLayer.W, stride=cLayer.s)
+        Z = cLayer.Z
+        actFun = cLayer.actFun
+        cLayer.A = eval(:($actFun($Z)))
     elseif fastConvolve
         ## in case input different size than previous time
         if (n_H* c, n_Hi*ci) != size(cLayer.K)
@@ -55,6 +58,9 @@ function layerForProp!(cLayer::Conv2D, Ai::AoN; fastConvolve=false, NNlibConv = 
 
     if NNlibConv
         cLayer.Z = conv(Ai, cLayer.W, stride=cLayer.s)
+        Z = cLayer.Z
+        actFun = cLayer.actFun
+        cLayer.A = eval(:($actFun($Z)))
     elseif fastConvolve
         ## in case input different size than previous time
         if (n_W*n_H* c, n_Hi*n_Wi*ci) != size(cLayer.K)
@@ -95,6 +101,9 @@ function layerForProp!(cLayer::Conv3D, Ai::AoN; fastConvolve=false, NNlibConv = 
 
     if NNlibConv
         cLayer.Z = conv(Ai, cLayer.W, stride=cLayer.s)
+        Z = cLayer.Z
+        actFun = cLayer.actFun
+        cLayer.A = eval(:($actFun($Z)))
     elseif fastConvolve
         ## in case input different size than previous time
         if (n_W*n_H*n_D* c, n_Hi*n_Wi*n_Di*ci) != size(cLayer.K)
