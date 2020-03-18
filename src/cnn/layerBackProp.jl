@@ -59,12 +59,17 @@ function layerBackProp!(cLayer::ConvLayer, model::Model, dA::AoN=nothing; labels
 
     end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
 
-    Ai = padding(cLayer)
+    if NNlib
 
-    dAi = similar(Ai)
-    dAi .= 0
 
-    dconvolve!(cLayer,Ai,dAi,dZ)
+    else
+        Ai = padding(cLayer)
+
+        dAi = similar(Ai)
+        dAi .= 0
+
+        dconvolve!(cLayer,Ai,dAi,dZ)
+    end #if NNlib
 
     cLayer.backCount += 1
 
