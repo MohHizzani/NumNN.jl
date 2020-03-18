@@ -1,5 +1,6 @@
+import NNlib.∇conv_data
 
-
+### convlayers
 function layerBackProp(
     cLayer::ConvLayer,
     model::Model,
@@ -18,7 +19,7 @@ function layerBackProp(
 end #softmax or σ layerBackProp
 
 
-function layerBackProp!(cLayer::ConvLayer, model::Model; labels=nothing)
+function layerBackProp!(cLayer::ConvLayer, model::Model, dA::AoN=nothing; labels=nothing, NNlib::Bool=true) where {AoN <: Union{AbstractArray, Nothing}}
 
     m = size(cLayer.A)[end]
 
@@ -32,7 +33,12 @@ function layerBackProp!(cLayer::ConvLayer, model::Model; labels=nothing)
     if cLayer.actFun == model.outLayer.actFun
 
         dZ = layerBackProp(cLayer, model, eval(:($actFun)), labels)
+    elseif dA != nothing
+        dActFun = Symbol("d",cLayer.actFun)
 
+        Z = cLayer.Z
+
+        dZ = dA .* eval(:($dActFun($Z)))
     elseif all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
         dA = []
         for nextLayer in cLayer.nextLayers
@@ -68,13 +74,31 @@ end #function layerBackProp!(cLayer::Input
 
 ### Pooling Layers
 
-function layerBackProp!(cLayer::OneD, model::Model; labels=nothing) where {OneD <: Union{MaxPool1D, AveragePool1D}}
+function layerBackProp!(cLayer::OneD, model::Model, dA::AoN=nothing, Ai::AoN=nothing; labels=nothing) where {OneD <: Union{MaxPool1D, AveragePool1D}, AoN <: Union{AbstractArray, Nothing}}
+    if Ai==nothing
+        Ai = cLayer.prevLayer.A
+    end
+    Ai = padding(cLayer, Ai)
+    cLayer.dA = similar(Ai)
+    cLayer.dA .= 0
 
-    Ai = padding(cLayer)
-    dAi = similar(Ai)
-    dAi .= 0
+    if dA==nothing
+        if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+            dA = []
+            for nextLayer in cLayer.nextLayers
+                try
+                    dA .+= nextLayer.dA
+                catch e
+                    dA = nextLayer.dA #need to initialize dA
+                end #try/catch
+            end #for
+        else
+            return nothing
+        end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+    end #if dA==nothing
 
-    dpooling!(cLayer, Ai, dAi)
+
+    dpooling!(cLayer, Ai, dA)
 
     cLayer.forwCount += 1
 
@@ -82,13 +106,30 @@ function layerBackProp!(cLayer::OneD, model::Model; labels=nothing) where {OneD 
 
 end #unction layerBackProp!(cLayer::OneD) where {OneD <: Union{MaxPool1D, AveragePool1D}}
 
-function layerBackProp!(cLayer::TwoD, model::Model; labels=nothing) where {TwoD <: Union{MaxPool2D, AveragePool2D}}
+function layerBackProp!(cLayer::TwoD, model::Model, dA::AoN=nothing, Ai::AoN=nothing; labels=nothing) where {TwoD <: Union{MaxPool2D, AveragePool2D}, AoN <: Union{AbstractArray, Nothing}}
+    if Ai==nothing
+        Ai = cLayer.prevLayer.A
+    end
+    Ai = padding(cLayer, Ai)
+    cLayer.dA = similar(Ai)
+    cLayer.dA .= 0
 
-    Ai = padding(cLayer)
-    dAi = similar(Ai)
-    dAi .= 0
+    if dA==nothing
+        if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+            dA = []
+            for nextLayer in cLayer.nextLayers
+                try
+                    dA .+= nextLayer.dA
+                catch e
+                    dA = nextLayer.dA #need to initialize dA
+                end #try/catch
+            end #for
+        else
+            return nothing
+        end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+    end #if dA==nothing
 
-    dpooling!(cLayer, Ai, dAi)
+    dpooling!(cLayer, Ai, dA)
 
     cLayer.forwCount += 1
 
@@ -96,13 +137,30 @@ function layerBackProp!(cLayer::TwoD, model::Model; labels=nothing) where {TwoD 
 
 end #function layerBackProp!(cLayer::TwoD) where {TwoD <: Union{MaxPool2D, AveragePool2D}}
 
-function layerBackProp!(cLayer::ThreeD, model::Model; labels=nothing) where {ThreeD <: Union{MaxPool3D, AveragePool3D}}
+function layerBackProp!(cLayer::ThreeD, model::Model, dA::AoN=nothing, Ai::AoN=nothing; labels=nothing) where {ThreeD <: Union{MaxPool3D, AveragePool3D}, AoN <: Union{AbstractArray, Nothing}}
+    if Ai==nothing
+        Ai = cLayer.prevLayer.A
+    end
+    Ai = padding(cLayer, Ai)
+    cLayer.dA = similar(Ai)
+    cLayer.dA .= 0
 
-    Ai = padding(cLayer)
-    dAi = similar(Ai)
-    dAi .= 0
+    if dA==nothing
+        if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+            dA = []
+            for nextLayer in cLayer.nextLayers
+                try
+                    dA .+= nextLayer.dA
+                catch e
+                    dA = nextLayer.dA #need to initialize dA
+                end #try/catch
+            end #for
+        else
+            return nothing
+        end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+    end #if dA==nothing
 
-    dpooling!(cLayer, Ai, dAi)
+    dpooling!(cLayer, Ai, dA)
 
     cLayer.forwCount += 1
 
