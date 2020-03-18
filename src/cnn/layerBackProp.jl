@@ -1,4 +1,4 @@
-import NNlib.∇conv_data
+
 
 ### convlayers
 function layerBackProp(
@@ -19,8 +19,11 @@ function layerBackProp(
 end #softmax or σ layerBackProp
 
 
-function layerBackProp!(cLayer::ConvLayer, model::Model, dA::AoN=nothing; labels=nothing, NNlib::Bool=true) where {AoN <: Union{AbstractArray, Nothing}}
+function layerBackProp!(cLayer::ConvLayer, model::Model, Ai::AoN=nothing, dA::AoN=nothing; labels=nothing, NNlib::Bool=true) where {AoN <: Union{AbstractArray, Nothing}}
 
+    if Ai==nothing
+        Ai = cLayer.prevLayer.A
+    end
     m = size(cLayer.A)[end]
 
     A = cLayer.A
@@ -31,7 +34,6 @@ function layerBackProp!(cLayer::ConvLayer, model::Model, dA::AoN=nothing; labels
 
     dZ = []
     if cLayer.actFun == model.outLayer.actFun
-
         dZ = layerBackProp(cLayer, model, eval(:($actFun)), labels)
     elseif dA != nothing
         dActFun = Symbol("d",cLayer.actFun)
@@ -49,6 +51,7 @@ function layerBackProp!(cLayer::ConvLayer, model::Model, dA::AoN=nothing; labels
             end #try/catch
         end #for
 
+
         dActFun = Symbol("d",cLayer.actFun)
 
         Z = cLayer.Z
@@ -60,15 +63,26 @@ function layerBackProp!(cLayer::ConvLayer, model::Model, dA::AoN=nothing; labels
     end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
 
     if NNlib
-
+        dNNConv!(cLayer, dZ, Ai, A)
 
     else
-        Ai = padding(cLayer)
+        padS = paddingSize(cLayer, Ai)
+        cLayer.dA = similar(Ai)
+        cLayer.dA .= 0
+        Ai = padding(cLayer, Ai)
 
         dAi = similar(Ai)
         dAi .= 0
 
         dconvolve!(cLayer,Ai,dAi,dZ)
+
+        if cLayer isa Conv1D
+            cLayer.dA .= dAi[1+padS[1]:end-padS[2],:,:]
+        elseif cLayer isa Conv2D
+            cLayer.dA .= dAi[1+padS[1]:end-padS[2],1+padS[3]:end-padS[4],:,:]
+        elseif cLayer isa Conv3D
+            cLayer.dA .= dAi[1+padS[1]:end-padS[2],1+padS[3]:end-padS[4],1+padS[5]:end-padS[6],:,:]
+        end
     end #if NNlib
 
     cLayer.backCount += 1
@@ -83,9 +97,13 @@ function layerBackProp!(cLayer::OneD, model::Model, dA::AoN=nothing, Ai::AoN=not
     if Ai==nothing
         Ai = cLayer.prevLayer.A
     end
-    Ai = padding(cLayer, Ai)
+    padS = paddingSize(cLayer, Ai)
     cLayer.dA = similar(Ai)
     cLayer.dA .= 0
+    Ai = padding(cLayer, Ai)
+    dAi = similar(Ai)
+    dAi .= 0
+
 
     if dA==nothing
         if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
@@ -103,8 +121,8 @@ function layerBackProp!(cLayer::OneD, model::Model, dA::AoN=nothing, Ai::AoN=not
     end #if dA==nothing
 
 
-    dpooling!(cLayer, Ai, dA)
-
+    dpooling!(cLayer, Ai, dAi, dA)
+    cLayer.dA .= dAi[1+padS[1]:end-padS[2],:,:]
     cLayer.forwCount += 1
 
     return nothing
@@ -115,9 +133,12 @@ function layerBackProp!(cLayer::TwoD, model::Model, dA::AoN=nothing, Ai::AoN=not
     if Ai==nothing
         Ai = cLayer.prevLayer.A
     end
-    Ai = padding(cLayer, Ai)
+    padS = paddingSize(cLayer, Ai)
     cLayer.dA = similar(Ai)
     cLayer.dA .= 0
+    Ai = padding(cLayer, Ai)
+    dAi = similar(Ai)
+    dAi .= 0
 
     if dA==nothing
         if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
@@ -134,8 +155,8 @@ function layerBackProp!(cLayer::TwoD, model::Model, dA::AoN=nothing, Ai::AoN=not
         end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
     end #if dA==nothing
 
-    dpooling!(cLayer, Ai, dA)
-
+    dpooling!(cLayer, Ai, dAi, dA)
+    cLayer.dA .= dAi[1+padS[1]:end-padS[2],1+padS[3]:end-padS[4],:,:]
     cLayer.forwCount += 1
 
     return nothing
@@ -146,9 +167,12 @@ function layerBackProp!(cLayer::ThreeD, model::Model, dA::AoN=nothing, Ai::AoN=n
     if Ai==nothing
         Ai = cLayer.prevLayer.A
     end
-    Ai = padding(cLayer, Ai)
+    padS = paddingSize(cLayer, Ai)
     cLayer.dA = similar(Ai)
     cLayer.dA .= 0
+    Ai = padding(cLayer, Ai)
+    dAi = similar(Ai)
+    dAi .= 0
 
     if dA==nothing
         if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
@@ -165,8 +189,8 @@ function layerBackProp!(cLayer::ThreeD, model::Model, dA::AoN=nothing, Ai::AoN=n
         end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
     end #if dA==nothing
 
-    dpooling!(cLayer, Ai, dA)
-
+    dpooling!(cLayer, Ai, dAi, dA)
+    cLayer.dA .= dAi[1+padS[1]:end-padS[2],1+padS[3]:end-padS[4],1+padS[5]:end-padS[6],:,:]
     cLayer.forwCount += 1
 
     return nothing
