@@ -30,17 +30,17 @@ end #function img2col(A::Array{T,5})
 
 export img2col
 
-### vec2img
+### col2img
 
-function vec2img1D(Av::AbstractArray{T,2}, outputS::Tuple{Integer,Integer,Integer}) where{T}
+function col2img1D(Av::AbstractArray{T,2}, outputS::Tuple{Integer,Integer,Integer}) where{T}
     # S = size(Av)
     # if H < 0
     #     H = S[1]÷c
     # end #if H < 0
     return reshape(Av, outputS)
-end #function vec2img(Av::Array{T,2}, c::Integer)
+end #function col2img(Av::Array{T,2}, c::Integer)
 
-function vec2img2D(Av::AbstractArray{T,2}, outputS::Tuple{Integer,Integer,Integer,Integer}) where{T}
+function col2img2D(Av::AbstractArray{T,2}, outputS::Tuple{Integer,Integer,Integer,Integer}) where{T}
     H,W,c,m = outputS
     # if H <0 && W<0
     #     H = W = Integer(floor(sqrt(WH)))
@@ -50,9 +50,9 @@ function vec2img2D(Av::AbstractArray{T,2}, outputS::Tuple{Integer,Integer,Intege
     #     W = WH ÷ H
     # end
     return permutedims(reshape(Av, (W,H,c,m)), [2,1,3,4])
-end #function vec2img(Av::Array{T,2}, c::Integer; H::Integer=-1, W::Integer=-1)
+end #function col2img(Av::Array{T,2}, c::Integer; H::Integer=-1, W::Integer=-1)
 
-function vec2img3D(Av::AbstractArray{T,2}, outputS::Tuple{Integer,Integer,Integer,Integer,Integer}) where{T}
+function col2img3D(Av::AbstractArray{T,2}, outputS::Tuple{Integer,Integer,Integer,Integer,Integer}) where{T}
     H,W,D,c,m = outputS
     # S = size(Av)
     # HWD = S[1]÷c
@@ -72,7 +72,7 @@ function vec2img3D(Av::AbstractArray{T,2}, outputS::Tuple{Integer,Integer,Intege
     #     D = HWD ÷ (H*W)
     # end
     return permutedims(reshape(Av, (W,H,D,c,m)), [2,1,3,4,5])
-end #function vec2img(Av::Array{T,2}, c::Integer; H::Integer=-1, W::Integer=-1, D::Integer=-1)
+end #function col2img(Av::Array{T,2}, c::Integer; H::Integer=-1, W::Integer=-1, D::Integer=-1)
 
 
-export vec2img1D, vec2img2D, vec2img3D
+export col2img1D, col2img2D, col2img3D
