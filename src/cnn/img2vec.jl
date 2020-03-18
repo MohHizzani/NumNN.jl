@@ -1,34 +1,34 @@
-###img2vec
+###img2col
 
-function img2vec(A::AbstractArray{T,3}) where {T}
+function img2col(A::AbstractArray{T,3}) where {T}
     S = size(A)
     vs = prod(S[1:end-1])
     m = S[end]
     return reshape(A, vs,m)
-end #function img2vec(A::Array{T,3})
+end #function img2col(A::Array{T,3})
 
-function img2vec(A::AbstractArray{T,4}) where {T}
+function img2col(A::AbstractArray{T,4}) where {T}
     S = size(A)
     vs = prod(S[1:end-1])
     m = S[end]
     return reshape(permutedims(A, [2,1,3,4]), vs,m)
-end #function img2vec(A::Array{T,4})
+end #function img2col(A::Array{T,4})
 
 function img2row(A::AbstractArray{T,4}) where {T}
     S = size(A)
     vs = prod(S[1:end-1])
     m = S[end]
     return reshape(A, vs, m)
-end #function img2vec(A::Array{T,4})
+end #function img2col(A::Array{T,4})
 
-function img2vec(A::AbstractArray{T,5}) where {T}
+function img2col(A::AbstractArray{T,5}) where {T}
     S = size(A)
     vs = prod(S[1:end-1])
     m = S[end]
     return reshape(permutedims(A, [2,1,3,4,5]), vs,m)
-end #function img2vec(A::Array{T,5})
+end #function img2col(A::Array{T,5})
 
-export img2vec
+export img2col
 
 ### vec2img
 
