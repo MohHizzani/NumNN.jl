@@ -117,34 +117,54 @@ function dpooling!(
                    dAi,
                    ) where {OneD <: Union{MaxPool1D, AveragePool1D}}
 
-     n_Hi, c, m = size(Ai)
-     s_H = cLayer.s
-     f_H = cLayer.f
-     n_H = (n_Hi - f_H) ÷ s_H + 1
+    n_Hi, c, m = size(Ai)
+    s_H = sS = cLayer.s
+    f_H = fS = cLayer.f
+    n_H = (n_Hi - f_H) ÷ s_H + 1
 
-    for mi=1:m
-        for ci=1:c
-            for hi=1:n_H
-                h_start = hi* s_H - (s_H == 1 ? 0 : s_H-1)
-                h_end = hi*s_H - (s_H == 1 ? 0 : s_H-1) + f_H -1
-                ai = Ai[h_start:h_end, ci, mi]
-                if cLayer isa MaxPoolLayer
-                    mask = (maximum(ai) .== ai)
-                    dAi[h_start:h_end, ci, mi] .+= (dAi[hi, ci, mi] .* mask)
-                else
-                    mask = similar(ai)
-                    mask .= 1/prod(size(ai))
-                    dAi[h_start:h_end, ci, mi] .+= (dAi[hi, ci, mi] .* mask)
-                end #if cLayer isa MaxPoolLayer
-            end #for hi=1:n_H
-        end #for ci=1:c, hi=1:n_H
-    end #for
+    if sS == fS #to use the @simd the parallele the operation
+        @simd for mi=1:m
+            @simd for ci=1:c
+                @simd for hi=1:n_H
+                    h_start = hi* s_H - (s_H == 1 ? 0 : s_H-1)
+                    h_end = hi*s_H - (s_H == 1 ? 0 : s_H-1) + f_H -1
+                    @inbounds ai = Ai[h_start:h_end, ci, mi]
+                    if cLayer isa MaxPoolLayer
+                        mask = (maximum(ai) .== ai)
+                        @inbounds dAi[h_start:h_end, ci, mi] .+= (dAi[hi, ci, mi] .* mask)
+                    else
+                        mask = similar(ai)
+                        mask .= 1/prod(size(ai))
+                        @inbounds dAi[h_start:h_end, ci, mi] .+= (dAi[hi, ci, mi] .* mask)
+                    end #if cLayer isa MaxPoolLayer
+                end #for hi=1:n_H
+            end #for ci=1:c
+        end #for mi=1:m
+    else
+        @simd for mi=1:m
+            @simd for ci=1:c
+                for hi=1:n_H
+                    h_start = hi* s_H - (s_H == 1 ? 0 : s_H-1)
+                    h_end = hi*s_H - (s_H == 1 ? 0 : s_H-1) + f_H -1
+                    @inbounds ai = Ai[h_start:h_end, ci, mi]
+                    if cLayer isa MaxPoolLayer
+                        mask = (maximum(ai) .== ai)
+                        @inbounds dAi[h_start:h_end, ci, mi] .+= (dAi[hi, ci, mi] .* mask)
+                    else
+                        mask = similar(ai)
+                        mask .= 1/prod(size(ai))
+                        @inbounds dAi[h_start:h_end, ci, mi] .+= (dAi[hi, ci, mi] .* mask)
+                    end #if cLayer isa MaxPoolLayer
+                end #for hi=1:n_H
+            end #for ci=1:c
+        end #for mi=1:m
+    end #if sS == fS
 
     n_Hi, ci, m = size(cLayer.prevLayer.A)
     n_Hj, ci, m = size(dAi)
     p_H = abs(n_Hi - n_Hj) ÷ 2
 
-    cLayer.dA = dAi[1+p_H:end-p_H,:,:]
+    @inbounds cLayer.dA = dAi[1+p_H:end-p_H,:,:]
 
     @assert size(cLayer.prevLayer.A) == size(cLayer.dA)
 
@@ -159,37 +179,61 @@ function dpooling!(
                    ) where {TwoD <: Union{MaxPool2D, AveragePool2D}}
 
     n_Hi, n_Wi, c, m = size(Ai)
-    s_H, s_W = cLayer.s
-    f_H, f_W = cLayer.f
+    s_H, s_W = sS = cLayer.s
+    f_H, f_W = fS = cLayer.f
     n_H = (n_Hi - f_H) ÷ s_H + 1
     n_W = (n_Wi - f_W) ÷ s_W + 1
+    if sS == fS
+        @simd for mi=1:m
+            @simd for ci=1:c
+                @simd for wi=1:n_W
+                    @simd for hi=1:n_H
+                        h_start = hi* s_H - (s_H == 1 ? 0 : s_H-1)
+                        h_end = hi*s_H - (s_H == 1 ? 0 : s_H-1) + f_H -1
+                        w_start = wi*s_W - (s_W == 1 ? 0 : s_W-1)
+                        w_end = wi*s_W - (s_W == 1 ? 0 : s_W-1) + f_W -1
+                        @inbounds ai = Ai[h_start:h_end, w_start:w_end, ci, mi]
+                        if cLayer isa MaxPoolLayer
+                            mask = (maximum(ai) .== ai)
+                            @inbounds dAi[h_start:h_end, w_start:w_end, ci, mi] .+= (dAi[hi, wi, ci, mi] .* mask)
+                        else
+                            mask = similar(ai)
+                            mask .= 1/prod(size(ai))
+                            @inbounds dAi[h_start:h_end, w_start:w_end, ci, mi] .+= (dAi[hi, wi, ci, mi] .* mask)
+                        end #if cLayer isa MaxPoolLayer
+                    end #for hi=1:n_H
+                end #for wi=1:n_W
+            end #for ci=1:c
+        end #for mi=1:m
+    else
+        @simd for mi=1:m
+            @simd for ci=1:c
+                for wi=1:n_W, hi=1:n_H
+                    h_start = hi* s_H - (s_H == 1 ? 0 : s_H-1)
+                    h_end = hi*s_H - (s_H == 1 ? 0 : s_H-1) + f_H -1
+                    w_start = wi*s_W - (s_W == 1 ? 0 : s_W-1)
+                    w_end = wi*s_W - (s_W == 1 ? 0 : s_W-1) + f_W -1
+                    @inbounds ai = Ai[h_start:h_end, w_start:w_end, ci, mi]
+                    if cLayer isa MaxPoolLayer
+                        mask = (maximum(ai) .== ai)
+                        @inbounds dAi[h_start:h_end, w_start:w_end, ci, mi] .+= (dAi[hi, wi, ci, mi] .* mask)
+                    else
+                        mask = similar(ai)
+                        mask .= 1/prod(size(ai))
+                        @inbounds dAi[h_start:h_end, w_start:w_end, ci, mi] .+= (dAi[hi, wi, ci, mi] .* mask)
+                    end #if cLayer isa MaxPoolLayer
+                end #for wi=1:n_W, hi=1:n_H
+            end #for ci=1:c
+        end #for mi=1:m
+    end #if sS == fS
 
-    for mi=1:m
-        for ci=1:c
-            for wi=1:n_W, hi=1:n_H
-                h_start = hi* s_H - (s_H == 1 ? 0 : s_H-1)
-                h_end = hi*s_H - (s_H == 1 ? 0 : s_H-1) + f_H -1
-                w_start = wi*s_W - (s_W == 1 ? 0 : s_W-1)
-                w_end = wi*s_W - (s_W == 1 ? 0 : s_W-1) + f_W -1
-                ai = Ai[h_start:h_end, w_start:w_end, ci, mi]
-                if cLayer isa MaxPoolLayer
-                    mask = (maximum(ai) .== ai)
-                    dAi[h_start:h_end, w_start:w_end, ci, mi] .+= (dAi[hi, wi, ci, mi] .* mask)
-                else
-                    mask = similar(ai)
-                    mask .= 1/prod(size(ai))
-                    dAi[h_start:h_end, w_start:w_end, ci, mi] .+= (dAi[hi, wi, ci, mi] .* mask)
-                end #if cLayer isa MaxPoolLayer
-            end #for wi=1:n_W, hi=1:n_H
-        end #for ci=1:c, wi=1:n_W, hi=1:n_H
-    end #for
 
     n_Hi, n_Wi, ci, m = size(cLayer.prevLayer.A)
     n_Hj, n_Wj, ci, m = size(dAi)
     p_H = abs(n_Hi - n_Hj) ÷ 2
     p_W = abs(n_Wi - n_Wj) ÷ 2
 
-    cLayer.dA = dAi[1+p_H:end-p_H,1+p_W:end-p_W,:,:]
+    @inbounds cLayer.dA = dAi[1+p_H:end-p_H,1+p_W:end-p_W,:,:]
 
     @assert size(cLayer.prevLayer.A) == size(cLayer.dA)
 
@@ -204,34 +248,63 @@ function dpooling!(
                    ) where {ThreeD <: Union{MaxPool3D, AveragePool3D}}
 
     n_Hi, n_Wi, n_Di, c, m = size(Ai)
-    s_H, s_W, s_D = cLayer.s
-    f_H, f_W, f_D = cLayer.f
+    s_H, s_W, s_D = sS = cLayer.s
+    f_H, f_W, f_D = fS = cLayer.f
 
     n_H = (n_Hi - f_H) ÷ s_H + 1
     n_W = (n_Wi - f_W) ÷ s_W + 1
     n_D = (n_Di - f_D) ÷ s_D + 1
 
-    for mi=1:m
-        for ci=1:c
-            for wi=1:n_W, hi=1:n_H, di=1:n_D
-                h_start = hi* s_H - (s_H == 1 ? 0 : s_H-1)
-                h_end = hi*s_H - (s_H == 1 ? 0 : s_H-1) + f_H -1
-                w_start = wi*s_W - (s_W == 1 ? 0 : s_W-1)
-                w_end = wi*s_W - (s_W == 1 ? 0 : s_W-1) + f_W -1
-                d_start = di*s_D - (s_D == 1 ? 0 : s_D-1)
-                d_end = di*s_D - (s_D == 1 ? 0 : s_D-1) + f_D -1
-                ai = Ai[h_start:h_end, w_start:w_end, d_start:d_end, ci, mi]
-                if cLayer isa MaxPoolLayer
-                    mask = (maximum(ai) .== ai)
-                    dAi[h_start:h_end, w_start:w_end, d_start:d_end, ci, mi] .+= (dAi[hi, wi, di, ci, mi] .* mask)
-                else
-                    mask = similar(ai)
-                    mask .= 1/prod(size(ai))
-                    dAi[h_start:h_end, w_start:w_end, d_start:d_end, ci, mi] .+= (dAi[hi, wi, di, ci, mi] .* mask)
-                end #if cLayer isa MaxPoolLayer
-            end #for wi=1:n_W, hi=1:n_H, di=1:n_D
-        end #for ci=1:c, wi=1:n_W, hi=1:n_H, di=1:n_D
-    end #for
+    if sS == fS
+        @simd for mi=1:m
+            @simd for ci=1:c
+                @simd for di=1:n_D
+                    @simd for wi=1:n_W
+                        @simd for hi=1:n_H
+                            h_start = hi* s_H - (s_H == 1 ? 0 : s_H-1)
+                            h_end = hi*s_H - (s_H == 1 ? 0 : s_H-1) + f_H -1
+                            w_start = wi*s_W - (s_W == 1 ? 0 : s_W-1)
+                            w_end = wi*s_W - (s_W == 1 ? 0 : s_W-1) + f_W -1
+                            d_start = di*s_D - (s_D == 1 ? 0 : s_D-1)
+                            d_end = di*s_D - (s_D == 1 ? 0 : s_D-1) + f_D -1
+                            @inbounds ai = Ai[h_start:h_end, w_start:w_end, d_start:d_end, ci, mi]
+                            if cLayer isa MaxPoolLayer
+                                mask = (maximum(ai) .== ai)
+                                @inbounds dAi[h_start:h_end, w_start:w_end, d_start:d_end, ci, mi] .+= (dAi[hi, wi, di, ci, mi] .* mask)
+                            else
+                                mask = similar(ai)
+                                mask .= 1/prod(size(ai))
+                                @inbounds dAi[h_start:h_end, w_start:w_end, d_start:d_end, ci, mi] .+= (dAi[hi, wi, di, ci, mi] .* mask)
+                            end #if cLayer isa MaxPoolLayer
+                        end #for hi=1:n_H
+                    end #for wi=1:n_W
+                end #for di=1:n_D
+            end #for ci=1:c
+        end #for mi=1:m
+
+    else
+        @simd for mi=1:m
+            @simd for ci=1:c
+                for di=1:n_D, wi=1:n_W, hi=1:n_H
+                    h_start = hi* s_H - (s_H == 1 ? 0 : s_H-1)
+                    h_end = hi*s_H - (s_H == 1 ? 0 : s_H-1) + f_H -1
+                    w_start = wi*s_W - (s_W == 1 ? 0 : s_W-1)
+                    w_end = wi*s_W - (s_W == 1 ? 0 : s_W-1) + f_W -1
+                    d_start = di*s_D - (s_D == 1 ? 0 : s_D-1)
+                    d_end = di*s_D - (s_D == 1 ? 0 : s_D-1) + f_D -1
+                    @inbounds ai = Ai[h_start:h_end, w_start:w_end, d_start:d_end, ci, mi]
+                    if cLayer isa MaxPoolLayer
+                        mask = (maximum(ai) .== ai)
+                        @inbounds dAi[h_start:h_end, w_start:w_end, d_start:d_end, ci, mi] .+= (dAi[hi, wi, di, ci, mi] .* mask)
+                    else
+                        mask = similar(ai)
+                        mask .= 1/prod(size(ai))
+                        @inbounds dAi[h_start:h_end, w_start:w_end, d_start:d_end, ci, mi] .+= (dAi[hi, wi, di, ci, mi] .* mask)
+                    end #if cLayer isa MaxPoolLayer
+                end #for wi=1:n_W, hi=1:n_H, di=1:n_D
+            end #for ci=1:c
+        end #for mi=1:m
+    end #if sS == fS
 
 
     n_Hi, n_Wi, n_Di, ci, m = size(cLayer.prevLayer.A)
@@ -240,7 +313,7 @@ function dpooling!(
     p_W = abs(n_Wi - n_Wj) ÷ 2
     p_D = abs(n_Di - n_Dj) ÷ 2
 
-    cLayer.dA = dAi[1+p_H:end-p_H,1+p_W:end-p_W,p_D:end-p_D,:,:]
+    @inbounds cLayer.dA = dAi[1+p_H:end-p_H,1+p_W:end-p_W,p_D:end-p_D,:,:]
 
     @assert size(cLayer.prevLayer.A) == size(cLayer.dA)
 
