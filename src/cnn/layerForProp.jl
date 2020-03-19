@@ -2,7 +2,7 @@
 
 ###convolution layers forprop
 
-function layerForProp!(cLayer::Conv1D, Ai::AoN; fastConvolve=false, NNlibConv = true) where {AoN <: Union{AbstractArray, Nothing}}
+function layerForProp!(cLayer::Conv1D, Ai::AoN; fastConvolve=false, NNlib = true) where {AoN <: Union{AbstractArray, Nothing}}
     if Ai == nothing
         Ai = cLayer.prevLayer.A
     end
@@ -37,7 +37,7 @@ function layerForProp!(cLayer::Conv1D, Ai::AoN; fastConvolve=false, NNlibConv = 
 
 end #function layerForProp!(cLayer::Conv1D)
 
-function layerForProp!(cLayer::Conv2D, Ai::AoN; fastConvolve=false, NNlibConv = true) where {AoN <: Union{AbstractArray, Nothing}}
+function layerForProp!(cLayer::Conv2D, Ai::AoN; fastConvolve=false, NNlib = true) where {AoN <: Union{AbstractArray, Nothing}}
     if Ai == nothing
         Ai = cLayer.prevLayer.A
     end
@@ -76,7 +76,7 @@ function layerForProp!(cLayer::Conv2D, Ai::AoN; fastConvolve=false, NNlibConv = 
     return nothing
 end #function layerForProp!(cLayer::Conv2D)
 
-function layerForProp!(cLayer::Conv3D, Ai::AoN; fastConvolve=false, NNlibConv = true) where {AoN <: Union{AbstractArray, Nothing}}
+function layerForProp!(cLayer::Conv3D, Ai::AoN; fastConvolve=false, NNlib = true) where {AoN <: Union{AbstractArray, Nothing}}
     if Ai == nothing
         Ai = cLayer.prevLayer.A
     end
@@ -121,7 +121,10 @@ end #function layerForProp!(cLayer::Conv3D)
 
 ### Pooling Layers
 
-function layerForProp!(cLayer::OneD, Ai::AoN; NNlibPool = true) where {OneD <: Union{MaxPool1D, AveragePool1D}, AoN <: Union{AbstractArray, Nothing}}
+#import only the needed parts not to have conflict
+import  NNlib.maxpool, NNlib.meanpool
+
+function layerForProp!(cLayer::OneD, Ai::AoN; NNlib = true) where {OneD <: Union{MaxPool1D, AveragePool1D}, AoN <: Union{AbstractArray, Nothing}}
     if Ai == nothing
         Ai = cLayer.prevLayer.A
     end
@@ -155,7 +158,7 @@ function layerForProp!(cLayer::OneD, Ai::AoN; NNlibPool = true) where {OneD <: U
     return nothing
 end #unction layerForProp!(cLayer::OneD) where {OneD <: Union{MaxPool1D, AveragePool1D}}
 
-function layerForProp!(cLayer::TwoD, Ai::AoN; NNlibPool = true) where {TwoD <: Union{MaxPool2D, AveragePool2D}, AoN <: Union{AbstractArray, Nothing}}
+function layerForProp!(cLayer::TwoD, Ai::AoN; NNlib = true) where {TwoD <: Union{MaxPool2D, AveragePool2D}, AoN <: Union{AbstractArray, Nothing}}
     if Ai == nothing
         Ai = cLayer.prevLayer.A
     end
@@ -191,7 +194,7 @@ function layerForProp!(cLayer::TwoD, Ai::AoN; NNlibPool = true) where {TwoD <: U
 
 end #function layerForProp!(cLayer::TwoD) where {TwoD <: Union{MaxPool2D, AveragePool2D}}
 
-function layerForProp!(cLayer::ThreeD, Ai::AoN; NNlibPool = true) where {ThreeD <: Union{MaxPool3D, AveragePool3D}, AoN <: Union{AbstractArray, Nothing}}
+function layerForProp!(cLayer::ThreeD, Ai::AoN; NNlib = true) where {ThreeD <: Union{MaxPool3D, AveragePool3D}, AoN <: Union{AbstractArray, Nothing}}
     if Ai == nothing
         Ai = cLayer.prevLayer.A
     end
