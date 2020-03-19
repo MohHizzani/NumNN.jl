@@ -2,16 +2,27 @@ using PaddedViews
 
 export paddingSize
 
-function paddingSize(cLayer::PL, Ai::AbstractArray) where {PL<:PaddableLayer}
-
+function paddingSize(cLayer::PL, Ai::AoN) where {PL<:PaddableLayer, AoN <: Union{AbstractArray, Nothing})
     if Ai == nothing
         Ai = cLayer.prevLayer.A
     end
 
-    ndim = ndims(Ai)
+    return paddingSize(cLayer, size(Ai))
+end
+
+"""
+    function paddingSize(cLayer::PL, Ai::AbstractArray) where {PL<:PaddableLayer}
+
+Helping function that returns the p_H_hi, p_H_lo, and (in case 2D Conv), p_W_hi, p_W_lo, and so on
+"""
+function paddingSize(cLayer::PL, AiS::Tuple) where {PL<:PaddableLayer}
+
+
+
+    ndim = length(AiS)
 
     if ndim == 3
-        n_Hi, ci, m = size(Ai)
+        n_Hi, ci, m = AiS
         s_H = cLayer.s
         f_H = cLayer.f
         if cLayer.padding == :same
@@ -24,7 +35,7 @@ function paddingSize(cLayer::PL, Ai::AbstractArray) where {PL<:PaddableLayer}
             return (p_H_hi, p_H_lo)
         end
     elseif ndim == 4
-        n_Hi, n_Wi, ci, m = size(Ai)
+        n_Hi, n_Wi, ci, m = AiS
         (s_H, s_W) = cLayer.s
         (f_H, f_W) = cLayer.f
         if cLayer.padding == :same
@@ -41,7 +52,7 @@ function paddingSize(cLayer::PL, Ai::AbstractArray) where {PL<:PaddableLayer}
         end
 
     elseif ndim == 5
-        n_Hi, n_Wi, n_Di, ci, m = size(Ai)
+        n_Hi, n_Wi, n_Di, ci, m = AiS
         s_H, s_W, s_D = cLayer.s
         f_H, f_W, f_D = cLayer.f
         if cLayer.padding == :same
