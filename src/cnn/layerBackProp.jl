@@ -93,16 +93,17 @@ end #function layerBackProp!(cLayer::Input
 
 ### Pooling Layers
 
-function layerBackProp!(cLayer::OneD, model::Model, dA::AoN=nothing, Ai::AoN=nothing; labels=nothing) where {OneD <: Union{MaxPool1D, AveragePool1D}, AoN <: Union{AbstractArray, Nothing}}
+#import only the needed parts not to have conflict
+import NNlib.∇maxpool, NNlib.∇meanpool, NNlib.PoolDims
+
+function layerBackProp!(cLayer::OneD, model::Model, dA::AoN=nothing, Ai::AoN=nothing; labels=nothing, NNlib::Bool=true) where {OneD <: Union{MaxPool1D, AveragePool1D}, AoN <: Union{AbstractArray, Nothing}}
     if Ai==nothing
         Ai = cLayer.prevLayer.A
     end
+
     padS = paddingSize(cLayer, Ai)
     cLayer.dA = similar(Ai)
     cLayer.dA .= 0
-    Ai = padding(cLayer, Ai)
-    dAi = similar(Ai)
-    dAi .= 0
 
 
     if dA==nothing
@@ -120,25 +121,35 @@ function layerBackProp!(cLayer::OneD, model::Model, dA::AoN=nothing, Ai::AoN=not
         end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
     end #if dA==nothing
 
+    if NNlib
+        pooldims = PoolDims(Ai, cLayer.f, stride=cLayer.s, padding=padS)
+        if cLayer isa MaxPoolLayer
+            cLayer.dA .= ∇maxpool(dA, cLayer.A, Ai, pooldims)
+        elseif cLayer isa AveragePoolLayer
+            cLayer.dA .= ∇meanpool(dA, cLayer.A, Ai, pooldims)
+        end #if cLayer isa MaxPoolLayer
 
-    dpooling!(cLayer, Ai, dAi, dA)
-    cLayer.dA .= dAi[1+padS[1]:end-padS[2],:,:]
+    else
+        Ai = padding(cLayer, Ai)
+        dAi = similar(Ai)
+        dAi .= 0
+        dpooling!(cLayer, Ai, dAi, dA)
+        cLayer.dA .= dAi[1+padS[1]:end-padS[2],:,:]
+    end #if NNlib
+
     cLayer.forwCount += 1
-
     return nothing
 
 end #unction layerBackProp!(cLayer::OneD) where {OneD <: Union{MaxPool1D, AveragePool1D}}
 
-function layerBackProp!(cLayer::TwoD, model::Model, dA::AoN=nothing, Ai::AoN=nothing; labels=nothing) where {TwoD <: Union{MaxPool2D, AveragePool2D}, AoN <: Union{AbstractArray, Nothing}}
+function layerBackProp!(cLayer::TwoD, model::Model, dA::AoN=nothing, Ai::AoN=nothing; labels=nothing, NNlib::Bool=true) where {TwoD <: Union{MaxPool2D, AveragePool2D}, AoN <: Union{AbstractArray, Nothing}}
     if Ai==nothing
         Ai = cLayer.prevLayer.A
     end
+
     padS = paddingSize(cLayer, Ai)
     cLayer.dA = similar(Ai)
     cLayer.dA .= 0
-    Ai = padding(cLayer, Ai)
-    dAi = similar(Ai)
-    dAi .= 0
 
     if dA==nothing
         if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
@@ -155,24 +166,35 @@ function layerBackProp!(cLayer::TwoD, model::Model, dA::AoN=nothing, Ai::AoN=not
         end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
     end #if dA==nothing
 
-    dpooling!(cLayer, Ai, dAi, dA)
-    cLayer.dA .= dAi[1+padS[1]:end-padS[2],1+padS[3]:end-padS[4],:,:]
-    cLayer.forwCount += 1
+    if NNlib
+        pooldims = PoolDims(Ai, cLayer.f, stride=cLayer.s, padding=padS)
+        if cLayer isa MaxPoolLayer
+            cLayer.dA .= ∇maxpool(dA, cLayer.A, Ai, pooldims)
+        elseif cLayer isa AveragePoolLayer
+            cLayer.dA .= ∇meanpool(dA, cLayer.A, Ai, pooldims)
+        end #if cLayer isa MaxPoolLayer
 
+    else
+        Ai = padding(cLayer, Ai)
+        dAi = similar(Ai)
+        dAi .= 0
+        dpooling!(cLayer, Ai, dAi, dA)
+        cLayer.dA .= dAi[1+padS[1]:end-padS[2],1+padS[3]:end-padS[4],:,:]
+    end #if NNlib
+
+    cLayer.forwCount += 1
     return nothing
 
 end #function layerBackProp!(cLayer::TwoD) where {TwoD <: Union{MaxPool2D, AveragePool2D}}
 
-function layerBackProp!(cLayer::ThreeD, model::Model, dA::AoN=nothing, Ai::AoN=nothing; labels=nothing) where {ThreeD <: Union{MaxPool3D, AveragePool3D}, AoN <: Union{AbstractArray, Nothing}}
+function layerBackProp!(cLayer::ThreeD, model::Model, dA::AoN=nothing, Ai::AoN=nothing; labels=nothing, NNlib::Bool=true) where {ThreeD <: Union{MaxPool3D, AveragePool3D}, AoN <: Union{AbstractArray, Nothing}}
     if Ai==nothing
         Ai = cLayer.prevLayer.A
     end
+
     padS = paddingSize(cLayer, Ai)
     cLayer.dA = similar(Ai)
     cLayer.dA .= 0
-    Ai = padding(cLayer, Ai)
-    dAi = similar(Ai)
-    dAi .= 0
 
     if dA==nothing
         if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
@@ -189,10 +211,23 @@ function layerBackProp!(cLayer::ThreeD, model::Model, dA::AoN=nothing, Ai::AoN=n
         end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
     end #if dA==nothing
 
-    dpooling!(cLayer, Ai, dAi, dA)
-    cLayer.dA .= dAi[1+padS[1]:end-padS[2],1+padS[3]:end-padS[4],1+padS[5]:end-padS[6],:,:]
-    cLayer.forwCount += 1
+    if NNlib
+        pooldims = PoolDims(Ai, cLayer.f, stride=cLayer.s, padding=padS)
+        if cLayer isa MaxPoolLayer
+            cLayer.dA .= ∇maxpool(dA, cLayer.A, Ai, pooldims)
+        elseif cLayer isa AveragePoolLayer
+            cLayer.dA .= ∇meanpool(dA, cLayer.A, Ai, pooldims)
+        end #if cLayer isa MaxPoolLayer
 
+    else
+        Ai = padding(cLayer, Ai)
+        dAi = similar(Ai)
+        dAi .= 0
+        dpooling!(cLayer, Ai, dAi, dA)
+        cLayer.dA .= dAi[1+padS[1]:end-padS[2],1+padS[3]:end-padS[4],1+padS[5]:end-padS[6],:,:]
+    end #if NNlib
+
+    cLayer.forwCount += 1
     return nothing
 
 end #function layerBackProp!(cLayer::ThreeD) where {ThreeD <: Union{MaxPool3D, AveragePool3D}}

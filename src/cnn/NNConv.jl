@@ -1,5 +1,5 @@
-import NNlib.conv, NNlib.conv!, NNlib.maxpool, NNlib.meanpool, NNlib.DenseConvDims
-
+#import only the needed parts not to have conflict
+import NNlib.conv, NNlib.conv!
 
 ### NNConv
 function NNConv!(cLayer::Conv1D, Ai::AbstractArray{T,3}) where {T}
@@ -39,7 +39,8 @@ export NNConv!
 
 ### dNNConv!
 
-import NNlib.∇conv_data, NNlib.∇conv_filter
+#import only the needed parts not to have conflict
+import NNlib.∇conv_data, NNlib.∇conv_filter, NNlib.DenseConvDims
 
 function dNNConv!(cLayer::Conv1D, dZ::AbstractArray{T,3}, Ai::AoN=nothing, A::AoN=nothing) where {AoN <: Union{AbstractArray, Nothing}, T}
 
