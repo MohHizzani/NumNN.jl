@@ -17,13 +17,13 @@ function initWB!(
     s_H = cLayer.s
     f_H = cLayer.f
 
-    ## note this is the input to the matmult after padding
-    if cLayer.padding == :same
-        p_H = Integer(ceil((s_H * (n_Hi - 1) - n_Hi + f_H) / 2))
-        n_H = n_Hi + 2p_H
-    elseif cLayer.padding == :valid
-        n_H = n_Hi
-    end
+    # ## note this is the input to the matmult after padding
+    # if cLayer.padding == :same
+    #     p_H = Integer(ceil((s_H * (n_Hi - 1) - n_Hi + f_H) / 2))
+    #     n_H = n_Hi + 2p_H
+    # elseif cLayer.padding == :valid
+    #     n_H = n_Hi
+    # end
 
     if He
         coef = sqrt(2 / cl_1)
@@ -38,9 +38,11 @@ function initWB!(
     B = zeros(T, repeat([1], length(f) + 1)..., cl)
 
     cLayer.W, cLayer.B = W, B
-    cLayer.K = unroll(cLayer, (n_H, ci, m))
+    cLayer.K = Matrix{T}(undef,0,0)
+    #unroll(cLayer, (n_H, ci, m))
     cLayer.dW = zeros(T, f..., cl_1, cl)
-    cLayer.dK = unroll(cLayer, (n_H, ci, m), :dW)
+    cLayer.dK = Matrix{T}(undef,0,0)
+    #unroll(cLayer, (n_H, ci, m), :dW)
     cLayer.dB = deepcopy(B)
     return nothing
 end #initWB
@@ -63,14 +65,14 @@ function initWB!(
     f_H, f_W = cLayer.f
 
     ## note this is the input to the matmult after padding
-    if cLayer.padding == :same
-        p_H = Integer(ceil((s_H * (n_Hi - 1) - n_Hi + f_H) / 2))
-        p_W = Integer(ceil((s_W * (n_Wi - 1) - n_Wi + f_W) / 2))
-        n_H, n_W = n_Hi + 2p_H, n_Wi + 2p_W
-    elseif cLayer.padding == :valid
-        n_H = n_Hi
-        n_W = n_Wi
-    end
+    # if cLayer.padding == :same
+    #     p_H = Integer(ceil((s_H * (n_Hi - 1) - n_Hi + f_H) / 2))
+    #     p_W = Integer(ceil((s_W * (n_Wi - 1) - n_Wi + f_W) / 2))
+    #     n_H, n_W = n_Hi + 2p_H, n_Wi + 2p_W
+    # elseif cLayer.padding == :valid
+    #     n_H = n_Hi
+    #     n_W = n_Wi
+    # end
 
     if He
         coef = sqrt(2 / cl_1)
@@ -85,9 +87,11 @@ function initWB!(
     B = zeros(T, repeat([1], length(f) + 1)..., cl)
 
     cLayer.W, cLayer.B = W, B
-    cLayer.K = unroll(cLayer, (n_H, n_W, ci, m))
+    cLayer.K = Matrix{T}(undef,0,0)
+    #unroll(cLayer, (n_H, n_W, ci, m))
     cLayer.dW = zeros(T, f..., cl_1, cl)
-    cLayer.dK = unroll(cLayer, (n_H, n_W, ci, m), :dW)
+    cLayer.dK = Matrix{T}(undef,0,0)
+    #unroll(cLayer, (n_H, n_W, ci, m), :dW)
     cLayer.dB = deepcopy(B)
     return nothing
 end #initWB
@@ -110,16 +114,16 @@ function initWB!(
     f_H, f_W, f_D = cLayer.f
 
     ## note this is the input to the matmult after padding
-    if cLayer.padding == :same
-        p_H = Integer(ceil((s_H * (n_Hi - 1) - n_Hi + f_H) / 2))
-        p_W = Integer(ceil((s_W * (n_Wi - 1) - n_Wi + f_W) / 2))
-        p_D = Integer(ceil((s_D * (n_Di - 1) - n_Di + f_D) / 2))
-        n_H, n_W, n_D = n_Hi + 2p_H, n_Wi + 2p_W, n_Di + 2p_D
-    elseif cLayer.padding == :valid
-        n_H = n_Hi
-        n_W = n_Wi
-        n_D = n_Di
-    end
+    # if cLayer.padding == :same
+    #     p_H = Integer(ceil((s_H * (n_Hi - 1) - n_Hi + f_H) / 2))
+    #     p_W = Integer(ceil((s_W * (n_Wi - 1) - n_Wi + f_W) / 2))
+    #     p_D = Integer(ceil((s_D * (n_Di - 1) - n_Di + f_D) / 2))
+    #     n_H, n_W, n_D = n_Hi + 2p_H, n_Wi + 2p_W, n_Di + 2p_D
+    # elseif cLayer.padding == :valid
+    #     n_H = n_Hi
+    #     n_W = n_Wi
+    #     n_D = n_Di
+    # end
 
     if He
         coef = sqrt(2 / cl_1)
@@ -134,9 +138,11 @@ function initWB!(
     B = zeros(T, repeat([1], length(f) + 1)..., cl)
 
     cLayer.W, cLayer.B = W, B
-    cLayer.K = unroll(cLayer, (n_H, n_W, n_D, ci, m))
+    cLayer.K = Matrix{T}(undef,0,0)
+    #unroll(cLayer, (n_H, n_W, n_D, ci, m))
     cLayer.dW = zeros(T, f..., cl_1, cl)
-    cLayer.dK = unroll(cLayer, (n_H, n_W, n_D, ci, m), :dW)
+    cLayer.dK = Matrix{T}(undef,0,0)
+    #unroll(cLayer, (n_H, n_W, n_D, ci, m), :dW)
     cLayer.dB = deepcopy(B)
     return nothing
 end #initWB
