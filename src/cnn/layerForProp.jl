@@ -5,8 +5,8 @@
 function layerForProp!(
     cLayer::Conv1D,
     Ai::AoN;
-    fastConvolve = false,
-    NNlib = true,
+    fastConvolve::Bool = false,
+    NNlib::Bool = true,
 ) where {AoN<:Union{AbstractArray,Nothing}}
     if Ai == nothing
         Ai = cLayer.prevLayer.A
@@ -44,8 +44,8 @@ end #function layerForProp!(cLayer::Conv1D)
 function layerForProp!(
     cLayer::Conv2D,
     Ai::AoN;
-    fastConvolve = false,
-    NNlib = true,
+    fastConvolve::Bool = false,
+    NNlib::Bool = true,
 ) where {AoN<:Union{AbstractArray,Nothing}}
     if Ai == nothing
         Ai = cLayer.prevLayer.A
@@ -87,8 +87,8 @@ end #function layerForProp!(cLayer::Conv2D)
 function layerForProp!(
     cLayer::Conv3D,
     Ai::AoN;
-    fastConvolve = false,
-    NNlib = true,
+    fastConvolve::Bool = false,
+    NNlib::Bool = true,
 ) where {AoN<:Union{AbstractArray,Nothing}}
     if Ai == nothing
         Ai = cLayer.prevLayer.A
@@ -139,7 +139,7 @@ import NNlib.maxpool, NNlib.meanpool
 function layerForProp!(
     cLayer::OneD,
     Ai::AoN;
-    NNlib = true,
+    NNlib::Bool = true,
 ) where {OneD<:Union{MaxPool1D,AveragePool1D},AoN<:Union{AbstractArray,Nothing}}
     if Ai == nothing
         Ai = cLayer.prevLayer.A
@@ -176,7 +176,7 @@ end #unction layerForProp!(cLayer::OneD) where {OneD <: Union{MaxPool1D, Average
 function layerForProp!(
     cLayer::TwoD,
     Ai::AoN;
-    NNlib = true,
+    NNlib::Bool = true,
 ) where {TwoD<:Union{MaxPool2D,AveragePool2D},AoN<:Union{AbstractArray,Nothing}}
     if Ai == nothing
         Ai = cLayer.prevLayer.A
@@ -216,7 +216,7 @@ end #function layerForProp!(cLayer::TwoD) where {TwoD <: Union{MaxPool2D, Averag
 function layerForProp!(
     cLayer::ThreeD,
     Ai::AoN;
-    NNlib = true,
+    NNlib::Bool = true,
 ) where {
     ThreeD<:Union{MaxPool3D,AveragePool3D},
     AoN<:Union{AbstractArray,Nothing},

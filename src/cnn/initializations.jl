@@ -3,9 +3,9 @@
 function initWB!(
     cLayer::Conv1D,
     p::Type{T} = Float64::Type{Float64};
-    He = true,
-    coef = 0.01,
-    zro = false,
+    He::Bool = true,
+    coef::AbstractFloat = 0.01,
+    zro::Bool = false,
 ) where {T}
 
 
@@ -48,9 +48,9 @@ end #initWB
 function initWB!(
     cLayer::Conv2D,
     p::Type{T} = Float64::Type{Float64};
-    He = true,
-    coef = 0.01,
-    zro = false,
+    He::Bool = true,
+    coef::AbstractFloat = 0.01,
+    zro::Bool = false,
 ) where {T}
 
 
@@ -95,9 +95,9 @@ end #initWB
 function initWB!(
     cLayer::Conv3D,
     p::Type{T} = Float64::Type{Float64};
-    He = true,
-    coef = 0.01,
-    zro = false,
+    He::Bool= true,
+    coef::AbstractFloat = 0.01,
+    zro::Bool = false,
 ) where {T}
 
 
@@ -147,9 +147,9 @@ end #initWB
 function initWB!(
     cLayer::P,
     p::Type{T} = Float64::Type{Float64};
-    He = true,
-    coef = 0.01,
-    zro = false,
+    He::Bool = true,
+    coef::AbstractFloat = 0.01,
+    zro::Bool = false,
 ) where {T,P<:PoolLayer}
 
     return nothing

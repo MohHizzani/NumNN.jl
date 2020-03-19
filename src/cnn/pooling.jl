@@ -1,7 +1,10 @@
 using Statistics
 
 
-function pooling!(cLayer::OneD, Ai) where {OneD<:Union{MaxPool1D,AveragePool1D}}
+function pooling!(
+    cLayer::OneD,
+    Ai::AbstractArray{T,3},
+) where {OneD<:Union{MaxPool1D,AveragePool1D},T}
 
     n_Hi, c, m = size(Ai)
     s_H = cLayer.s
@@ -31,7 +34,10 @@ function pooling!(cLayer::OneD, Ai) where {OneD<:Union{MaxPool1D,AveragePool1D}}
 end #function pooling!(cLayer::OneD
 
 
-function pooling!(cLayer::TwoD, Ai) where {TwoD<:Union{MaxPool2D,AveragePool2D}}
+function pooling!(
+    cLayer::TwoD,
+    Ai::AbstractArray{T,4},
+) where {TwoD<:Union{MaxPool2D,AveragePool2D},T}
 
     n_Hi, n_Wi, c, m = size(Ai)
     s_H, s_W = cLayer.s
@@ -66,8 +72,8 @@ end #function pooling!(cLayer::TwoD,
 
 function pooling!(
     cLayer::ThreeD,
-    Ai,
-) where {ThreeD<:Union{MaxPool3D,AveragePool3D}}
+    Ai::AbstractArray{T,5},
+) where {ThreeD<:Union{MaxPool3D,AveragePool3D},T}
 
     n_Hi, n_Wi, n_Di, c, m = size(Ai)
     s_H, s_W, s_D = cLayer.s
@@ -120,10 +126,10 @@ export pooling!
 
 function dpooling!(
     cLayer::OneD,
-    Ai,
-    dAi,
-    dA,
-) where {OneD<:Union{MaxPool1D,AveragePool1D}}
+    Ai::AbstractArray{T,3},
+    dAi::AbstractArray{T,3},
+    dA::AbstractArray{T,3},
+) where {OneD<:Union{MaxPool1D,AveragePool1D},T}
 
     n_Hi, c, m = size(Ai)
     s_H = sS = cLayer.s
@@ -172,24 +178,16 @@ function dpooling!(
         end #for mi=1:m
     end #if sS == fS
 
-    # n_Hi, ci, m = size(cLayer.prevLayer.A)
-    # n_Hj, ci, m = size(dA)
-    # p_H = abs(n_Hi - n_Hj) ÷ 2
-    #
-    # @inbounds cLayer.dA = dA[1+p_H:end-p_H,:,:]
-    #
-    # @assert size(cLayer.prevLayer.A) == size(cLayer.dA)
-
     return nothing
 end #function dpooling!(cLayer::OneD
 
 
 function dpooling!(
     cLayer::TwoD,
-    Ai,
-    dAi,
-    dA,
-) where {TwoD<:Union{MaxPool2D,AveragePool2D}}
+    Ai::AbstractArray{T,4},
+    dAi::AbstractArray{T,4},
+    dA::AbstractArray{T,4},
+) where {TwoD<:Union{MaxPool2D,AveragePool2D},T}
 
     n_Hi, n_Wi, c, m = size(Ai)
     s_H, s_W = sS = cLayer.s
@@ -252,26 +250,16 @@ function dpooling!(
         end #for mi=1:m
     end #if sS == fS
 
-    #
-    # n_Hi, n_Wi, ci, m = size(cLayer.prevLayer.A)
-    # n_Hj, n_Wj, ci, m = size(dA)
-    # p_H = abs(n_Hi - n_Hj) ÷ 2
-    # p_W = abs(n_Wi - n_Wj) ÷ 2
-    #
-    # @inbounds cLayer.dA = dA[1+p_H:end-p_H,1+p_W:end-p_W,:,:]
-    #
-    # @assert size(cLayer.prevLayer.A) == size(cLayer.dA)
-
     return nothing
 end #function dpooling!(cLayer::TwoD,
 
 
 function dpooling!(
     cLayer::ThreeD,
-    Ai,
-    dAi,
-    dA,
-) where {ThreeD<:Union{MaxPool3D,AveragePool3D}}
+    Ai::AbstractArray{T,5},
+    dAi::AbstractArray{T,5},
+    dA::AbstractArray{T,5},
+) where {ThreeD<:Union{MaxPool3D,AveragePool3D},T}
 
     n_Hi, n_Wi, n_Di, c, m = size(Ai)
     s_H, s_W, s_D = sS = cLayer.s
@@ -365,17 +353,6 @@ function dpooling!(
             end #for ci=1:c
         end #for mi=1:m
     end #if sS == fS
-
-
-    # n_Hi, n_Wi, n_Di, ci, m = size(cLayer.prevLayer.A)
-    # n_Hj, n_Wj, n_Dj, ci, m = size(dA)
-    # p_H = abs(n_Hi - n_Hj) ÷ 2
-    # p_W = abs(n_Wi - n_Wj) ÷ 2
-    # p_D = abs(n_Di - n_Dj) ÷ 2
-    #
-    # @inbounds cLayer.dA = dA[1+p_H:end-p_H,1+p_W:end-p_W,p_D:end-p_D,:,:]
-    #
-    # @assert size(cLayer.prevLayer.A) == size(cLayer.dA)
 
     return nothing
 end #function dpooling!(cLayer::ThreeD,

@@ -24,7 +24,7 @@ function layerBackProp!(
     model::Model,
     Ai::AoN = nothing,
     dA::AoN = nothing;
-    labels = nothing,
+    labels::AoN = nothing,
     NNlib::Bool = true,
 ) where {AoN<:Union{AbstractArray,Nothing}}
 
@@ -117,7 +117,7 @@ function layerBackProp!(
     model::Model,
     dA::AoN = nothing,
     Ai::AoN = nothing;
-    labels = nothing,
+    labels::AoN = nothing,
     NNlib::Bool = true,
 ) where {OneD<:Union{MaxPool1D,AveragePool1D},AoN<:Union{AbstractArray,Nothing}}
     if Ai == nothing
@@ -173,7 +173,7 @@ function layerBackProp!(
     model::Model,
     dA::AoN = nothing,
     Ai::AoN = nothing;
-    labels = nothing,
+    labels::AoN = nothing,
     NNlib::Bool = true,
 ) where {TwoD<:Union{MaxPool2D,AveragePool2D},AoN<:Union{AbstractArray,Nothing}}
     if Ai == nothing
@@ -228,7 +228,7 @@ function layerBackProp!(
     model::Model,
     dA::AoN = nothing,
     Ai::AoN = nothing;
-    labels = nothing,
+    labels::AoN = nothing,
     NNlib::Bool = true,
 ) where {
     ThreeD<:Union{MaxPool3D,AveragePool3D},
