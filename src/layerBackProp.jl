@@ -5,11 +5,11 @@ function layerBackProp(
     model::Model,
     actFun::SoS,
     labels::AbstractArray,
-    ) where {SoS <: Union{Type{softmax}, Type{σ}}}
+) where {SoS<:Union{Type{softmax},Type{σ}}}
 
 
     lossFun = model.lossFun
-    dlossFun = Symbol("d",lossFun)
+    dlossFun = Symbol("d", lossFun)
     A = cLayer.A
     Y = labels
     dZ = eval(:($dlossFun($A, $Y)))
@@ -24,11 +24,11 @@ function layerBackProp(
     model::Model,
     actFun::SoS,
     labels::AbstractArray,
-    ) where {SoS <: Union{Type{softmax}, Type{σ}}}
+) where {SoS<:Union{Type{softmax},Type{σ}}}
 
 
     lossFun = model.lossFun
-    dlossFun = Symbol("d",lossFun)
+    dlossFun = Symbol("d", lossFun)
     A = cLayer.A
     Y = labels
     dZ = eval(:($dlossFun($A, $Y)))
@@ -37,7 +37,12 @@ function layerBackProp(
 end #softmax or σ layerBackProp
 
 
-function layerBackProp!(cLayer::FCLayer, model::Model, dA::AoN=nothing; labels=nothing) where {AoN <: Union{AbstractArray, Nothing}}
+function layerBackProp!(
+    cLayer::FCLayer,
+    model::Model,
+    dA::AoN = nothing;
+    labels::AoN = nothing,
+) where {AoN<:Union{AbstractArray,Nothing}}
     prevLayer = cLayer.prevLayer
     lossFun = model.lossFun
 
@@ -57,18 +62,21 @@ function layerBackProp!(cLayer::FCLayer, model::Model, dA::AoN=nothing; labels=n
     elseif dA != nothing
         keepProb = cLayer.keepProb
         if keepProb < 1.0 #to save time of multiplication in case keepProb was one
-           D = rand(cLayer.channels,1) .< keepProb
-           dA .*= D
-           dA ./= keepProb
+            D = rand(cLayer.channels, 1) .< keepProb
+            dA .*= D
+            dA ./= keepProb
         end
 
-        dActFun = Symbol("d",cLayer.actFun)
+        dActFun = Symbol("d", cLayer.actFun)
 
         Z = cLayer.Z
 
         dZ = dA .* eval(:($dActFun($Z)))
 
-    elseif all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+    elseif all(
+        i -> (i.backCount == cLayer.nextLayers[1].backCount),
+        cLayer.nextLayers,
+    )
         dA = []
         for nextLayer in cLayer.nextLayers
             try
@@ -80,12 +88,12 @@ function layerBackProp!(cLayer::FCLayer, model::Model, dA::AoN=nothing; labels=n
 
         keepProb = cLayer.keepProb
         if keepProb < 1.0 #to save time of multiplication in case keepProb was one
-           D = rand(cLayer.channels,1) .< keepProb
-           dA .*= D
-           dA ./= keepProb
+            D = rand(cLayer.channels, 1) .< keepProb
+            dA .*= D
+            dA ./= keepProb
         end
 
-        dActFun = Symbol("d",cLayer.actFun)
+        dActFun = Symbol("d", cLayer.actFun)
 
         Z = cLayer.Z
 
@@ -96,17 +104,17 @@ function layerBackProp!(cLayer::FCLayer, model::Model, dA::AoN=nothing; labels=n
 
     end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
 
-    cLayer.dW = dZ*cLayer.prevLayer.A' ./m
+    cLayer.dW = dZ * cLayer.prevLayer.A' ./ m
 
     if regulization > 0
-        if regulization==1
-            cLayer.dW .+= (λ/2m)
+        if regulization == 1
+            cLayer.dW .+= (λ / 2m)
         else
-            cLayer.dW .+= (λ/m) .* cLayer.W
+            cLayer.dW .+= (λ / m) .* cLayer.W
         end
     end
 
-    cLayer.dB = 1/m .* sum(dZ, dims=2)
+    cLayer.dB = 1 / m .* sum(dZ, dims = 2)
 
     cLayer.dA = cLayer.W'dZ
 
@@ -118,7 +126,12 @@ end #function layerBackProp(cLayer::FCLayer)
 
 
 
-function layerBackProp!(cLayer::Activation, model::Model, dA::AoN=nothing; labels=nothing)  where {AoN <: Union{AbstractArray, Nothing}}
+function layerBackProp!(
+    cLayer::Activation,
+    model::Model,
+    dA::AoN = nothing;
+    labels::AoN = nothing,
+) where {AoN<:Union{AbstractArray,Nothing}}
     prevLayer = cLayer.prevLayer
     lossFun = model.lossFun
 
@@ -136,18 +149,21 @@ function layerBackProp!(cLayer::Activation, model::Model, dA::AoN=nothing; label
     elseif dA != nothing
         keepProb = cLayer.keepProb
         if keepProb < 1.0 #to save time of multiplication in case keepProb was one
-           D = rand(cLayer.channels,1) .< keepProb
-           dA .*= D
-           dA ./= keepProb
+            D = rand(cLayer.channels, 1) .< keepProb
+            dA .*= D
+            dA ./= keepProb
         end
 
-        dActFun = Symbol("d",cLayer.actFun)
+        dActFun = Symbol("d", cLayer.actFun)
 
         Z = cLayer.Z
 
         dZ = dA .* eval(:($dActFun($Z)))
 
-    elseif all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+    elseif all(
+        i -> (i.backCount == cLayer.nextLayers[1].backCount),
+        cLayer.nextLayers,
+    )
         dA = []
         for nextLayer in cLayer.nextLayers
             try
@@ -160,15 +176,15 @@ function layerBackProp!(cLayer::Activation, model::Model, dA::AoN=nothing; label
         try
             keepProb = cLayer.keepProb
             if keepProb < 1.0 #to save time of multiplication in case keepProb was one
-               D = rand(cLayer.channels,1) .< keepProb
-               dA .*= D
-               dA ./= keepProb
+                D = rand(cLayer.channels, 1) .< keepProb
+                dA .*= D
+                dA ./= keepProb
             end
         catch e
 
         end
 
-        dActFun = Symbol("d",cLayer.actFun)
+        dActFun = Symbol("d", cLayer.actFun)
 
         Z = cLayer.prevLayer.A #this is the Activation layer
 
@@ -188,7 +204,12 @@ end #function layerBackProp!(cLayer::Activation
 
 
 
-function layerBackProp!(cLayer::AddLayer, model::Model, dA::AoN=nothing; labels=nothing)  where {AoN <: Union{AbstractArray, Nothing}}
+function layerBackProp!(
+    cLayer::AddLayer,
+    model::Model,
+    dA::AoN = nothing;
+    labels::AoN = nothing,
+) where {AoN<:Union{AbstractArray,Nothing}}
 
     # m = size(cLayer.A)[end]
     #
@@ -198,17 +219,20 @@ function layerBackProp!(cLayer::AddLayer, model::Model, dA::AoN=nothing; labels=
     if dA != nothing
         keepProb = cLayer.keepProb
         if keepProb < 1.0 #to save time of multiplication in case keepProb was one
-           D = rand(cLayer.channels,1) .< keepProb
-           dA .*= D
-           dA ./= keepProb
+            D = rand(cLayer.channels, 1) .< keepProb
+            dA .*= D
+            dA ./= keepProb
         end
 
-        dActFun = Symbol("d",cLayer.actFun)
+        dActFun = Symbol("d", cLayer.actFun)
 
         Z = cLayer.Z
 
         dZ = dA .* eval(:($dActFun($Z)))
-    elseif all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+    elseif all(
+        i -> (i.backCount == cLayer.nextLayers[1].backCount),
+        cLayer.nextLayers,
+    )
         dA = []
         for nextLayer in cLayer.nextLayers
             try
@@ -233,7 +257,12 @@ end #function layerBackProp!(cLayer::AddLayer
 
 
 
-function layerBackProp!(cLayer::Input, model::Model, dA::AoN=nothing; labels=nothing) where {AoN <: Union{AbstractArray, Nothing}}
+function layerBackProp!(
+    cLayer::Input,
+    model::Model,
+    dA::AoN = nothing;
+    labels::AoN = nothing,
+) where {AoN<:Union{AbstractArray,Nothing}}
 
     # m = size(cLayer.A)[end]
     #
@@ -243,7 +272,10 @@ function layerBackProp!(cLayer::Input, model::Model, dA::AoN=nothing; labels=not
 
     if dA != nothing
         cLayer.dA = dA
-    elseif all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+    elseif all(
+        i -> (i.backCount == cLayer.nextLayers[1].backCount),
+        cLayer.nextLayers,
+    )
         dA = []
         for nextLayer in cLayer.nextLayers
             try
@@ -266,7 +298,12 @@ function layerBackProp!(cLayer::Input, model::Model, dA::AoN=nothing; labels=not
 end #function layerBackProp!(cLayer::Input
 
 
-function layerBackProp!(cLayer::BatchNorm, model::Model, dA::AoN=nothing; labels=nothing) where {AoN <: Union{AbstractArray, Nothing}}
+function layerBackProp!(
+    cLayer::BatchNorm,
+    model::Model,
+    dA::AoN = nothing;
+    labels::AoN = nothing,
+) where {AoN<:Union{AbstractArray,Nothing}}
     prevLayer = cLayer.prevLayer
     lossFun = model.lossFun
 
@@ -280,7 +317,10 @@ function layerBackProp!(cLayer::BatchNorm, model::Model, dA::AoN=nothing; labels
     dZ = []
     if dA != nothing
         dZ = cLayer.W .* dA
-    elseif all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+    elseif all(
+        i -> (i.backCount == cLayer.nextLayers[1].backCount),
+        cLayer.nextLayers,
+    )
         dA = []
         for nextLayer in cLayer.nextLayers
             try
@@ -300,25 +340,26 @@ function layerBackProp!(cLayer::BatchNorm, model::Model, dA::AoN=nothing; labels
 
     end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
 
-    cLayer.dW = sum(dZ .* cLayer.Z, dims=1:normDim)
+    cLayer.dW = sum(dZ .* cLayer.Z, dims = 1:normDim)
 
     if regulization > 0
-        if regulization==1
-            cLayer.dW .+= (λ/2m)
+        if regulization == 1
+            cLayer.dW .+= (λ / 2m)
         else
-            cLayer.dW .+= (λ/m) .* cLayer.W
+            cLayer.dW .+= (λ / m) .* cLayer.W
         end
     end
 
-    cLayer.dB = sum(dZ, dims=1:normDim)
+    cLayer.dB = sum(dZ, dims = 1:normDim)
 
     N = prod(size(dZ)[1:normDim])
 
     varep = cLayer.var .+ cLayer.ϵ
 
-    dẐ = dZ ./ sqrt.(varep) .*
-         (.-(cLayer.Ai_μ_s) .* ((N-1)/N^2) ./ (varep).^2 .+ 1) .*
-         (1-1/N)
+    dẐ =
+        dZ ./ sqrt.(varep) .*
+        (.-(cLayer.Ai_μ_s) .* ((N - 1) / N^2) ./ (varep) .^ 2 .+ 1) .*
+        (1 - 1 / N)
 
     cLayer.dA = dẐ
 

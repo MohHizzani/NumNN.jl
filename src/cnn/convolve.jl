@@ -220,7 +220,7 @@ function dconvolve!(
     Ai::AbstractArray{T,5},
     dA::AbstractArray{T,5},
     dZ::AbstractArray{T,5},
-)
+) where {T}
 
     f_H, f_W, f_D = cLayer.f
     s_H, s_W, s_D = cLayer.s

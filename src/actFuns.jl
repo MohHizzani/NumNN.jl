@@ -16,8 +16,8 @@ abstract type σ <: actFun end
     return the Sigmoid output
     inputs must be matices
 """
-σ(X,W,B) = 1 ./ (1 .+ exp.(.-(W*X .+ B)))
-σ(Z)  = 1 ./ (1 .+ exp.(.-Z))
+σ(X, W, B) = 1 ./ (1 .+ exp.(.-(W * X .+ B)))
+σ(Z) = 1 ./ (1 .+ exp.(.-Z))
 
 export σ
 
@@ -31,15 +31,15 @@ export dσ
 
 function predict(
     actFun::Type{σ},
-    probs::Array{T, N},
-    labels::Aa=nothing
-    ) where {Aa <: Union{<:AbstractArray, Nothing}, T, N}
+    probs::Array{T,N},
+    labels::Aa = nothing,
+) where {Aa<:Union{<:AbstractArray,Nothing},T,N}
 
     s = size{probs}
     Ŷ_bool = probs .> T(0.5)
     acc = nothing
     if labels isa AbstractArray
-        acc = sum(Ŷ_bool .== labels)/(s[end-1]*s[end])
+        acc = sum(Ŷ_bool .== labels) / (s[end-1] * s[end])
         # println("Accuracy = $acc")
     end
     return Ŷ_bool, acc
@@ -82,29 +82,29 @@ abstract type softmax <: softmaxFamily end
     compute the softmax function
 
 """
-function softmax(Ŷ::AbstractArray{T, N}) where {T,N}
+function softmax(Ŷ::AbstractArray{T,N}) where {T,N}
     Ŷ_exp = exp.(Ŷ)
-    sumofexp = sum(Ŷ_exp, dims=N-1)
-    return Ŷ_exp./sumofexp
+    sumofexp = sum(Ŷ_exp, dims = N - 1)
+    return Ŷ_exp ./ sumofexp
 end #softmax
 
-function dsoftmax(Ŷ,dim=1)
+function dsoftmax(Ŷ, dim = 1)
     sŶ = softmax(Ŷ)
     T = eltype(Ŷ)
-    softMat = Array{T,3}(undef,0,0,0)
+    softMat = Array{T,3}(undef, 0, 0, 0)
     sSize = size(Ŷ)[dim]
     for c in eachcol(sŶ)
         tmpMat = zeros(T, sSize, sSize)
-        for i=1:length(c)
-            for j=1:length(c)
-                if i==j
-                    tmpMat[i,j] = c[i] * (1-c[j])
+        for i = 1:length(c)
+            for j = 1:length(c)
+                if i == j
+                    tmpMat[i, j] = c[i] * (1 - c[j])
                 else
-                    tmpMat[i,j] = -c[i]*c[j]
+                    tmpMat[i, j] = -c[i] * c[j]
                 end
             end
         end
-        softMat = cat(softMat, tmpMat, dims=3)
+        softMat = cat(softMat, tmpMat, dims = 3)
     end
 
     return softMat
@@ -115,11 +115,11 @@ export softmax, dsoftmax
 
 function predict(
     actFun::Type{S},
-    probs::Array{T, N};
-    labels=nothing,
-    ) where {T, N, S <: softmaxFamily}
+    probs::Array{T,N};
+    labels = nothing,
+) where {T,N,S<:softmaxFamily}
 
-    maximums = maximum(probs, dims=N-1)
+    maximums = maximum(probs, dims = N - 1)
     Ŷ_bool = probs .== maximums
     acc = nothing
     if labels isa AbstractArray
@@ -128,8 +128,8 @@ function predict(
         ax = axes(bool_labels)[1:end-1]
         endax = axes(bool_labels)[end]
         for i in endax
-            lab = bool_labels[ax...,i]
-            pred = Ŷ_bool[ax...,i]
+            lab = bool_labels[ax..., i]
+            pred = Ŷ_bool[ax..., i]
             acc += (lab == pred) ? 1 : 0
         end
         acc /= size(labels)[end]
@@ -151,7 +151,7 @@ Base.tanh(Z::Array{T,N}) where {T,N} = Base.tanh.(Z)
 
 tanh(Z::Array{T,N}) where {T,N} = Base.tanh.(Z)
 
-dtanh(Z::Array{T,N}) where {T,N} = 1 .- (Base.tanh.(Z)).^2
+dtanh(Z::Array{T,N}) where {T,N} = 1 .- (Base.tanh.(Z)) .^ 2
 
 export dtanh, tanh
 

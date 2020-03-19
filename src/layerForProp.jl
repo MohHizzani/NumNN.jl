@@ -1,7 +1,10 @@
 using Statistics
 
 ###Input Layer
-function layerForProp!(cLayer::Input, X::AoN=nothing) where {AoN <: Union{Array, Nothing}}
+function layerForProp!(
+    cLayer::Input,
+    X::AoN = nothing,
+) where {AoN<:Union{Array,Nothing}}
     if X != nothing
         cLayer.A = X
         cLayer.inputS = cLayer.outputS = size(X)
@@ -14,7 +17,10 @@ end
 
 ###FCLayer forprop
 
-function layerForProp!(cLayer::FCLayer, Ai::AoN) where {AoN <: Union{AbstractArray, Nothing}}
+function layerForProp!(
+    cLayer::FCLayer,
+    Ai::AoN,
+) where {AoN<:Union{AbstractArray,Nothing}}
     if Ai == nothing
         Ai = cLayer.prevLayer.A
     end
@@ -46,7 +52,10 @@ end #function layerForProp!(cLayer::AddLayer)
 ###Activation forprop
 
 
-function layerForProp!(cLayer::Activation, Ai::AoN) where {AoN <: Union{AbstractArray, Nothing}}
+function layerForProp!(
+    cLayer::Activation,
+    Ai::AoN,
+) where {AoN<:Union{AbstractArray,Nothing}}
     if Ai == nothing
         Ai = cLayer.prevLayer.A
     end
@@ -62,18 +71,21 @@ end #function layerForProp!(cLayer::Activation)
 
 ###BatchNorm
 
-function layerForProp!(cLayer::BatchNorm, Ai::AoN) where {AoN <: Union{AbstractArray, Nothing}}
+function layerForProp!(
+    cLayer::BatchNorm,
+    Ai::AoN,
+) where {AoN<:Union{AbstractArray,Nothing}}
     if Ai == nothing
         Ai = cLayer.prevLayer.A
     end
 
     initWB!(cLayer)
 
-    cLayer.μ = mean(Ai, dims=1:cLayer.dim)
+    cLayer.μ = mean(Ai, dims = 1:cLayer.dim)
     Ai_μ = Ai .- cLayer.μ
     N = prod(size(Ai)[1:cLayer.dim])
     cLayer.Ai_μ_s = Ai_μ .^ 2
-    cLayer.var = sum(cLayer.Ai_μ_s, dims=1:cLayer.dim) ./ N
+    cLayer.var = sum(cLayer.Ai_μ_s, dims = 1:cLayer.dim) ./ N
     cLayer.Z = Ai_μ ./ sqrt.(cLayer.var .+ cLayer.ϵ)
     cLayer.A = cLayer.W .* cLayer.Z .+ cLayer.B
     cLayer.forwCount += 1
