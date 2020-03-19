@@ -2,7 +2,7 @@ using PaddedViews
 
 export paddingSize
 
-function paddingSize(cLayer::PL, Ai::AoN) where {PL<:PaddableLayer, AoN <: Union{AbstractArray, Nothing})
+function paddingSize(cLayer::PL, Ai::AoN) where {PL<:PaddableLayer, AoN <: Union{AbstractArray, Nothing}}
     if Ai == nothing
         Ai = cLayer.prevLayer.A
     end
