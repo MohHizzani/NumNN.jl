@@ -2,7 +2,7 @@ import NNlib.conv, NNlib.conv!, NNlib.maxpool, NNlib.meanpool, NNlib.DenseConvDi
 
 
 ### NNConv
-function NNConv!(cLayer::Conv1D, Ai::AbstractArray{T,3})
+function NNConv!(cLayer::Conv1D, Ai::AbstractArray{T,3}) where {T}
 
     cLayer.Z = conv(Ai, cLayer.W[end:-1:1,:,:], stride=cLayer.s)
     Z = cLayer.Z .+ B[:,1,:]
@@ -13,7 +13,7 @@ function NNConv!(cLayer::Conv1D, Ai::AbstractArray{T,3})
 end #function fastConvolve(cLayer::Conv1D
 
 
-function NNConv!(cLayer::Conv2D, Ai::AbstractArray{T,4})
+function NNConv!(cLayer::Conv2D, Ai::AbstractArray{T,4}) where {T}
 
     cLayer.Z = conv(Ai, cLayer.W[end:-1:1,end:-1:1,:,:], stride=cLayer.s)
     Z = cLayer.Z .+ B[:,:,1,:]
@@ -23,7 +23,7 @@ function NNConv!(cLayer::Conv2D, Ai::AbstractArray{T,4})
     return nothing
 end #function fastConvolve(cLayer::Conv2D
 
-function NNConv!(cLayer::Conv3D, Ai::AbstractArray{T,5})
+function NNConv!(cLayer::Conv3D, Ai::AbstractArray{T,5}) where {T}
 
     cLayer.Z = conv(Ai, cLayer.W[end:-1:1,end:-1:1,end:-1:1,:,:], stride=cLayer.s)
     Z = cLayer.Z .+ B[:,:,:,1,:]
@@ -41,7 +41,7 @@ export NNConv!
 
 import NNlib.∇conv_data, NNlib.∇conv_filter
 
-function dNNConv!(cLayer::Conv1D, dZ::AbstractArray{T,3}, Ai::AoN=nothing, A::AoN=nothing) where {AoN <: Union{AbstractArray, Nothing}}
+function dNNConv!(cLayer::Conv1D, dZ::AbstractArray{T,3}, Ai::AoN=nothing, A::AoN=nothing) where {AoN <: Union{AbstractArray, Nothing}, T}
 
     if Ai == nothing
         Ai = cLayer.prevLayer.A
@@ -60,7 +60,7 @@ function dNNConv!(cLayer::Conv1D, dZ::AbstractArray{T,3}, Ai::AoN=nothing, A::Ao
 end #function fastConvolve(cLayer::Conv1D
 
 
-function dNNConv!(cLayer::Conv2D, dZ::AbstractArray, Ai::AoN=nothing, A::AoN=nothing) where {AoN <: Union{AbstractArray, Nothing}}
+function dNNConv!(cLayer::Conv2D, dZ::AbstractArray, Ai::AoN=nothing, A::AoN=nothing) where {AoN <: Union{AbstractArray, Nothing}, T}
 
     if Ai == nothing
         Ai = cLayer.prevLayer.A
@@ -79,7 +79,7 @@ function dNNConv!(cLayer::Conv2D, dZ::AbstractArray, Ai::AoN=nothing, A::AoN=not
     return nothing
 end #function fastConvolve(cLayer::Conv2D
 
-function dNNConv!(cLayer::Conv3D, dZ::AbstractArray, Ai::AoN=nothing, A::AoN=nothing) where {AoN <: Union{AbstractArray, Nothing}}
+function dNNConv!(cLayer::Conv3D, dZ::AbstractArray, Ai::AoN=nothing, A::AoN=nothing) where {AoN <: Union{AbstractArray, Nothing}, T}
 
     if Ai == nothing
         Ai = cLayer.prevLayer.A
