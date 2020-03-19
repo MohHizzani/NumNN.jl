@@ -15,12 +15,12 @@ function initWB!(
 
     inputS = cLayer.inputS
     s_H = cLayer.s
-    f_H= cLayer.f
+    f_H = cLayer.f
 
     ## note this is the input to the matmult after padding
     if cLayer.padding == :same
-        p_H = Integer(ceil((s_H*(n_Hi-1)-n_Hi+f_H)/2))
-        n_H= n_Hi+2p_H
+        p_H = Integer(ceil((s_H * (n_Hi - 1) - n_Hi + f_H) / 2))
+        n_H = n_Hi + 2p_H
     elseif cLayer.padding == :valid
         n_H = n_Hi
     end
@@ -35,7 +35,7 @@ function initWB!(
     else
         W = T.(randn(f..., cl_1, cl) .* coef)
     end
-    B = zeros(T, repeat([1], length(f)+1)..., cl)
+    B = zeros(T, repeat([1], length(f) + 1)..., cl)
 
     cLayer.W, cLayer.B = W, B
     cLayer.K = unroll(cLayer, (n_H, ci, m))
@@ -64,9 +64,9 @@ function initWB!(
 
     ## note this is the input to the matmult after padding
     if cLayer.padding == :same
-        p_H = Integer(ceil((s_H*(n_Hi-1)-n_Hi+f_H)/2))
-        p_W = Integer(ceil((s_W*(n_Wi-1)-n_Wi+f_W)/2))
-        n_H, n_W = n_Hi+2p_H, n_Wi+2p_W
+        p_H = Integer(ceil((s_H * (n_Hi - 1) - n_Hi + f_H) / 2))
+        p_W = Integer(ceil((s_W * (n_Wi - 1) - n_Wi + f_W) / 2))
+        n_H, n_W = n_Hi + 2p_H, n_Wi + 2p_W
     elseif cLayer.padding == :valid
         n_H = n_Hi
         n_W = n_Wi
@@ -82,7 +82,7 @@ function initWB!(
     else
         W = T.(randn(f..., cl_1, cl) .* coef)
     end
-    B = zeros(T, repeat([1], length(f)+1)..., cl)
+    B = zeros(T, repeat([1], length(f) + 1)..., cl)
 
     cLayer.W, cLayer.B = W, B
     cLayer.K = unroll(cLayer, (n_H, n_W, ci, m))
@@ -111,10 +111,10 @@ function initWB!(
 
     ## note this is the input to the matmult after padding
     if cLayer.padding == :same
-        p_H = Integer(ceil((s_H*(n_Hi-1)-n_Hi+f_H)/2))
-        p_W = Integer(ceil((s_W*(n_Wi-1)-n_Wi+f_W)/2))
-        p_D = Integer(ceil((s_D*(n_Di-1)-n_Di+f_D)/2))
-        n_H, n_W, n_D = n_Hi+2p_H, n_Wi+2p_W, n_Di+2p_D
+        p_H = Integer(ceil((s_H * (n_Hi - 1) - n_Hi + f_H) / 2))
+        p_W = Integer(ceil((s_W * (n_Wi - 1) - n_Wi + f_W) / 2))
+        p_D = Integer(ceil((s_D * (n_Di - 1) - n_Di + f_D) / 2))
+        n_H, n_W, n_D = n_Hi + 2p_H, n_Wi + 2p_W, n_Di + 2p_D
     elseif cLayer.padding == :valid
         n_H = n_Hi
         n_W = n_Wi
@@ -131,7 +131,7 @@ function initWB!(
     else
         W = T.(randn(f..., cl_1, cl) .* coef)
     end
-    B = zeros(T, repeat([1], length(f)+1)..., cl)
+    B = zeros(T, repeat([1], length(f) + 1)..., cl)
 
     cLayer.W, cLayer.B = W, B
     cLayer.K = unroll(cLayer, (n_H, n_W, n_D, ci, m))
@@ -150,7 +150,7 @@ function initWB!(
     He = true,
     coef = 0.01,
     zro = false,
-) where {T, P <: PoolLayer}
+) where {T,P<:PoolLayer}
 
     return nothing
 end
@@ -160,10 +160,7 @@ export initWB!
 
 ### initVS!
 
-function initVS!(
-    cLayer::ConvLayer,
-    optimizer::Symbol
-    )
+function initVS!(cLayer::ConvLayer, optimizer::Symbol)
 
     if optimizer == :adam || optimizer == :momentum
         cLayer.V[:dw] = deepcopy(cLayer.dW)
@@ -178,7 +175,7 @@ function initVS!(
     return nothing
 end #function initVS!
 
-initVS!(cLayer::P, optimizer::Symbol) where {P <: PoolLayer} = nothing
+initVS!(cLayer::P, optimizer::Symbol) where {P<:PoolLayer} = nothing
 
 
 export initVS!

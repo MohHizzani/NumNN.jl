@@ -2,7 +2,7 @@ using PaddedViews
 
 export paddingSize
 
-function paddingSize(cLayer::PL, Ai::AbstractArray) where {PL <: PaddableLayer}
+function paddingSize(cLayer::PL, Ai::AbstractArray) where {PL<:PaddableLayer}
 
     if Ai == nothing
         Ai = cLayer.prevLayer.A
@@ -15,9 +15,9 @@ function paddingSize(cLayer::PL, Ai::AbstractArray) where {PL <: PaddableLayer}
         s_H = cLayer.s
         f_H = cLayer.f
         if cLayer.padding == :same
-            p_H = s_H*(n_Hi-1)-n_Hi+f_H
+            p_H = s_H * (n_Hi - 1) - n_Hi + f_H
 
-            p_H_hi = p_H ÷ 2 + ( (p_H%2==0) ? 0 : 1)
+            p_H_hi = p_H ÷ 2 + ((p_H % 2 == 0) ? 0 : 1)
             p_H_lo = p_H ÷ 2
 
             n_H = n_Hi
@@ -28,12 +28,12 @@ function paddingSize(cLayer::PL, Ai::AbstractArray) where {PL <: PaddableLayer}
         (s_H, s_W) = cLayer.s
         (f_H, f_W) = cLayer.f
         if cLayer.padding == :same
-            p_H = (s_H*(n_Hi-1)-n_Hi+f_H)
-            p_W = (s_W*(n_Wi-1)-n_Wi+f_W)
+            p_H = (s_H * (n_Hi - 1) - n_Hi + f_H)
+            p_W = (s_W * (n_Wi - 1) - n_Wi + f_W)
 
-            p_H_hi = p_H ÷ 2 + ( (p_H%2==0) ? 0 : 1)
+            p_H_hi = p_H ÷ 2 + ((p_H % 2 == 0) ? 0 : 1)
             p_H_lo = p_H ÷ 2
-            p_W_hi = p_W ÷ 2 + ( (p_W%2==0) ? 0 : 1)
+            p_W_hi = p_W ÷ 2 + ((p_W % 2 == 0) ? 0 : 1)
             p_W_lo = p_W ÷ 2
 
             n_H, n_W = n_Hi, n_Wi
@@ -45,15 +45,15 @@ function paddingSize(cLayer::PL, Ai::AbstractArray) where {PL <: PaddableLayer}
         s_H, s_W, s_D = cLayer.s
         f_H, f_W, f_D = cLayer.f
         if cLayer.padding == :same
-            p_H = (s_H*(n_Hi-1)-n_Hi+f_H)
-            p_W = (s_W*(n_Wi-1)-n_Wi+f_W)
-            p_D = (s_D*(n_Di-1)-n_Di+f_D)
+            p_H = (s_H * (n_Hi - 1) - n_Hi + f_H)
+            p_W = (s_W * (n_Wi - 1) - n_Wi + f_W)
+            p_D = (s_D * (n_Di - 1) - n_Di + f_D)
 
-            p_H_hi = p_H ÷ 2 + ( (p_H%2==0) ? 0 : 1)
+            p_H_hi = p_H ÷ 2 + ((p_H % 2 == 0) ? 0 : 1)
             p_H_lo = p_H ÷ 2
-            p_W_hi = p_W ÷ 2 + ( (p_W%2==0) ? 0 : 1)
+            p_W_hi = p_W ÷ 2 + ((p_W % 2 == 0) ? 0 : 1)
             p_W_lo = p_W ÷ 2
-            p_D_hi = p_D ÷ 2 + ( (p_D%2==0) ? 0 : 1)
+            p_D_hi = p_D ÷ 2 + ((p_D % 2 == 0) ? 0 : 1)
             p_D_lo = p_D ÷ 2
 
             n_H, n_W, n_D = n_Hi, n_Wi, n_Di
@@ -66,9 +66,9 @@ end #function paddingSize(cLayer::CL, AiS::Tuple)
 ###Padding functions
 
 function padding(
-                 cLayer::P,
-                 Ai::AoN=nothing,
-                 ) where {P <: PaddableLayer, AoN <: Union{AbstractArray, Nothing}}
+    cLayer::P,
+    Ai::AoN = nothing,
+) where {P<:PaddableLayer,AoN<:Union{AbstractArray,Nothing}}
 
     ndim = ndims(cLayer.A)
 
@@ -77,7 +77,7 @@ function padding(
     end
 
     if cLayer.padding == :same
-        Ai = padding(Ai, paddingSize(cLayer,Ai)...)
+        Ai = padding(Ai, paddingSize(cLayer, Ai)...)
     elseif cLayer.padding == :valid
         Ai = Ai
     end
@@ -112,43 +112,57 @@ output:
         data without copying it
 """
 function padding(
-                 Ai::AbstractArray{T,4},
-                 p_H_hi::Integer,
-                 p_H_lo::Integer,
-                 p_W_hi::Integer,
-                 p_W_lo::Integer,
-                 ) where {T}
+    Ai::AbstractArray{T,4},
+    p_H_hi::Integer,
+    p_H_lo::Integer,
+    p_W_hi::Integer,
+    p_W_lo::Integer,
+) where {T}
 
     n_H, n_W, c, m = size(Ai)
-    return PaddedView(0, Ai, (p_H_hi+p_H_lo+n_H, p_W_hi+p_W_lo+n_W, c, m), (1+p_H_hi, 1+p_W_hi, 1, 1))
+    return PaddedView(
+        0,
+        Ai,
+        (p_H_hi + p_H_lo + n_H, p_W_hi + p_W_lo + n_W, c, m),
+        (1 + p_H_hi, 1 + p_W_hi, 1, 1),
+    )
 end #function padding(Ai::Array{T,4}
 
 
 function padding(
-                 Ai::AbstractArray{T,3},
-                 p_H_hi::Integer,
-                 p_H_lo::Integer,
-                 ) where {T}
+    Ai::AbstractArray{T,3},
+    p_H_hi::Integer,
+    p_H_lo::Integer,
+) where {T}
 
     n_H, c, m = size(Ai)
-    return PaddedView(0, Ai, (p_H_hi+p_H_lo+n_H, c, m), (1+p_H_hi, 1, 1))
+    return PaddedView(0, Ai, (p_H_hi + p_H_lo + n_H, c, m), (1 + p_H_hi, 1, 1))
 end #function padding(Ai::Array{T,3}
 
 
 function padding(
-                 Ai::AbstractArray{T,5},
-                 p_H_hi::Integer,
-                 p_H_lo::Integer,
-                 p_W_hi::Integer,
-                 p_W_lo::Integer,
-                 p_D_hi::Integer,
-                 p_D_lo::Integer,
-                 ) where {T}
+    Ai::AbstractArray{T,5},
+    p_H_hi::Integer,
+    p_H_lo::Integer,
+    p_W_hi::Integer,
+    p_W_lo::Integer,
+    p_D_hi::Integer,
+    p_D_lo::Integer,
+) where {T}
 
     n_H, n_W, n_D, c, m = size(Ai)
-    return PaddedView(0, Ai,
-                        (p_H_hi+p_H_lo+n_H, p_W_hi+p_W_lo+n_W, p_D_hi+p_D_lo+n_D, c, m),
-                        (1+p_H_hi, 1+p_W_hi, 1+p_D_hi, 1, 1))
+    return PaddedView(
+        0,
+        Ai,
+        (
+            p_H_hi + p_H_lo + n_H,
+            p_W_hi + p_W_lo + n_W,
+            p_D_hi + p_D_lo + n_D,
+            c,
+            m,
+        ),
+        (1 + p_H_hi, 1 + p_W_hi, 1 + p_D_hi, 1, 1),
+    )
 end #function padding(Ai::Array{T,5}
 
 export padding

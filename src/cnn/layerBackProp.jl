@@ -6,11 +6,11 @@ function layerBackProp(
     model::Model,
     actFun::SoS,
     labels::AbstractArray,
-    ) where {SoS <: Union{Type{softmax}, Type{σ}}}
+) where {SoS<:Union{Type{softmax},Type{σ}}}
 
 
     lossFun = model.lossFun
-    dlossFun = Symbol("d",lossFun)
+    dlossFun = Symbol("d", lossFun)
     A = cLayer.A
     Y = labels
     dZ = eval(:($dlossFun($A, $Y)))
@@ -19,9 +19,16 @@ function layerBackProp(
 end #softmax or σ layerBackProp
 
 
-function layerBackProp!(cLayer::ConvLayer, model::Model, Ai::AoN=nothing, dA::AoN=nothing; labels=nothing, NNlib::Bool=true) where {AoN <: Union{AbstractArray, Nothing}}
+function layerBackProp!(
+    cLayer::ConvLayer,
+    model::Model,
+    Ai::AoN = nothing,
+    dA::AoN = nothing;
+    labels = nothing,
+    NNlib::Bool = true,
+) where {AoN<:Union{AbstractArray,Nothing}}
 
-    if Ai==nothing
+    if Ai == nothing
         Ai = cLayer.prevLayer.A
     end
     m = size(cLayer.A)[end]
@@ -36,12 +43,15 @@ function layerBackProp!(cLayer::ConvLayer, model::Model, Ai::AoN=nothing, dA::Ao
     if cLayer.actFun == model.outLayer.actFun
         dZ = layerBackProp(cLayer, model, eval(:($actFun)), labels)
     elseif dA != nothing
-        dActFun = Symbol("d",cLayer.actFun)
+        dActFun = Symbol("d", cLayer.actFun)
 
         Z = cLayer.Z
 
         dZ = dA .* eval(:($dActFun($Z)))
-    elseif all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+    elseif all(
+        i -> (i.backCount == cLayer.nextLayers[1].backCount),
+        cLayer.nextLayers,
+    )
         dA = []
         for nextLayer in cLayer.nextLayers
             try
@@ -52,7 +62,7 @@ function layerBackProp!(cLayer::ConvLayer, model::Model, Ai::AoN=nothing, dA::Ao
         end #for
 
 
-        dActFun = Symbol("d",cLayer.actFun)
+        dActFun = Symbol("d", cLayer.actFun)
 
         Z = cLayer.Z
 
@@ -74,14 +84,20 @@ function layerBackProp!(cLayer::ConvLayer, model::Model, Ai::AoN=nothing, dA::Ao
         dAi = similar(Ai)
         dAi .= 0
 
-        dconvolve!(cLayer,Ai,dAi,dZ)
+        dconvolve!(cLayer, Ai, dAi, dZ)
 
         if cLayer isa Conv1D
-            cLayer.dA .= dAi[1+padS[1]:end-padS[2],:,:]
+            cLayer.dA .= dAi[1+padS[1]:end-padS[2], :, :]
         elseif cLayer isa Conv2D
-            cLayer.dA .= dAi[1+padS[1]:end-padS[2],1+padS[3]:end-padS[4],:,:]
+            cLayer.dA .= dAi[1+padS[1]:end-padS[2], 1+padS[3]:end-padS[4], :, :]
         elseif cLayer isa Conv3D
-            cLayer.dA .= dAi[1+padS[1]:end-padS[2],1+padS[3]:end-padS[4],1+padS[5]:end-padS[6],:,:]
+            cLayer.dA .= dAi[
+                1+padS[1]:end-padS[2],
+                1+padS[3]:end-padS[4],
+                1+padS[5]:end-padS[6],
+                :,
+                :,
+            ]
         end
     end #if NNlib
 
@@ -96,8 +112,15 @@ end #function layerBackProp!(cLayer::Input
 #import only the needed parts not to have conflict
 import NNlib.∇maxpool, NNlib.∇meanpool, NNlib.PoolDims
 
-function layerBackProp!(cLayer::OneD, model::Model, dA::AoN=nothing, Ai::AoN=nothing; labels=nothing, NNlib::Bool=true) where {OneD <: Union{MaxPool1D, AveragePool1D}, AoN <: Union{AbstractArray, Nothing}}
-    if Ai==nothing
+function layerBackProp!(
+    cLayer::OneD,
+    model::Model,
+    dA::AoN = nothing,
+    Ai::AoN = nothing;
+    labels = nothing,
+    NNlib::Bool = true,
+) where {OneD<:Union{MaxPool1D,AveragePool1D},AoN<:Union{AbstractArray,Nothing}}
+    if Ai == nothing
         Ai = cLayer.prevLayer.A
     end
 
@@ -106,8 +129,11 @@ function layerBackProp!(cLayer::OneD, model::Model, dA::AoN=nothing, Ai::AoN=not
     cLayer.dA .= 0
 
 
-    if dA==nothing
-        if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+    if dA == nothing
+        if all(
+            i -> (i.backCount == cLayer.nextLayers[1].backCount),
+            cLayer.nextLayers,
+        )
             dA = []
             for nextLayer in cLayer.nextLayers
                 try
@@ -122,7 +148,7 @@ function layerBackProp!(cLayer::OneD, model::Model, dA::AoN=nothing, Ai::AoN=not
     end #if dA==nothing
 
     if NNlib
-        pooldims = PoolDims(Ai, cLayer.f, stride=cLayer.s, padding=padS)
+        pooldims = PoolDims(Ai, cLayer.f, stride = cLayer.s, padding = padS)
         if cLayer isa MaxPoolLayer
             cLayer.dA .= ∇maxpool(dA, cLayer.A, Ai, pooldims)
         elseif cLayer isa AveragePoolLayer
@@ -134,7 +160,7 @@ function layerBackProp!(cLayer::OneD, model::Model, dA::AoN=nothing, Ai::AoN=not
         dAi = similar(Ai)
         dAi .= 0
         dpooling!(cLayer, Ai, dAi, dA)
-        cLayer.dA .= dAi[1+padS[1]:end-padS[2],:,:]
+        cLayer.dA .= dAi[1+padS[1]:end-padS[2], :, :]
     end #if NNlib
 
     cLayer.forwCount += 1
@@ -142,8 +168,15 @@ function layerBackProp!(cLayer::OneD, model::Model, dA::AoN=nothing, Ai::AoN=not
 
 end #unction layerBackProp!(cLayer::OneD) where {OneD <: Union{MaxPool1D, AveragePool1D}}
 
-function layerBackProp!(cLayer::TwoD, model::Model, dA::AoN=nothing, Ai::AoN=nothing; labels=nothing, NNlib::Bool=true) where {TwoD <: Union{MaxPool2D, AveragePool2D}, AoN <: Union{AbstractArray, Nothing}}
-    if Ai==nothing
+function layerBackProp!(
+    cLayer::TwoD,
+    model::Model,
+    dA::AoN = nothing,
+    Ai::AoN = nothing;
+    labels = nothing,
+    NNlib::Bool = true,
+) where {TwoD<:Union{MaxPool2D,AveragePool2D},AoN<:Union{AbstractArray,Nothing}}
+    if Ai == nothing
         Ai = cLayer.prevLayer.A
     end
 
@@ -151,8 +184,11 @@ function layerBackProp!(cLayer::TwoD, model::Model, dA::AoN=nothing, Ai::AoN=not
     cLayer.dA = similar(Ai)
     cLayer.dA .= 0
 
-    if dA==nothing
-        if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+    if dA == nothing
+        if all(
+            i -> (i.backCount == cLayer.nextLayers[1].backCount),
+            cLayer.nextLayers,
+        )
             dA = []
             for nextLayer in cLayer.nextLayers
                 try
@@ -167,7 +203,7 @@ function layerBackProp!(cLayer::TwoD, model::Model, dA::AoN=nothing, Ai::AoN=not
     end #if dA==nothing
 
     if NNlib
-        pooldims = PoolDims(Ai, cLayer.f, stride=cLayer.s, padding=padS)
+        pooldims = PoolDims(Ai, cLayer.f, stride = cLayer.s, padding = padS)
         if cLayer isa MaxPoolLayer
             cLayer.dA .= ∇maxpool(dA, cLayer.A, Ai, pooldims)
         elseif cLayer isa AveragePoolLayer
@@ -179,7 +215,7 @@ function layerBackProp!(cLayer::TwoD, model::Model, dA::AoN=nothing, Ai::AoN=not
         dAi = similar(Ai)
         dAi .= 0
         dpooling!(cLayer, Ai, dAi, dA)
-        cLayer.dA .= dAi[1+padS[1]:end-padS[2],1+padS[3]:end-padS[4],:,:]
+        cLayer.dA .= dAi[1+padS[1]:end-padS[2], 1+padS[3]:end-padS[4], :, :]
     end #if NNlib
 
     cLayer.forwCount += 1
@@ -187,8 +223,18 @@ function layerBackProp!(cLayer::TwoD, model::Model, dA::AoN=nothing, Ai::AoN=not
 
 end #function layerBackProp!(cLayer::TwoD) where {TwoD <: Union{MaxPool2D, AveragePool2D}}
 
-function layerBackProp!(cLayer::ThreeD, model::Model, dA::AoN=nothing, Ai::AoN=nothing; labels=nothing, NNlib::Bool=true) where {ThreeD <: Union{MaxPool3D, AveragePool3D}, AoN <: Union{AbstractArray, Nothing}}
-    if Ai==nothing
+function layerBackProp!(
+    cLayer::ThreeD,
+    model::Model,
+    dA::AoN = nothing,
+    Ai::AoN = nothing;
+    labels = nothing,
+    NNlib::Bool = true,
+) where {
+    ThreeD<:Union{MaxPool3D,AveragePool3D},
+    AoN<:Union{AbstractArray,Nothing},
+}
+    if Ai == nothing
         Ai = cLayer.prevLayer.A
     end
 
@@ -196,8 +242,11 @@ function layerBackProp!(cLayer::ThreeD, model::Model, dA::AoN=nothing, Ai::AoN=n
     cLayer.dA = similar(Ai)
     cLayer.dA .= 0
 
-    if dA==nothing
-        if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+    if dA == nothing
+        if all(
+            i -> (i.backCount == cLayer.nextLayers[1].backCount),
+            cLayer.nextLayers,
+        )
             dA = []
             for nextLayer in cLayer.nextLayers
                 try
@@ -212,7 +261,7 @@ function layerBackProp!(cLayer::ThreeD, model::Model, dA::AoN=nothing, Ai::AoN=n
     end #if dA==nothing
 
     if NNlib
-        pooldims = PoolDims(Ai, cLayer.f, stride=cLayer.s, padding=padS)
+        pooldims = PoolDims(Ai, cLayer.f, stride = cLayer.s, padding = padS)
         if cLayer isa MaxPoolLayer
             cLayer.dA .= ∇maxpool(dA, cLayer.A, Ai, pooldims)
         elseif cLayer isa AveragePoolLayer
@@ -224,7 +273,13 @@ function layerBackProp!(cLayer::ThreeD, model::Model, dA::AoN=nothing, Ai::AoN=n
         dAi = similar(Ai)
         dAi .= 0
         dpooling!(cLayer, Ai, dAi, dA)
-        cLayer.dA .= dAi[1+padS[1]:end-padS[2],1+padS[3]:end-padS[4],1+padS[5]:end-padS[6],:,:]
+        cLayer.dA .= dAi[
+            1+padS[1]:end-padS[2],
+            1+padS[3]:end-padS[4],
+            1+padS[5]:end-padS[6],
+            :,
+            :,
+        ]
     end #if NNlib
 
     cLayer.forwCount += 1
