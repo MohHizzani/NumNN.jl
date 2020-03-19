@@ -37,7 +37,7 @@ function layerBackProp(
 end #softmax or σ layerBackProp
 
 
-function layerBackProp!(cLayer::FCLayer, model::Model, dA::AoN; labels=nothing) where {AoN <: Union{AbstractArray, Nothing}}
+function layerBackProp!(cLayer::FCLayer, model::Model, dA::AoN=nothing; labels=nothing) where {AoN <: Union{AbstractArray, Nothing}}
     prevLayer = cLayer.prevLayer
     lossFun = model.lossFun
 
