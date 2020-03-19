@@ -1,5 +1,9 @@
 using PaddedViews
 
+#TODO use parallel processing to speed up the unrolling process
+
+#TODO build a reroll function to extract W from K
+
 ### unroll conv1d
 
 function unroll(cLayer::Conv1D, AiS::Tuple, param::Symbol=:W)

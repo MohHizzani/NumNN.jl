@@ -1,4 +1,5 @@
 
+#TODO make sure to renew V and S at each epoch 
 
 function layerUpdateParams!(
                        model::Model,
