@@ -25,6 +25,7 @@ function layerBackProp!(
     Ai::AoN = nothing,
     dA::AoN = nothing;
     labels::AoN = nothing,
+    img2colConvolve::Bool = false,
     NNlib::Bool = true,
 ) where {AoN<:Union{AbstractArray,Nothing}}
 
@@ -84,7 +85,11 @@ function layerBackProp!(
         dAi = similar(Ai)
         dAi .= 0
 
-        dconvolve!(cLayer, Ai, dAi, dZ)
+        if img2colConvolve
+            dimg2colConvolve!(cLayer, Ai, dAi, dZ)
+        else
+            dconvolve!(cLayer, Ai, dAi, dZ)
+        end #if img2colConvolve
 
         if cLayer isa Conv1D
             cLayer.dA .= dAi[1+padS[1]:end-padS[2], :, :]
