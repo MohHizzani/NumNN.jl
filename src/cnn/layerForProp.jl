@@ -5,7 +5,7 @@
 function layerForProp!(
     cLayer::Conv1D,
     Ai::AoN;
-    fastConvolve::Bool = false,
+    img2colConvolve::Bool = false,
     NNlib::Bool = true,
 ) where {AoN<:Union{AbstractArray,Nothing}}
     if Ai == nothing
@@ -21,12 +21,12 @@ function layerForProp!(
 
     if NNlibConv
         NNConv!(cLayer, Ai)
-    elseif fastConvolve
+    elseif img2colConvolve
         ## in case input different size than previous time
         if (n_H * c, n_Hi * ci) != size(cLayer.K)
             cLayer.K = unroll(cLayer, (n_Hi, ci, m))
         end
-        fastConvolve!(cLayer, Ai)
+        img2colConvolve!(cLayer, Ai)
     else
         cLayer.Z = zeros(eltype(Ai), n_H, cLayer.channels, m)
         convolve!(cLayer, Ai)
@@ -44,7 +44,7 @@ end #function layerForProp!(cLayer::Conv1D)
 function layerForProp!(
     cLayer::Conv2D,
     Ai::AoN;
-    fastConvolve::Bool = false,
+    img2colConvolve::Bool = false,
     NNlib::Bool = true,
 ) where {AoN<:Union{AbstractArray,Nothing}}
     if Ai == nothing
@@ -64,16 +64,16 @@ function layerForProp!(
 
     if NNlibConv
         NNConv!(cLayer, Ai)
-    elseif fastConvolve
+    elseif img2colConvolve
         ## in case input different size than previous time
         if (n_W * n_H * c, n_Hi * n_Wi * ci) != size(cLayer.K)
             cLayer.K = unroll(cLayer, (n_Hi, n_Wi, ci, m))
         end #if (n_W*n_H* c, n_Hi*n_Wi*ci) != size(cLayer.K)
-        fastConvolve!(cLayer, Ai)
+        img2colConvolve!(cLayer, Ai)
     else
         cLayer.Z = zeros(eltype(Ai), n_H, n_W, cLayer.channels, m)
         convolve!(cLayer, Ai)
-    end #if fastConvolve
+    end #if img2colConvolve
 
     cLayer.outputS = size(cLayer.A)
 
@@ -87,7 +87,7 @@ end #function layerForProp!(cLayer::Conv2D)
 function layerForProp!(
     cLayer::Conv3D,
     Ai::AoN;
-    fastConvolve::Bool = false,
+    img2colConvolve::Bool = false,
     NNlib::Bool = true,
 ) where {AoN<:Union{AbstractArray,Nothing}}
     if Ai == nothing
@@ -108,16 +108,16 @@ function layerForProp!(
 
     if NNlibConv
         NNConv!(cLayer, Ai)
-    elseif fastConvolve
+    elseif img2colConvolve
         ## in case input different size than previous time
         if (n_W * n_H * n_D * c, n_Hi * n_Wi * n_Di * ci) != size(cLayer.K)
             cLayer.K = unroll(cLayer, (n_Hi, n_Wi, n_Di, ci, m))
         end #if (n_W*n_H* c, n_Hi*n_Wi*ci) != size(cLayer.K)
-        fastConvolve!(cLayer, Ai)
+        img2colConvolve!(cLayer, Ai)
     else
         cLayer.Z = zeros(eltype(Ai), n_H, n_W, n_D, cLayer.channels, m)
         convolve!(cLayer, Ai)
-    end #if fastConvolve
+    end #if img2colConvolve
 
     cLayer.outputS = size(cLayer.A)
 

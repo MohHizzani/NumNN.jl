@@ -1,5 +1,5 @@
 
-function fastConvolve!(cLayer::Conv1D, Ai::AbstractArray{T,3}) where {T}
+function img2colConvolve!(cLayer::Conv1D, Ai::AbstractArray{T,3}) where {T}
 
     Z =
         cLayer.Z =
@@ -10,10 +10,10 @@ function fastConvolve!(cLayer::Conv1D, Ai::AbstractArray{T,3}) where {T}
     cLayer.A = eval(:($actFun($Z)))
 
     return nothing
-end #function fastConvolve(cLayer::Conv1D
+end #function img2colConvolve(cLayer::Conv1D
 
 
-function fastConvolve!(cLayer::Conv2D, Ai::AbstractArray{T,4}) where {T}
+function img2colConvolve!(cLayer::Conv2D, Ai::AbstractArray{T,4}) where {T}
 
     Z =
         cLayer.Z =
@@ -24,9 +24,9 @@ function fastConvolve!(cLayer::Conv2D, Ai::AbstractArray{T,4}) where {T}
     cLayer.A = eval(:($actFun($Z)))
 
     return nothing
-end #function fastConvolve(cLayer::Conv2D
+end #function img2colConvolve(cLayer::Conv2D
 
-function fastConvolve!(cLayer::Conv3D, Ai::AbstractArray{T,5}) where {T}
+function img2colConvolve!(cLayer::Conv3D, Ai::AbstractArray{T,5}) where {T}
 
     Z =
         cLayer.Z =
@@ -37,7 +37,7 @@ function fastConvolve!(cLayer::Conv3D, Ai::AbstractArray{T,5}) where {T}
     cLayer.A = eval(:($actFun($Z)))
 
     return nothing
-end #function fastConvolve(cLayer::Conv3D
+end #function img2colConvolve(cLayer::Conv3D
 
 
-export fastConvolve!
+export img2colConvolve!

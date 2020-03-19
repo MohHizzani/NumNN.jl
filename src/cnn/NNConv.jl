@@ -10,7 +10,7 @@ function NNConv!(cLayer::Conv1D, Ai::AbstractArray{T,3}) where {T}
     cLayer.A = eval(:($actFun($Z)))
 
     return nothing
-end #function fastConvolve(cLayer::Conv1D
+end #function img2colConvolve(cLayer::Conv1D
 
 
 function NNConv!(cLayer::Conv2D, Ai::AbstractArray{T,4}) where {T}
@@ -21,7 +21,7 @@ function NNConv!(cLayer::Conv2D, Ai::AbstractArray{T,4}) where {T}
     cLayer.A = eval(:($actFun($Z)))
 
     return nothing
-end #function fastConvolve(cLayer::Conv2D
+end #function img2colConvolve(cLayer::Conv2D
 
 function NNConv!(cLayer::Conv3D, Ai::AbstractArray{T,5}) where {T}
 
@@ -35,7 +35,7 @@ function NNConv!(cLayer::Conv3D, Ai::AbstractArray{T,5}) where {T}
     cLayer.A = eval(:($actFun($Z)))
 
     return nothing
-end #function fastConvolve(cLayer::Conv3D
+end #function img2colConvolve(cLayer::Conv3D
 
 
 export NNConv!
@@ -67,7 +67,7 @@ function dNNConv!(
     cLayer.dB = sum(permutedims(dZ, [1, 3, 2]), dims = 1:2)
 
     return nothing
-end #function fastConvolve(cLayer::Conv1D
+end #function img2colConvolve(cLayer::Conv1D
 
 
 function dNNConv!(
@@ -92,7 +92,7 @@ function dNNConv!(
     cLayer.dB = sum(permutedims(dZ, [1, 2, 4, 3]), dims = 1:3)
 
     return nothing
-end #function fastConvolve(cLayer::Conv2D
+end #function img2colConvolve(cLayer::Conv2D
 
 function dNNConv!(
     cLayer::Conv3D,
@@ -116,7 +116,7 @@ function dNNConv!(
     cLayer.dB = sum(permutedims(dZ, [1, 2, 3, 5, 4]), dims = 1:4)
 
     return nothing
-end #function fastConvolve(cLayer::Conv3D
+end #function img2colConvolve(cLayer::Conv3D
 
 
 export dNNConv!
