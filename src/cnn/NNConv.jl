@@ -5,7 +5,7 @@ import NNlib.conv, NNlib.conv!
 function NNConv!(cLayer::Conv1D, Ai::AbstractArray{T,3}) where {T}
 
     cLayer.Z = conv(Ai, cLayer.W[end:-1:1, :, :], stride = cLayer.s)
-    Z = cLayer.Z .+ B[:, 1, :]
+    Z = cLayer.Z .+= B[:, 1, :]
     actFun = cLayer.actFun
     cLayer.A = eval(:($actFun($Z)))
 
@@ -16,7 +16,7 @@ end #function img2colConvolve(cLayer::Conv1D
 function NNConv!(cLayer::Conv2D, Ai::AbstractArray{T,4}) where {T}
 
     cLayer.Z = conv(Ai, cLayer.W[end:-1:1, end:-1:1, :, :], stride = cLayer.s)
-    Z = cLayer.Z .+ B[:, :, 1, :]
+    Z = cLayer.Z .+= B[:, :, 1, :]
     actFun = cLayer.actFun
     cLayer.A = eval(:($actFun($Z)))
 
@@ -30,7 +30,7 @@ function NNConv!(cLayer::Conv3D, Ai::AbstractArray{T,5}) where {T}
         cLayer.W[end:-1:1, end:-1:1, end:-1:1, :, :],
         stride = cLayer.s,
     )
-    Z = cLayer.Z .+ B[:, :, :, 1, :]
+    Z = cLayer.Z .+= B[:, :, :, 1, :]
     actFun = cLayer.actFun
     cLayer.A = eval(:($actFun($Z)))
 
@@ -62,7 +62,7 @@ function dNNConv!(
     W = cLayer.W
     padS = paddingSize(cLayer, Ai)
     convdim = DenseConvDims(Ai, W, stride = cLayer.s, padding = padS)
-    dA = ∇conv_data(dZ, W[end:-1:1, :, :], convdim)
+    cLayer.dA = ∇conv_data(dZ, W[end:-1:1, :, :], convdim)
     cLayer.dW[end:-1:1, :, :] = ∇conv_filter(Ai, A, convdim)
     cLayer.dB = sum(permutedims(dZ, [1, 3, 2]), dims = 1:2)
 
@@ -87,7 +87,7 @@ function dNNConv!(
     convdim = DenseConvDims(Ai, W, stride = cLayer.s)
     padS = paddingSize(cLayer, Ai)
     convdim = DenseConvDims(Ai, W, stride = cLayer.s, padding = padS)
-    dA = ∇conv_data(dZ, W[end:-1:1, end:-1:1, :, :], convdim)
+    cLayer.dA = ∇conv_data(dZ, W[end:-1:1, end:-1:1, :, :], convdim)
     cLayer.dW[end:-1:1, end:-1:1, :, :] = ∇conv_filter(Ai, A, convdim)
     cLayer.dB = sum(permutedims(dZ, [1, 2, 4, 3]), dims = 1:3)
 
@@ -111,7 +111,7 @@ function dNNConv!(
     convdim = DenseConvDims(Ai, W, stride = cLayer.s)
     padS = paddingSize(cLayer, Ai)
     convdim = DenseConvDims(Ai, W, stride = cLayer.s, padding = padS)
-    dA = ∇conv_data(dZ, W[end:-1:1, end:-1:1, end:-1:1, :, :], convdim)
+    cLayer.dA = ∇conv_data(dZ, W[end:-1:1, end:-1:1, end:-1:1, :, :], convdim)
     cLayer.dW[end:-1:1, end:-1:1, end:-1:1, :, :] = ∇conv_filter(Ai, A, convdim)
     cLayer.dB = sum(permutedims(dZ, [1, 2, 3, 5, 4]), dims = 1:4)
 
