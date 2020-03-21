@@ -49,7 +49,7 @@ export dimg2colConvolve!
 function dimg2colConvolve!(
     cLayer::Conv1D,
     Ai::AbstractArray{T,3},
-    dA::AbstractArray{T,3},
+    dAi::AbstractArray{T,3},
     dZ::AbstractArray{T,3},
 ) where {T}
 
@@ -69,7 +69,7 @@ end # function dimg2colConvolve!(
 function dimg2colConvolve!(
     cLayer::Conv2D,
     Ai::AbstractArray{T,4},
-    dA::AbstractArray{T,4},
+    dAi::AbstractArray{T,4},
     dZ::AbstractArray{T,4},
 ) where {T}
 
@@ -88,7 +88,7 @@ end # function dimg2colConvolve!(
 function dimg2colConvolve!(
     cLayer::Conv3D,
     Ai::AbstractArray{T,5},
-    dA::AbstractArray{T,5},
+    dAi::AbstractArray{T,5},
     dZ::AbstractArray{T,5},
 ) where {T}
 
@@ -103,3 +103,8 @@ end # function dimg2colConvolve!(
     #     dA::AbstractArray{T,5},
     #     dZ::AbstractArray{T,5},
     # ) where {T}
+
+#TODO    # Aip = padding(cLayer, Ai)
+    #
+    # dAip = similar(Aip)
+    # dAip .= 0

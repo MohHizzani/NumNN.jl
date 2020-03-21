@@ -130,7 +130,7 @@ export convolve!
 function dconvolve!(
     cLayer::Conv1D,
     Ai::AbstractArray{T,3},
-    dA::AbstractArray{T,3},
+    dAi::AbstractArray{T,3},
     dZ::AbstractArray{T,3},
 ) where {T}
 
@@ -150,7 +150,7 @@ function dconvolve!(
                 h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
                 h_end = hi * s_H - (s_H == 1 ? 0 : s_H - 1) + f_H - 1
                 @inbounds ai = Ai[h_start:h_end, :, mi]
-                @inbounds dA[h_start:h_end, :, mi] .+=
+                @inbounds dAi[h_start:h_end, :, mi] .+=
                     dZ[hi, ci, mi] .* W[:, :, ci]
 
                 @inbounds cLayer.dW[:, :, ci] .+= (ai .* dZ[hi, ci, mi])
@@ -159,21 +159,21 @@ function dconvolve!(
         end #for ci=1:c
     end #for mi=1:m
     # n_Hi, ci, m = cLayer.inputS
-    # n_Hj, ci, m = size(dA)
+    # n_Hj, ci, m = size(dAi)
     # p_H_hi, p_H_lo = paddingSize(cLayer,Ai)
     #
-    # cLayer.dA = dA[1+p_H_hi:end-p_H_lo,:,:]
+    # cLayer.dAi = dAi[1+p_H_hi:end-p_H_lo,:,:]
     #
-    # @assert cLayer.inputS == size(cLayer.dA)
+    # @assert cLayer.inputS == size(cLayer.dAi)
 
-    return dA
+    return dAi
 end #function dconvolve(cLayer::Conv1D
 
 
 function dconvolve!(
     cLayer::Conv2D,
     Ai::AbstractArray{T,4},
-    dA::AbstractArray{T,4},
+    dAi::AbstractArray{T,4},
     dZ::AbstractArray{T,4},
 ) where {T}
 
@@ -195,7 +195,7 @@ function dconvolve!(
                 w_start = wi * s_W - (s_W == 1 ? 0 : s_W - 1)
                 w_end = wi * s_W - (s_W == 1 ? 0 : s_W - 1) + f_W - 1
                 @inbounds ai = Ai[h_start:h_end, w_start:w_end, :, mi]
-                @inbounds dA[h_start:h_end, w_start:w_end, :, mi] .+=
+                @inbounds dAi[h_start:h_end, w_start:w_end, :, mi] .+=
                     dZ[hi, wi, ci, mi] .* W[:, :, :, ci]
 
                 @inbounds cLayer.dW[:, :, :, ci] .+= (ai .* dZ[hi, wi, ci, mi])
@@ -204,21 +204,21 @@ function dconvolve!(
         end #for ci=1:c
     end #for mi=1:m
     # n_Hi, n_Wi, ci, m = cLayer.inputS
-    # n_Hj, n_Wj, ci, m = size(dA)
+    # n_Hj, n_Wj, ci, m = size(dAi)
     # p_H_hi, p_H_lo, p_W_hi, p_W_lo = paddingSize(cLayer, Ai)
     #
-    # cLayer.dA = dA[1+p_H_hi:end-p_H,1+p_W:end-p_W,:,:]
+    # cLayer.dAi = dAi[1+p_H_hi:end-p_H,1+p_W:end-p_W,:,:]
     #
-    # @assert cLayer.inputS == size(cLayer.dA)
+    # @assert cLayer.inputS == size(cLayer.dAi)
 
-    return dA
+    return dAi
 end #function dconvolve(cLayer::Conv2D
 
 
 function dconvolve!(
     cLayer::Conv3D,
     Ai::AbstractArray{T,5},
-    dA::AbstractArray{T,5},
+    dAi::AbstractArray{T,5},
     dZ::AbstractArray{T,5},
 ) where {T}
 
@@ -243,7 +243,7 @@ function dconvolve!(
                 d_end = di * s_D - (s_D == 1 ? 0 : s_D - 1) + f_D - 1
                 @inbounds ai =
                     Ai[h_start:h_end, w_start:w_end, d_start:d_end, :, mi]
-                @inbounds dA[
+                @inbounds dAi[
                     h_start:h_end,
                     w_start:w_end,
                     d_start:d_end,
@@ -259,14 +259,14 @@ function dconvolve!(
     end #for mi=1:m
 
     # n_Hi, n_Wi, n_Di, ci, m = cLayer.inputS
-    # n_Hj, n_Wj, n_Dj, ci, m = size(dA)
+    # n_Hj, n_Wj, n_Dj, ci, m = size(dAi)
     # p_H = abs(n_Hi - n_Hj) ÷ 2
     # p_W = abs(n_Wi - n_Wj) ÷ 2
     # p_D = abs(n_Di - n_Dj) ÷ 2
     #
-    # cLayer.dA = dA[1+p_H:end-p_H,1+p_W:end-p_W,1+p_D:end-p_D,:,:]
+    # cLayer.dAi = dAi[1+p_H:end-p_H,1+p_W:end-p_W,1+p_D:end-p_D,:,:]
     #
-    # @assert cLayer.inputS == size(cLayer.dA)
+    # @assert cLayer.inputS == size(cLayer.dAi)
 
     return nothing
 end #function dconvolve(cLayer::Conv3D
