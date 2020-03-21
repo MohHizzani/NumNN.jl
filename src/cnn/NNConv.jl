@@ -50,15 +50,15 @@ function dNNConv!(
     cLayer::Conv1D,
     dZ::AbstractArray{T,3},
     Ai::AoN = nothing,
-    A::AoN = nothing,
+    # Ao::AoN = nothing,
 ) where {AoN<:Union{AbstractArray,Nothing},T}
 
     if Ai == nothing
         Ai = cLayer.prevLayer.A
     end
-    if A == nothing
-        A = cLayer.A
-    end
+    # if Ao == nothing
+    #     Ao = cLayer.A
+    # end
     W = cLayer.W
     padS = paddingSize(cLayer, Ai)
     convdim = DenseConvDims(Ai, W, stride = cLayer.s, padding = padS)
@@ -74,15 +74,15 @@ function dNNConv!(
     cLayer::Conv2D,
     dZ::AbstractArray,
     Ai::AoN = nothing,
-    A::AoN = nothing,
+    # Ao::AoN = nothing,
 ) where {AoN<:Union{AbstractArray,Nothing},T}
 
     if Ai == nothing
         Ai = cLayer.prevLayer.A
     end
-    if A == nothing
-        A = cLayer.A
-    end
+    # if Ao == nothing
+    #     Ao = cLayer.A
+    # end
     W = cLayer.W
     convdim = DenseConvDims(Ai, W, stride = cLayer.s)
     padS = paddingSize(cLayer, Ai)
@@ -98,15 +98,15 @@ function dNNConv!(
     cLayer::Conv3D,
     dZ::AbstractArray,
     Ai::AoN = nothing,
-    A::AoN = nothing,
+    # Ao::AoN = nothing,
 ) where {AoN<:Union{AbstractArray,Nothing},T}
 
     if Ai == nothing
         Ai = cLayer.prevLayer.A
     end
-    if A == nothing
-        A = cLayer.A
-    end
+    # if Ao == nothing
+    #     Ao = cLayer.A
+    # end
     W = cLayer.W
     convdim = DenseConvDims(Ai, W, stride = cLayer.s)
     padS = paddingSize(cLayer, Ai)
