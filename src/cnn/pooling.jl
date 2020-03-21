@@ -124,6 +124,8 @@ export pooling!
 
 ###dpooling
 
+#TODO to edit the dpooling! to be as Ai, dAi, Ao, dAo
+
 function dpooling!(
     cLayer::OneD,
     Ai::AbstractArray{T,3},
