@@ -196,7 +196,7 @@ function layerForProp!(
         elseif cLayer isa AveragePoolLayer
             cLayer.A = meanpool(Ai, cLayer.f, stride = S)
         end #if cLayer isa MaxPoolLayer
-    elseif F == S #to use the built-in reshape and maximum and mean
+    elseif F == S #to use the built-in reshape, maximum and mean
         cLayer.A = fastPooling(cLayer, Ai)
     else
         cLayer.A =
