@@ -61,7 +61,7 @@ function dimg2colConvolve!(
 
     Aip = padding(cLayer, Ai)
 
-    cLayer.dA = col2img3D(cLayer.K' * img2col(dZ), cLayer.outputS)
+    dAi .= col2img3D(cLayer.K' * img2col(dZ), cLayer.outputS)
     cLayer.dK = dZ * Aip'
     cLayer.dB = sum(permutedims(dZ, [1, 3, 2]), dims = 1:2)
 
@@ -83,7 +83,7 @@ function dimg2colConvolve!(
 
     Aip = padding(cLayer, Ai)
 
-    cLayer.dA = col2img3D(cLayer.K' * img2col(dZ), cLayer.outputS)
+    dAi .= col2img3D(cLayer.K' * img2col(dZ), cLayer.outputS)
     cLayer.dK = dZ * Aip'
     cLayer.dB = sum(permutedims(dZ, [1, 2, 4, 3]), dims = 1:3)
 
@@ -104,7 +104,7 @@ function dimg2colConvolve!(
 
     Aip = padding(cLayer, Ai)
 
-    cLayer.dA = col2img3D(cLayer.K' * img2col(dZ), cLayer.outputS)
+    dAi .= col2img3D(cLayer.K' * img2col(dZ), cLayer.outputS)
     cLayer.dK = dZ * Aip'
     cLayer.dB = sum(permutedims(dZ, [1, 2, 3, 5, 4]), dims = 1:4)
 
