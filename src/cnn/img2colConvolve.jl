@@ -1,9 +1,11 @@
 
 function img2colConvolve!(cLayer::Conv1D, Ai::AbstractArray{T,3}) where {T}
 
+    Aip = padding(cLayer, Ai)
+
     Z =
         cLayer.Z =
-            col2img1D(cLayer.K * img2col(Ai), cLayer.outputS) .+
+            col2img1D(cLayer.K * img2col(Aip), cLayer.outputS) .+
             cLayer.B[:, 1, :]
 
     actFun = cLayer.actFun
@@ -15,9 +17,11 @@ end #function img2colConvolve(cLayer::Conv1D
 
 function img2colConvolve!(cLayer::Conv2D, Ai::AbstractArray{T,4}) where {T}
 
+    Aip = padding(cLayer, Ai)
+
     Z =
         cLayer.Z =
-            col2img2D(cLayer.K * img2col(Ai), cLayer.outputS) .+
+            col2img2D(cLayer.K * img2col(Aip), cLayer.outputS) .+
             cLayer.B[:, :, 1, :]
 
     actFun = cLayer.actFun
@@ -28,9 +32,11 @@ end #function img2colConvolve(cLayer::Conv2D
 
 function img2colConvolve!(cLayer::Conv3D, Ai::AbstractArray{T,5}) where {T}
 
+    Aip = padding(cLayer, Ai)
+
     Z =
         cLayer.Z =
-            col2img3D(cLayer.K * img2col(Ai), cLayer.outputS) .+
+            col2img3D(cLayer.K * img2col(Aip), cLayer.outputS) .+
             cLayer.B[:, :, :, 1, :]
 
     actFun = cLayer.actFun
@@ -53,8 +59,10 @@ function dimg2colConvolve!(
     dZ::AbstractArray{T,3},
 ) where {T}
 
+    Aip = padding(cLayer, Ai)
+
     cLayer.dA = col2img3D(cLayer.K' * img2col(dZ), cLayer.outputS)
-    cLayer.dK = dZ * Ai'
+    cLayer.dK = dZ * Aip'
     cLayer.dB = sum(permutedims(dZ, [1, 3, 2]), dims = 1:2)
 
     return nothing
@@ -73,8 +81,10 @@ function dimg2colConvolve!(
     dZ::AbstractArray{T,4},
 ) where {T}
 
+    Aip = padding(cLayer, Ai)
+
     cLayer.dA = col2img3D(cLayer.K' * img2col(dZ), cLayer.outputS)
-    cLayer.dK = dZ * Ai'
+    cLayer.dK = dZ * Aip'
     cLayer.dB = sum(permutedims(dZ, [1, 2, 4, 3]), dims = 1:3)
 
     return nothing
@@ -92,8 +102,10 @@ function dimg2colConvolve!(
     dZ::AbstractArray{T,5},
 ) where {T}
 
+    Aip = padding(cLayer, Ai)
+
     cLayer.dA = col2img3D(cLayer.K' * img2col(dZ), cLayer.outputS)
-    cLayer.dK = dZ * Ai'
+    cLayer.dK = dZ * Aip'
     cLayer.dB = sum(permutedims(dZ, [1, 2, 3, 5, 4]), dims = 1:4)
 
     return nothing
@@ -103,8 +115,3 @@ end # function dimg2colConvolve!(
     #     dA::AbstractArray{T,5},
     #     dZ::AbstractArray{T,5},
     # ) where {T}
-
-#TODO    # Aip = padding(cLayer, Ai)
-    #
-    # dAip = similar(Aip)
-    # dAip .= 0
