@@ -32,7 +32,7 @@ function (l::FCLayer)(li_1::Layer)
     if ! in(l,li_1.nextLayers)
         push!(li_1.nextLayers, l)
     end
-    l.inputS = li_1.outputS 
+    l.inputS = li_1.outputS
     l.outputS = (l.channels, li_1.outputS[2])
     return l
 end #function (l::FCLayer)(li_1::Layer)
@@ -50,6 +50,20 @@ function (l::Activation)(li_1::Layer)
     end
     return l
 end
+
+function (l::BatchNorm)(li_1::Layer)
+    l.prevLayer = li_1
+
+    l.channels = li_1.channels
+
+    l.inputS = l.outputS = li_1.outputS
+
+    if ! in(l,li_1.nextLayers)
+        push!(li_1.nextLayers, l)
+    end
+    return l
+
+end #function (l::BatchNorm)
 
 function (l::AddLayer)(ls::Array{L,1}) where {L<:Layer}
     for li in ls
@@ -89,18 +103,6 @@ function (l::Conv3D)(x::Array)
     l.prevLayer = nothing
     return l
 end
-
-function (l::BatchNorm)(li_1::Layer)
-    l.prevLayer = li_1
-
-    l.channels = li_1.channels
-
-    if ! in(l,li_1.nextLayers)
-        push!(li_1.nextLayers, l)
-    end
-    return l
-
-end #function (l::BatchNorm)
 
 
 function (l::Input)(X::AbstractArray{T,N}) where {T,N}
