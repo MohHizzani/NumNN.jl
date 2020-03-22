@@ -166,7 +166,7 @@ export initWB!
 
 ### initVS!
 
-function initVS!(cLayer::ConvLayer, optimizer::Symbol)
+function initVS!(cLayer::CL, optimizer::Symbol) where {CL <: ConvLayer}
 
     if optimizer == :adam || optimizer == :momentum
         cLayer.V[:dw] = deepcopy(cLayer.dW)
