@@ -67,7 +67,7 @@ function (l::MaxPool1D)(li_1::Layer)
         push!(li_1.nextLayers, l)
     end
     padding = l.padding
-    c = l.channels
+    c = l.channels = li_1.channels
     n_Hi, ci, m = l.inputS = li_1.outputS
     s_H = l.s
     f_H = l.f
@@ -86,7 +86,7 @@ function (l::MaxPool2D)(li_1::Layer)
         push!(li_1.nextLayers, l)
     end
     padding = l.padding
-    c = l.channels
+    c = l.channels = li_1.channels
     n_Hi, n_Wi, ci, m = l.inputS = li_1.outputS
     s_H, s_W = l.s
     f_H, f_W = l.f
@@ -107,7 +107,7 @@ function (l::MaxPool3D)(li_1::Layer)
         push!(li_1.nextLayers, l)
     end
     padding = l.padding
-    c = l.channels
+    c = l.channels = li_1.channels
     n_Hi, n_Wi, n_Di, ci, m = l.inputS = li_1.outputS
     s_H, s_W, s_D = l.s
     f_H, f_W, f_D = l.f
@@ -128,7 +128,7 @@ function (l::AveragePool1D)(li_1::Layer)
         push!(li_1.nextLayers, l)
     end
     padding = l.padding
-    c = l.channels
+    c = l.channels = li_1.channels
     n_Hi, ci, m = l.inputS = li_1.outputS
     s_H = l.s
     f_H = l.f
@@ -147,7 +147,7 @@ function (l::AveragePool2D)(li_1::Layer)
         push!(li_1.nextLayers, l)
     end
     padding = l.padding
-    c = l.channels
+    c = l.channels = li_1.channels
     n_Hi, n_Wi, ci, m = l.inputS = li_1.outputS
     s_H, s_W = l.s
     f_H, f_W = l.f
@@ -168,7 +168,7 @@ function (l::AveragePool3D)(li_1::Layer)
         push!(li_1.nextLayers, l)
     end
     padding = l.padding
-    c = l.channels
+    c = l.channels = li_1.channels
     n_Hi, n_Wi, n_Di, ci, m = l.inputS = li_1.outputS
     s_H, s_W, s_D = l.s
     f_H, f_W, f_D = l.f
