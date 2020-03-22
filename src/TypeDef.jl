@@ -337,7 +337,7 @@ mutable struct Model
         paramsDtype::DataType = Float64,
     )
 
-        deepInitWB!(X, outLayer; dtype = paramsDtype)
+        deepInitWB!(outLayer; dtype = paramsDtype)
         resetCount!(outLayer, :forwCount)
         deepInitVS!(outLayer, optimizer)
         resetCount!(outLayer, :forwCount)
