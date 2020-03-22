@@ -5,7 +5,7 @@ import NNlib.conv, NNlib.conv!
 function NNConv!(cLayer::Conv1D, Ai::AbstractArray{T,3}) where {T}
     padS = paddingSize(cLayer, Ai)
     cLayer.Z = conv(Ai, cLayer.W[end:-1:1, :, :], stride = cLayer.s, pad = padS)
-    Z = cLayer.Z .+= B[:, 1, :]
+    Z = cLayer.Z .+= cLayer.B[:, 1, :]
     actFun = cLayer.actFun
     cLayer.A = eval(:($actFun($Z)))
 
@@ -16,7 +16,7 @@ end #function img2colConvolve(cLayer::Conv1D
 function NNConv!(cLayer::Conv2D, Ai::AbstractArray{T,4}) where {T}
     padS = paddingSize(cLayer, Ai)
     cLayer.Z = conv(Ai, cLayer.W[end:-1:1, end:-1:1, :, :], stride = cLayer.s, pad = padS)
-    Z = cLayer.Z .+= B[:, :, 1, :]
+    Z = cLayer.Z .+= cLayer.B[:, :, 1, :]
     actFun = cLayer.actFun
     cLayer.A = eval(:($actFun($Z)))
 
@@ -31,7 +31,7 @@ function NNConv!(cLayer::Conv3D, Ai::AbstractArray{T,5}) where {T}
         stride = cLayer.s,
         pad = padS,
     )
-    Z = cLayer.Z .+= B[:, :, :, 1, :]
+    Z = cLayer.Z .+= cLayer.B[:, :, :, 1, :]
     actFun = cLayer.actFun
     cLayer.A = eval(:($actFun($Z)))
 
