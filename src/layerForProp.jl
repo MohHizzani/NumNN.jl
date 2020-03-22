@@ -19,7 +19,7 @@ end
 
 function layerForProp!(
     cLayer::FCLayer,
-    Ai::AoN,
+    Ai::AoN = nothing,
 ) where {AoN<:Union{AbstractArray,Nothing}}
     if Ai == nothing
         Ai = cLayer.prevLayer.A
@@ -54,7 +54,7 @@ end #function layerForProp!(cLayer::AddLayer)
 
 function layerForProp!(
     cLayer::Activation,
-    Ai::AoN,
+    Ai::AoN = nothing,
 ) where {AoN<:Union{AbstractArray,Nothing}}
     if Ai == nothing
         Ai = cLayer.prevLayer.A
@@ -73,7 +73,7 @@ end #function layerForProp!(cLayer::Activation)
 
 function layerForProp!(
     cLayer::BatchNorm,
-    Ai::AoN,
+    Ai::AoN = nothing,
 ) where {AoN<:Union{AbstractArray,Nothing}}
     if Ai == nothing
         Ai = cLayer.prevLayer.A
