@@ -20,20 +20,20 @@ end #softmax or σ layerBackProp
 
 
 function layerBackProp!(
-    cLayer::ConvLayer,
+    cLayer::CL,
     model::Model,
-    Ai::AoN = nothing,
-    Ao::AoN = nothing,
-    dAo::AoN = nothing;
-    labels::AoN = nothing,
+    Ai::AbstractArray = Array{Any,1}(undef,0),
+    Ao::AbstractArray = Array{Any,1}(undef,0),
+    dAo::AbstractArray = Array{Any,1}(undef,0);
+    labels::AbstractArray = Array{Any,1}(undef,0),
     img2colConvolve::Bool = false,
     NNlib::Bool = true,
-) where {AoN<:Union{AbstractArray,Nothing}}
+) where {CL <: ConvLayer}
 
-    if Ai == nothing
+    if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
-    if Ao == nothing
+    if length(Ao) == 0
         Ao = cLayer.A
     end
     m = size(Ao)[end]
@@ -45,7 +45,7 @@ function layerBackProp!(
     dZ = []
     if cLayer.actFun == model.outLayer.actFun
         dZ = layerBackProp(cLayer, model, eval(:($actFun)), labels)
-    elseif dAo != nothing
+    elseif length(dAo) != 0
         dActFun = Symbol("d", cLayer.actFun)
 
         Z = cLayer.Z
@@ -77,7 +77,7 @@ function layerBackProp!(
 
     if NNlib
 
-        dNNConv!(cLayer, dZ, Ai, Ao)
+        dNNConv!(cLayer, dZ, Ai)
 
     else
 
@@ -106,16 +106,16 @@ import NNlib.∇maxpool, NNlib.∇meanpool, NNlib.∇maxpool!, NNlib.∇meanpool
 function layerBackProp!(
     cLayer::OneD,
     model::Model,
-    Ai::AoN = nothing,
-    Ao::AoN = nothing,
-    dAo::AoN = nothing;
-    labels::AoN = nothing,
+    Ai::AbstractArray = Array{Any,1}(undef,0),
+    Ao::AbstractArray = Array{Any,1}(undef,0),
+    dAo::AbstractArray = Array{Any,1}(undef,0);
+    labels::AbstractArray = Array{Any,1}(undef,0),
     NNlib::Bool = true,
-) where {OneD<:Union{MaxPool1D,AveragePool1D},AoN<:Union{AbstractArray,Nothing}}
-    if Ai == nothing
+) where {OneD<:Union{MaxPool1D,AveragePool1D}}
+    if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
-    if Ao == nothing
+    if length(Ao) == 0
         Ao = cLayer.A
     end
 
@@ -123,7 +123,7 @@ function layerBackProp!(
     cLayer.dA = similar(Ai) .= 0
 
 
-    if dAo == nothing
+    if length(dAo) == 0
         if all(
             i -> (i.backCount == cLayer.nextLayers[1].backCount),
             cLayer.nextLayers,
@@ -166,16 +166,16 @@ end #unction layerBackProp!(cLayer::OneD) where {OneD <: Union{MaxPool1D, Averag
 function layerBackProp!(
     cLayer::TwoD,
     model::Model,
-    Ai::AoN = nothing,
-    Ao::AoN = nothing,
-    dAo::AoN = nothing;
-    labels::AoN = nothing,
+    Ai::AbstractArray = Array{Any,1}(undef,0),
+    Ao::AbstractArray = Array{Any,1}(undef,0),
+    dAo::AbstractArray = Array{Any,1}(undef,0);
+    labels::AbstractArray = Array{Any,1}(undef,0),
     NNlib::Bool = true,
 ) where {TwoD<:Union{MaxPool2D,AveragePool2D},AoN<:Union{AbstractArray,Nothing}}
-    if Ai == nothing
+    if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
-    if Ao == nothing
+    if length(Ao) == 0
         Ao = cLayer.A
     end
 
@@ -183,7 +183,7 @@ function layerBackProp!(
     cLayer.dA = similar(Ai) .= 0
 
 
-    if dAo == nothing
+    if length(dAo) == 0
         if all(
             i -> (i.backCount == cLayer.nextLayers[1].backCount),
             cLayer.nextLayers,
@@ -226,19 +226,19 @@ end #function layerBackProp!(cLayer::TwoD) where {TwoD <: Union{MaxPool2D, Avera
 function layerBackProp!(
     cLayer::ThreeD,
     model::Model,
-    Ai::AoN = nothing,
-    Ao::AoN = nothing,
-    dAo::AoN = nothing;
-    labels::AoN = nothing,
+    Ai::AbstractArray = Array{Any,1}(undef,0),
+    Ao::AbstractArray = Array{Any,1}(undef,0),
+    dAo::AbstractArray = Array{Any,1}(undef,0);
+    labels::AbstractArray = Array{Any,1}(undef,0),
     NNlib::Bool = true,
 ) where {
     ThreeD<:Union{MaxPool3D,AveragePool3D},
     AoN<:Union{AbstractArray,Nothing},
 }
-    if Ai == nothing
+    if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
-    if Ao == nothing
+    if length(Ao) == 0
         Ao = cLayer.A
     end
 
@@ -246,7 +246,7 @@ function layerBackProp!(
     cLayer.dA = similar(Ai) .= 0
 
 
-    if dAo == nothing
+    if length(dAo) == 0
         if all(
             i -> (i.backCount == cLayer.nextLayers[1].backCount),
             cLayer.nextLayers,
