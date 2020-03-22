@@ -19,7 +19,7 @@ function layerForProp!(
     c = cLayer.channels
     n_H = (n_Hi - f_H) ÷ s_H + 1
 
-    if NNlibConv
+    if NNlib
         NNConv!(cLayer, Ai)
     elseif img2colConvolve
         ## in case input different size than previous time
@@ -62,7 +62,7 @@ function layerForProp!(
 
 
 
-    if NNlibConv
+    if NNlib
         NNConv!(cLayer, Ai)
     elseif img2colConvolve
         ## in case input different size than previous time
@@ -105,7 +105,7 @@ function layerForProp!(
     n_D = (n_Di - f_D) ÷ s_D + 1
 
 
-    if NNlibConv
+    if NNlib
         NNConv!(cLayer, Ai)
     elseif img2colConvolve
         ## in case input different size than previous time
@@ -155,7 +155,7 @@ function layerForProp!(
 
     cLayer.A = zeros(eltype(Ai), n_H, c, m)
 
-    if NNlibConv
+    if NNlib
         pooldims = PoolDims(Ai, cLayer.f, stride = cLayer.s, padding = padS)
         if cLayer isa MaxPoolLayer
             maxpool!(cLayer.A, Ai, pooldims)
@@ -196,7 +196,7 @@ function layerForProp!(
     cLayer.A =
         zeros(eltype(Ai), n_H, n_W, c, m)
 
-    if NNlibConv
+    if NNlib
         pooldims = PoolDims(Ai, cLayer.f, stride = cLayer.s, padding = padS)
         if cLayer isa MaxPoolLayer
             maxpool!(cLayer.A, Ai, pooldims)
@@ -244,7 +244,7 @@ function layerForProp!(
     cLayer.A =
         zeros(eltype(Ai), n_H, n_W, n_D, c, m)
 
-    if NNlibConv
+    if NNlib
         pooldims = PoolDims(Ai, cLayer.f, stride = cLayer.s, padding = padS)
         if cLayer isa MaxPoolLayer
             maxpool!(cLayer.A, Ai, pooldims)
