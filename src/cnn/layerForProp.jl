@@ -133,7 +133,7 @@ end #function layerForProp!(cLayer::Conv3D)
 ### Pooling Layers
 
 #import only the needed parts not to have conflict
-import NNlib.maxpool, NNlib.meanpool, NNlib.maxpool!, NNlib.meanpool! NNlib.PoolDims
+import NNlib.maxpool, NNlib.meanpool, NNlib.maxpool!, NNlib.meanpool!, NNlib.PoolDims
 
 function layerForProp!(
     cLayer::OneD,
