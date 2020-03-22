@@ -60,9 +60,11 @@ function dimg2colConvolve!(
 ) where {T}
 
     Aip = padding(cLayer, Ai)
+    Aipv = img2col(Aip)
+    dZv = img2col(dZ)
 
-    dAi .= col2img3D(cLayer.K' * img2col(dZ), cLayer.outputS)
-    cLayer.dK = dZ * Aip'
+    dAi .= col2img1D(cLayer.K' * dZv, cLayer.inputS)
+    cLayer.dK = dZv * Aipv'
     cLayer.dB = sum(permutedims(dZ, [1, 3, 2]), dims = 1:2)
 
     return nothing
@@ -82,9 +84,11 @@ function dimg2colConvolve!(
 ) where {T}
 
     Aip = padding(cLayer, Ai)
+    Aipv = img2col(Aip)
+    dZv = img2col(dZ)
 
-    dAi .= col2img3D(cLayer.K' * img2col(dZ), cLayer.outputS)
-    cLayer.dK = dZ * Aip'
+    dAi .= col2img1D(cLayer.K' * dZv, cLayer.inputS)
+    cLayer.dK = dZv * Aipv'
     cLayer.dB = sum(permutedims(dZ, [1, 2, 4, 3]), dims = 1:3)
 
     return nothing
@@ -103,9 +107,11 @@ function dimg2colConvolve!(
 ) where {T}
 
     Aip = padding(cLayer, Ai)
+    Aipv = img2col(Aip)
+    dZv = img2col(dZ)
 
-    dAi .= col2img3D(cLayer.K' * img2col(dZ), cLayer.outputS)
-    cLayer.dK = dZ * Aip'
+    dAi .= col2img1D(cLayer.K' * dZv, cLayer.inputS)
+    cLayer.dK = dZv * Aipv'
     cLayer.dB = sum(permutedims(dZ, [1, 2, 3, 5, 4]), dims = 1:4)
 
     return nothing
