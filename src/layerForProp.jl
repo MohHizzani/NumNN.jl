@@ -3,9 +3,9 @@ using Statistics
 ###Input Layer
 function layerForProp!(
     cLayer::Input,
-    X::AoN = nothing,
-) where {AoN<:Union{Array,Nothing}}
-    if X != nothing
+    X::AbstractArray = Array{Any,1}(undef,0),
+)
+    if length(X) != 0
         cLayer.A = X
         cLayer.inputS = cLayer.outputS = size(X)
     end
@@ -19,9 +19,9 @@ end
 
 function layerForProp!(
     cLayer::FCLayer,
-    Ai::AoN = nothing,
-) where {AoN<:Union{AbstractArray,Nothing}}
-    if Ai == nothing
+    Ai::AbstractArray = Array{Any,1}(undef,0),
+)
+    if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
     cLayer.inputS = cLayer.prevLayer.outputS
@@ -54,9 +54,9 @@ end #function layerForProp!(cLayer::AddLayer)
 
 function layerForProp!(
     cLayer::Activation,
-    Ai::AoN = nothing,
-) where {AoN<:Union{AbstractArray,Nothing}}
-    if Ai == nothing
+    Ai::AbstractArray = Array{Any,1}(undef,0),
+)
+    if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
     actFun = cLayer.actFun
@@ -73,9 +73,9 @@ end #function layerForProp!(cLayer::Activation)
 
 function layerForProp!(
     cLayer::BatchNorm,
-    Ai::AoN = nothing,
-) where {AoN<:Union{AbstractArray,Nothing}}
-    if Ai == nothing
+    Ai::AbstractArray = Array{Any,1}(undef,0),
+)
+    if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
 

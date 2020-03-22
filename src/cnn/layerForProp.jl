@@ -4,11 +4,11 @@
 
 function layerForProp!(
     cLayer::Conv1D,
-    Ai::AoN=nothing;
+    Ai::AbstractArray = Array{Any,1}(undef,0);
     img2colConvolve::Bool = false,
     NNlib::Bool = true,
-) where {AoN<:Union{AbstractArray,Nothing}}
-    if Ai == nothing
+) 
+    if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
     cLayer.inputS = size(Ai)
@@ -43,11 +43,11 @@ end #function layerForProp!(cLayer::Conv1D)
 
 function layerForProp!(
     cLayer::Conv2D,
-    Ai::AoN=nothing;
+    Ai::AbstractArray = Array{Any,1}(undef,0);
     img2colConvolve::Bool = false,
     NNlib::Bool = true,
-) where {AoN<:Union{AbstractArray,Nothing}}
-    if Ai == nothing
+)
+    if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
     cLayer.inputS = size(Ai)
@@ -86,11 +86,11 @@ end #function layerForProp!(cLayer::Conv2D)
 
 function layerForProp!(
     cLayer::Conv3D,
-    Ai::AoN=nothing;
+    Ai::AbstractArray = Array{Any,1}(undef,0);
     img2colConvolve::Bool = false,
     NNlib::Bool = true,
-) where {AoN<:Union{AbstractArray,Nothing}}
-    if Ai == nothing
+)
+    if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
     cLayer.inputS = size(Ai)
@@ -137,10 +137,10 @@ import NNlib.maxpool, NNlib.meanpool, NNlib.maxpool!, NNlib.meanpool!, NNlib.Poo
 
 function layerForProp!(
     cLayer::OneD,
-    Ai::AoN=nothing;
+    Ai::AbstractArray = Array{Any,1}(undef,0);
     NNlib::Bool = true,
 ) where {OneD<:Union{MaxPool1D,AveragePool1D},AoN<:Union{AbstractArray,Nothing}}
-    if Ai == nothing
+    if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
     cLayer.inputS = size(Ai)
@@ -177,10 +177,10 @@ end #unction layerForProp!(cLayer::OneD) where {OneD <: Union{MaxPool1D, Average
 
 function layerForProp!(
     cLayer::TwoD,
-    Ai::AoN=nothing;
+    Ai::AbstractArray = Array{Any,1}(undef,0);
     NNlib::Bool = true,
 ) where {TwoD<:Union{MaxPool2D,AveragePool2D},AoN<:Union{AbstractArray,Nothing}}
-    if Ai == nothing
+    if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
     cLayer.inputS = size(Ai)
@@ -220,13 +220,13 @@ end #function layerForProp!(cLayer::TwoD) where {TwoD <: Union{MaxPool2D, Averag
 
 function layerForProp!(
     cLayer::ThreeD,
-    Ai::AoN=nothing;
+    Ai::AbstractArray = Array{Any,1}(undef,0);
     NNlib::Bool = true,
 ) where {
     ThreeD<:Union{MaxPool3D,AveragePool3D},
     AoN<:Union{AbstractArray,Nothing},
 }
-    if Ai == nothing
+    if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
     cLayer.inputS = size(Ai)
