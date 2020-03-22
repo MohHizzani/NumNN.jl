@@ -76,36 +76,20 @@ function layerBackProp!(
     end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
 
     if NNlib
+
         dNNConv!(cLayer, dZ, Ai, Ao)
 
     else
-        padS = paddingSize(cLayer, Ai)
+
         cLayer.dA = similar(Ai) #the size before padding
         cLayer.dA .= 0
-        Aip = padding(cLayer, Ai)
-
-        dAip = similar(Aip)
-        dAip .= 0
 
         if img2colConvolve
-            dimg2colConvolve!(cLayer, Aip, dAip, dZ)
+            dimg2colConvolve!(cLayer, Ai, cLayer.dA, dZ)
         else
-            dconvolve!(cLayer, Aip, dAip, dZ)
+            dconvolve!(cLayer, Ai, cLayer.dA, dZ)
         end #if img2colConvolve
 
-        if cLayer isa Conv1D
-            cLayer.dA .= dAip[1+padS[1]:end-padS[2], :, :]
-        elseif cLayer isa Conv2D
-            cLayer.dA .= dAip[1+padS[1]:end-padS[2], 1+padS[3]:end-padS[4], :, :]
-        elseif cLayer isa Conv3D
-            cLayer.dA .= dAip[
-                1+padS[1]:end-padS[2],
-                1+padS[3]:end-padS[4],
-                1+padS[5]:end-padS[6],
-                :,
-                :,
-            ]
-        end
     end #if NNlib
 
     cLayer.backCount += 1
@@ -136,8 +120,7 @@ function layerBackProp!(
     end
 
     padS = paddingSize(cLayer, Ai)
-    cLayer.dA = similar(Ai)
-    cLayer.dA .= 0
+    cLayer.dA = similar(Ai) .= 0
 
 
     if dAo == nothing
@@ -167,15 +150,12 @@ function layerBackProp!(
         end #if cLayer isa MaxPoolLayer
 
     else
-        Aip = padding(cLayer, Ai)
-        dAip = similar(Aip)
-        dAip .= 0
+
         if cLayer.s == cLayer.f
-            dfastPooling!(cLayer, Aip, dAip, Ao, dAo)
+            dfastPooling!(cLayer, Ai, cLayer.dA, Ao, dAo)
         else
-            dpooling!(cLayer, Aip, dAip, dAo)
+            dpooling!(cLayer, Ai, cLayer.dA, Ao, dAo)
         end #if cLayer.s == cLayer.f
-        cLayer.dA .= dAip[1+padS[1]:end-padS[2], :, :]
     end #if NNlib
 
     cLayer.forwCount += 1
@@ -200,8 +180,7 @@ function layerBackProp!(
     end
 
     padS = paddingSize(cLayer, Ai)
-    cLayer.dA = similar(Ai)
-    cLayer.dA .= 0
+    cLayer.dA = similar(Ai) .= 0
 
 
     if dAo == nothing
@@ -231,15 +210,12 @@ function layerBackProp!(
         end #if cLayer isa MaxPoolLayer
 
     else
-        Aip = padding(cLayer, Ai)
-        dAip = similar(Aip)
-        dAip .= 0
+
         if cLayer.s == cLayer.f
-            dfastPooling!(cLayer, Aip, dAip, Ao, dAo)
+            dfastPooling!(cLayer, Ai, cLayer.dA, Ao, dAo)
         else
-            dpooling!(cLayer, Aip, dAip, dAo)
+            dpooling!(cLayer, Ai, cLayer.dA, Ao, dAo)
         end #if cLayer.s == cLayer.f
-        cLayer.dA .= dAip[1+padS[1]:end-padS[2], 1+padS[3]:end-padS[4], :, :]
     end #if NNlib
 
     cLayer.forwCount += 1
@@ -267,8 +243,7 @@ function layerBackProp!(
     end
 
     padS = paddingSize(cLayer, Ai)
-    cLayer.dA = similar(Ai)
-    cLayer.dA .= 0
+    cLayer.dA = similar(Ai) .= 0
 
 
     if dAo == nothing
@@ -299,21 +274,12 @@ function layerBackProp!(
 
 
     else
-        Aip = padding(cLayer, Ai)
-        dAip = similar(Aip)
-        dAip .= 0
+
         if cLayer.s == cLayer.f
-            dfastPooling!(cLayer, Aip, dAip, Ao, dAo)
+            dfastPooling!(cLayer, Ai, cLayer.dA, Ao, dAo)
         else
-            dpooling!(cLayer, Aip, dAip, dAo)
+            dpooling!(cLayer, Ai, cLayer.dA, Ao, dAo)
         end #if cLayer.s == cLayer.f
-        cLayer.dA .= dAip[
-            1+padS[1]:end-padS[2],
-            1+padS[3]:end-padS[4],
-            1+padS[5]:end-padS[6],
-            :,
-            :,
-        ]
     end #if NNlib
 
     cLayer.forwCount += 1
