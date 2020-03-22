@@ -44,6 +44,10 @@ function paddingSize(cLayer::PL, AiS::Tuple) where {PL<:PaddableLayer}
 
     ndim = length(AiS)
 
+    if cLayer.padding == :valid
+        return Tuple(repeat([0], (ndim-2)*2))
+    end
+
     if ndim == 3
         n_Hi, ci, m = AiS
         s_H = cLayer.s
