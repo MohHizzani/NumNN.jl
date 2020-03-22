@@ -4,7 +4,7 @@
 
 function layerForProp!(
     cLayer::Conv1D,
-    Ai::AoN;
+    Ai::AoN=nothing;
     img2colConvolve::Bool = false,
     NNlib::Bool = true,
 ) where {AoN<:Union{AbstractArray,Nothing}}
@@ -12,8 +12,8 @@ function layerForProp!(
         Ai = cLayer.prevLayer.A
     end
     cLayer.inputS = size(Ai)
-    Ai = padding(cLayer, Ai)
-    n_Hi, ci, m = size(Ai)
+    # Ai = padding(cLayer, Ai)
+    n_Hi, ci, m = paddedSize(cLayer, Ai)
     s_H = cLayer.s
     f_H = cLayer.f
     c = cLayer.channels
@@ -43,7 +43,7 @@ end #function layerForProp!(cLayer::Conv1D)
 
 function layerForProp!(
     cLayer::Conv2D,
-    Ai::AoN;
+    Ai::AoN=nothing;
     img2colConvolve::Bool = false,
     NNlib::Bool = true,
 ) where {AoN<:Union{AbstractArray,Nothing}}
@@ -51,8 +51,8 @@ function layerForProp!(
         Ai = cLayer.prevLayer.A
     end
     cLayer.inputS = size(Ai)
-    Ai = padding(cLayer, Ai)
-    n_Hi, n_Wi, ci, m = size(Ai)
+    # Ai = padding(cLayer, Ai)
+    n_Hi, n_Wi, ci, m = paddedSize(cLayer, Ai)
     c = cLayer.channels
     s_H, s_W = cLayer.s
     f_H, f_W = cLayer.f
@@ -86,7 +86,7 @@ end #function layerForProp!(cLayer::Conv2D)
 
 function layerForProp!(
     cLayer::Conv3D,
-    Ai::AoN;
+    Ai::AoN=nothing;
     img2colConvolve::Bool = false,
     NNlib::Bool = true,
 ) where {AoN<:Union{AbstractArray,Nothing}}
@@ -94,9 +94,8 @@ function layerForProp!(
         Ai = cLayer.prevLayer.A
     end
     cLayer.inputS = size(Ai)
-    Ai = padding(cLayer, Ai)
-
-    n_Hi, n_Wi, n_Di, ci, m = size(Ai)
+    # Ai = padding(cLayer, Ai)
+    n_Hi, n_Wi, n_Di, ci, m = paddedSize(cLayer, Ai)
     s_H, s_W, s_D = cLayer.s
     f_H, f_W, f_D = cLayer.f
     c = cLayer.channels
@@ -134,35 +133,38 @@ end #function layerForProp!(cLayer::Conv3D)
 ### Pooling Layers
 
 #import only the needed parts not to have conflict
-import NNlib.maxpool, NNlib.meanpool
+import NNlib.maxpool, NNlib.meanpool, NNlib.maxpool!, NNlib.meanpool! NNlib.PoolDims
 
 function layerForProp!(
     cLayer::OneD,
-    Ai::AoN;
+    Ai::AoN=nothing;
     NNlib::Bool = true,
 ) where {OneD<:Union{MaxPool1D,AveragePool1D},AoN<:Union{AbstractArray,Nothing}}
     if Ai == nothing
         Ai = cLayer.prevLayer.A
     end
     cLayer.inputS = size(Ai)
-    Ai = padding(cLayer, Ai)
-    n_Hi, ci, m = size(Ai)
+    # Ai = padding(cLayer, Ai)
+    padS = paddingSize(cLayer, Ai)
+    n_Hi, ci, m = paddedSize(cLayer, Ai)
     s_H = cLayer.s
     f_H = cLayer.f
     c = cLayer.channels
 
     n_H = (n_Hi - f_H) ÷ s_H + 1
 
+    cLayer.A = zeros(eltype(Ai), n_H, c, m)
+
     if NNlibConv
+        pooldims = PoolDims(Ai, cLayer.f, stride = cLayer.s, padding = padS)
         if cLayer isa MaxPoolLayer
-            cLayer.A = maxpool(Ai, cLayer.f, stride = s_H)
+            maxpool!(cLayer.A, Ai, pooldims)
         elseif cLayer isa AveragePoolLayer
-            cLayer.A = meanpool(Ai, cLayer.f, stride = s_H)
+            meanpool!(cLayer.A, Ai, pooldims)
         end #if cLayer isa MaxPoolLayer
     elseif f_H == s_H #to use the built-in reshape and maximum and mean
-        cLayer.A = fastPooling(cLayer, Ai)
+        fastPooling!(cLayer, Ai)
     else
-        cLayer.A = zeros(eltype(cLayer.prevLayer.A), n_H, cLayer.channels, m)
         pooling!(cLayer, Ai)
     end #if NNlibConv
 
@@ -175,32 +177,35 @@ end #unction layerForProp!(cLayer::OneD) where {OneD <: Union{MaxPool1D, Average
 
 function layerForProp!(
     cLayer::TwoD,
-    Ai::AoN;
+    Ai::AoN=nothing;
     NNlib::Bool = true,
 ) where {TwoD<:Union{MaxPool2D,AveragePool2D},AoN<:Union{AbstractArray,Nothing}}
     if Ai == nothing
         Ai = cLayer.prevLayer.A
     end
     cLayer.inputS = size(Ai)
-    Ai = padding(cLayer, Ai)
-    n_Hi, n_Wi, ci, m = size(Ai)
+    # Ai = padding(cLayer, Ai)
+    padS = paddingSize(cLayer, Ai)
+    n_Hi, n_Wi, ci, m = paddedSize(cLayer, Ai)
     s_H, s_W = S = cLayer.s
     f_H, f_W = F = cLayer.f
     c = cLayer.channels
     n_H = (n_Hi - f_H) ÷ s_H + 1
     n_W = (n_Wi - f_W) ÷ s_W + 1
 
+    cLayer.A =
+        zeros(eltype(Ai), n_H, n_W, c, m)
+
     if NNlibConv
+        pooldims = PoolDims(Ai, cLayer.f, stride = cLayer.s, padding = padS)
         if cLayer isa MaxPoolLayer
-            cLayer.A = maxpool(Ai, cLayer.f, stride = S)
+            maxpool!(cLayer.A, Ai, pooldims)
         elseif cLayer isa AveragePoolLayer
-            cLayer.A = meanpool(Ai, cLayer.f, stride = S)
+            meanpool!(cLayer.A, Ai, pooldims)
         end #if cLayer isa MaxPoolLayer
     elseif F == S #to use the built-in reshape, maximum and mean
-        cLayer.A = fastPooling(cLayer, Ai)
+        fastPooling!(cLayer, Ai)
     else
-        cLayer.A =
-            zeros(eltype(cLayer.prevLayer.A), n_H, n_W, cLayer.channels, m)
         pooling!(cLayer, Ai)
     end #if NNlibConv
 
@@ -215,7 +220,7 @@ end #function layerForProp!(cLayer::TwoD) where {TwoD <: Union{MaxPool2D, Averag
 
 function layerForProp!(
     cLayer::ThreeD,
-    Ai::AoN;
+    Ai::AoN=nothing;
     NNlib::Bool = true,
 ) where {
     ThreeD<:Union{MaxPool3D,AveragePool3D},
@@ -225,9 +230,9 @@ function layerForProp!(
         Ai = cLayer.prevLayer.A
     end
     cLayer.inputS = size(Ai)
-    Ai = padding(cLayer, Ai)
-
-    n_Hi, n_Wi, n_Di, ci, m = size(Ai)
+    # Ai = padding(cLayer, Ai)
+    padS = paddingSize(cLayer, Ai)
+    n_Hi, n_Wi, n_Di, ci, m = paddedSize(cLayer, Ai)
     s_H, s_W, s_D = S = cLayer.s
     f_H, f_W, f_D = F = cLayer.f
     c = cLayer.channels
@@ -236,17 +241,19 @@ function layerForProp!(
     n_W = (n_Wi - f_W) ÷ s_W + 1
     n_D = (n_Di - f_D) ÷ s_D + 1
 
+    cLayer.A =
+        zeros(eltype(Ai), n_H, n_W, n_D, c, m)
+
     if NNlibConv
+        pooldims = PoolDims(Ai, cLayer.f, stride = cLayer.s, padding = padS)
         if cLayer isa MaxPoolLayer
-            cLayer.A = maxpool(Ai, cLayer.f, stride = S)
+            maxpool!(cLayer.A, Ai, pooldims)
         elseif cLayer isa AveragePoolLayer
-            cLayer.A = meanpool(Ai, cLayer.f, stride = S)
+            meanpool!(cLayer.A, Ai, pooldims)
         end #if cLayer isa MaxPoolLayer
     elseif F == S #to use the built-in reshape and maximum and mean
-        cLayer.A = fastPooling(cLayer, Ai)
+        fastPooling!(cLayer, Ai)
     else
-        cLayer.A =
-            zeros(eltype(cLayer.prevLayer.A), n_H, n_W, n_D, cLayer.channels, m)
         pooling!(cLayer, Ai)
     end #if NNlibConv
 
