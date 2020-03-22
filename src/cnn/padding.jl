@@ -1,8 +1,31 @@
 using PaddedViews
 
+###
+export paddedSize
+
+function paddedSize(cLayer::PL, Ai::AoN=nothing) where {PL<:PaddableLayer, AoN <: Union{AbstractArray, Nothing}}
+    if Ai == nothing
+        Ai = cLayer.prevLayer.A
+    end
+
+    return paddedSize(cLayer, size(Ai))
+end #function paddedSize(cLayer::PL, Ai::AoN=nothing) where {PL<:PaddableLayer, AoN <: Union{AbstractArray, Nothing}}
+
+function paddedSize(cLayer::PL, AiS::Tuple) where {PL<:PaddableLayer}
+    padS = paddingSize(cLayer, AiS)
+
+    outPS = [i for i in AiS]
+    for i=1:(length(AiS)-2)
+        outPS[i] += padS[2i-1] + padS[2i]
+    end
+
+    return Tuple(outPS)
+end #function paddedSize(cLayer::PL, AiS::Tuple) where {PL<:PaddableLayer}
+
+###
 export paddingSize
 
-function paddingSize(cLayer::PL, Ai::AoN) where {PL<:PaddableLayer, AoN <: Union{AbstractArray, Nothing}}
+function paddingSize(cLayer::PL, Ai::AoN=nothing) where {PL<:PaddableLayer, AoN <: Union{AbstractArray, Nothing}}
     if Ai == nothing
         Ai = cLayer.prevLayer.A
     end
