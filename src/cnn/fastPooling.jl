@@ -14,15 +14,14 @@ function fastPooling!(
 
     if cLayer isa MaxPoolLayer
         cLayer.A = reshape(
-            maximum(reshape(Ap, f_H, n_H, c, m), dims = 1),
+            maximum(reshape(Aip, f_H, n_H, c, m), dims = 1),
             n_H,
-            n_W,
             c,
             m,
         )
     else
         cLayer.A =
-            reshape(mean(reshape(Ap, f_H, n_H, c, m), dims = 1), n_H, n_W, c, m)
+            reshape(mean(reshape(Aip, f_H, n_H, c, m), dims = 1), n_H, c, m)
     end #if cLayer isa MaxPoolLayer
 
     return nothing
@@ -45,7 +44,7 @@ function fastPooling!(
         cLayer.A = reshape(
             maximum(
                 permutedims(
-                    reshape(Ap, f_H, n_H, f_W, n_W, c, m),
+                    reshape(Aip, f_H, n_H, f_W, n_W, c, m),
                     [1, 3, 2, 4, 5, 6],
                 ),
                 dims = 1:2,
@@ -59,7 +58,7 @@ function fastPooling!(
         cLayer.A = reshape(
             mean(
                 permutedims(
-                    reshape(Ap, f_H, n_H, f_W, n_W, c, m),
+                    reshape(Aip, f_H, n_H, f_W, n_W, c, m),
                     [1, 3, 2, 4, 5, 6],
                 ),
                 dims = 1:2,
@@ -93,7 +92,7 @@ function fastPooling!(
         cLayer.A = reshape(
             maximum(
                 permutedims(
-                    reshape(Ap, f_H, n_H, f_W, n_W, f_D, n_D, c, m),
+                    reshape(Aip, f_H, n_H, f_W, n_W, f_D, n_D, c, m),
                     [1, 3, 5, 2, 4, 6, 7, 8],
                 ),
                 dims = 1:3,
@@ -108,7 +107,7 @@ function fastPooling!(
         cLayer.A = reshape(
             mean(
                 permutedims(
-                    reshape(Ap, f_H, n_H, f_W, n_W, f_D, n_D, c, m),
+                    reshape(Aip, f_H, n_H, f_W, n_W, f_D, n_D, c, m),
                     [1, 3, 5, 2, 4, 6, 7, 8],
                 ),
                 dims = 1:3,
@@ -137,6 +136,7 @@ function dfastPooling!(
     dAo::AbstractArray{T,3},
 ) where {OneD<:Union{MaxPool1D,AveragePool1D},T}
 
+    padS = paddingSize(cLayer, Ai)
     Aip = padding(cLayer, Ai)
     n_Hi, c, m = size(Aip)
     s_H = cLayer.s
@@ -149,7 +149,7 @@ function dfastPooling!(
     else
         mask = similar(Aipr) .= 1 / prod((cLayer.f))
     end #if cLayer isa MaxPoolLayer
-    dAi .= reshape(reshape(Ao, 1, n_H, c, m) .* mask, n_Hi, c, m)
+    dAi .= reshape(reshape(dAo, 1, n_H, c, m) .* mask, n_Hi, c, m)[1+padS[1]:end-padS[2], :, :]
 
     mask = nothing
     return nothing
@@ -164,6 +164,7 @@ function dfastPooling!(
     dAo::AbstractArray{T,4},
 ) where {TwoD<:Union{MaxPool2D,AveragePool2D},T}
 
+    padS = paddingSize(cLayer, Ai)
     Aip = padding(cLayer, Ai)
     n_Hi, n_Wi, c, m = size(Aip)
     s_H, s_W = cLayer.s
@@ -188,7 +189,7 @@ function dfastPooling!(
         n_Wi,
         c,
         m,
-    )
+    )[1+padS[1]:end-padS[2], 1+padS[3]:end-padS[4], :, :]
 
     mask = nothing
     return nothing
@@ -203,6 +204,7 @@ function dfastPooling!(
     dAo::AbstractArray{T,5},
 ) where {ThreeD<:Union{MaxPool3D,AveragePool3D},T}
 
+    padS = paddingSize(cLayer, Ai)
     Aip = padding(cLayer, Ai)
     n_Hi, n_Wi, n_Di, c, m = size(Aip)
     s_H, s_W, s_D = cLayer.s
@@ -233,7 +235,12 @@ function dfastPooling!(
         n_Di,
         c,
         m,
-    )
+    )[1+padS[1]:end-padS[2],
+        1+padS[3]:end-padS[4],
+        1+padS[5]:end-padS[6],
+        :,
+        :,
+    ]
 
     mask = nothing
     return nothing
