@@ -3,7 +3,8 @@ using Statistics
 ###Input Layer
 function layerForProp!(
     cLayer::Input,
-    X::AbstractArray = Array{Any,1}(undef,0),
+    X::AbstractArray = Array{Any,1}(undef,0);
+    kwargs...,
 )
     if length(X) != 0
         cLayer.A = X
@@ -19,7 +20,8 @@ end
 
 function layerForProp!(
     cLayer::FCLayer,
-    Ai::AbstractArray = Array{Any,1}(undef,0),
+    Ai::AbstractArray = Array{Any,1}(undef,0);
+    kwargs...,
 )
     if length(Ai) == 0
         Ai = cLayer.prevLayer.A
@@ -38,7 +40,7 @@ end #function layerForProp!(cLayer::FCLayer)
 
 ###AddLayer forprop
 
-function layerForProp!(cLayer::AddLayer)
+function layerForProp!(cLayer::AddLayer; kwargs...,)
     cLayer.A = similar(cLayer.prevLayer[1].A)
     cLayer.A .= 0
     for prevLayer in cLayer.prevLayer
@@ -54,7 +56,8 @@ end #function layerForProp!(cLayer::AddLayer)
 
 function layerForProp!(
     cLayer::Activation,
-    Ai::AbstractArray = Array{Any,1}(undef,0),
+    Ai::AbstractArray = Array{Any,1}(undef,0);
+    kwargs...,
 )
     if length(Ai) == 0
         Ai = cLayer.prevLayer.A
@@ -73,7 +76,8 @@ end #function layerForProp!(cLayer::Activation)
 
 function layerForProp!(
     cLayer::BatchNorm,
-    Ai::AbstractArray = Array{Any,1}(undef,0),
+    Ai::AbstractArray = Array{Any,1}(undef,0);
+    kwargs...,
 )
     if length(Ai) == 0
         Ai = cLayer.prevLayer.A

@@ -26,9 +26,11 @@ function layerBackProp!(
     Ao::AbstractArray = Array{Any,1}(undef,0),
     dAo::AbstractArray = Array{Any,1}(undef,0);
     labels::AbstractArray = Array{Any,1}(undef,0),
-    img2colConvolve::Bool = false,
-    NNlib::Bool = true,
+    kwargs...
 ) where {CL <: ConvLayer}
+
+    NNlib = haskey(kwargs, :NNlib) ? kwargs[:NNlib] : true
+    img2col = haskey(kwargs, :img2col) ? kwargs[:img2col] : false
 
     if length(Ai) == 0
         Ai = cLayer.prevLayer.A
@@ -84,11 +86,11 @@ function layerBackProp!(
         cLayer.dA = similar(Ai) #the size before padding
         cLayer.dA .= 0
 
-        if img2colConvolve
+        if img2col
             dimg2colConvolve!(cLayer, Ai, cLayer.dA, dZ)
         else
             dconvolve!(cLayer, Ai, cLayer.dA, dZ)
-        end #if img2colConvolve
+        end #if img2col
 
     end #if NNlib
 
@@ -110,8 +112,10 @@ function layerBackProp!(
     Ao::AbstractArray = Array{Any,1}(undef,0),
     dAo::AbstractArray = Array{Any,1}(undef,0);
     labels::AbstractArray = Array{Any,1}(undef,0),
-    NNlib::Bool = true,
+    kwargs...
 ) where {OneD<:Union{MaxPool1D,AveragePool1D}}
+
+    NNlib = haskey(kwargs, :NNlib) ? kwargs[:NNlib] : true
     if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
@@ -158,7 +162,7 @@ function layerBackProp!(
         end #if cLayer.s == cLayer.f
     end #if NNlib
 
-    cLayer.forwCount += 1
+    cLayer.backCount += 1
     return nothing
 
 end #unction layerBackProp!(cLayer::OneD) where {OneD <: Union{MaxPool1D, AveragePool1D}}
@@ -170,8 +174,10 @@ function layerBackProp!(
     Ao::AbstractArray = Array{Any,1}(undef,0),
     dAo::AbstractArray = Array{Any,1}(undef,0);
     labels::AbstractArray = Array{Any,1}(undef,0),
-    NNlib::Bool = true,
-) where {TwoD<:Union{MaxPool2D,AveragePool2D},AoN<:Union{AbstractArray,Nothing}}
+    kwargs...
+) where {TwoD<:Union{MaxPool2D,AveragePool2D}}
+
+    NNlib = haskey(kwargs, :NNlib) ? kwargs[:NNlib] : true
     if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
@@ -218,7 +224,7 @@ function layerBackProp!(
         end #if cLayer.s == cLayer.f
     end #if NNlib
 
-    cLayer.forwCount += 1
+    cLayer.backCount += 1
     return nothing
 
 end #function layerBackProp!(cLayer::TwoD) where {TwoD <: Union{MaxPool2D, AveragePool2D}}
@@ -230,11 +236,10 @@ function layerBackProp!(
     Ao::AbstractArray = Array{Any,1}(undef,0),
     dAo::AbstractArray = Array{Any,1}(undef,0);
     labels::AbstractArray = Array{Any,1}(undef,0),
-    NNlib::Bool = true,
-) where {
-    ThreeD<:Union{MaxPool3D,AveragePool3D},
-    AoN<:Union{AbstractArray,Nothing},
-}
+    kwargs...,
+) where {ThreeD<:Union{MaxPool3D,AveragePool3D}}
+
+    NNlib = haskey(kwargs, :NNlib) ? kwargs[:NNlib] : true
     if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
@@ -282,7 +287,7 @@ function layerBackProp!(
         end #if cLayer.s == cLayer.f
     end #if NNlib
 
-    cLayer.forwCount += 1
+    cLayer.backCount += 1
     return nothing
 
 end #function layerBackProp!(cLayer::ThreeD) where {ThreeD <: Union{MaxPool3D, AveragePool3D}}

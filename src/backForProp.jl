@@ -21,29 +21,29 @@ include("layerForProp.jl")
         to be used later in back propagation and add one to the layer
         forwCount value when pass through it
 """
-function chainForProp!(X, cLayer::Layer, cnt::Integer=-1)
+function chainForProp!(X, cLayer::Layer, cnt::Integer=-1; kwargs...)
     if cnt<0
         cnt = cLayer.forwCount+1
     end
 
     if cLayer isa Input
         if cLayer.forwCount < cnt
-            layerForProp!(cLayer, X)
+            layerForProp!(cLayer, X; kwargs...)
         end #if cLayer.forwCount < cnt
         return nothing
     elseif isa(cLayer, AddLayer) #if typeof(cLayer)==AddLayer
         if cLayer.forwCount < cnt
             for prevLayer in cLayer.prevLayer
-                chainForProp!(X, prevLayer, cnt)
+                chainForProp!(X, prevLayer, cnt; kwargs...)
             end
-            layerForProp!(cLayer)
+            layerForProp!(cLayer; kwargs...)
         end #if cLayer.forwCount < cnt
 
         return nothing
     else #if cLayer.prevLayer==nothing
         if cLayer.forwCount < cnt
-            chainForProp!(X, cLayer.prevLayer, cnt)
-            layerForProp!(cLayer)
+            chainForProp!(X, cLayer.prevLayer, cnt; kwargs...)
+            layerForProp!(cLayer; kwargs...)
         end #if cLayer.forwCount < cnt
         return nothing
     end #if cLayer.prevLayer!=nothing
@@ -115,7 +115,7 @@ function predict(
 
     Ŷ_out = Array{T,N}(undef,repeat([0],N)...)
     accuracy = []
-    for j=1:nB
+    @simd for j=1:nB
         downInd = (j-1)*batchSize+1
         upInd   = j * batchSize
         X = X_In[axX..., downInd:upInd]
@@ -152,7 +152,7 @@ function predict(
         # X = Y = nothing
         Ŷ = nothing
         # Base.GC.gc()
-        update!(p, j, showvalues=[("Instances $m", m)])
+        update!(p, nB+1, showvalues=[("Instances $m", m)])
     end
 
     accuracyM = nothing
@@ -210,46 +210,47 @@ function chainBackProp!(X,Y,
                        cLayer::L=nothing,
                        cnt = -1;
                        tMiniBatch::Integer=-1, #can be used to perform both back and update params
+                       kwargs...,
                        ) where {L<:Union{Layer,Nothing}}
     if cnt < 0
         cnt = model.outLayer.backCount+1
     end
 
     if cLayer==nothing
-        layerBackProp!(model.outLayer, model; labels=Y)
+        layerBackProp!(model.outLayer, model; labels=Y, kwargs...)
 
         if tMiniBatch > 0
-            layerUpdateParams!(model, model.outLayer, cnt; tMiniBatch=tMiniBatch)
+            layerUpdateParams!(model, model.outLayer, cnt; tMiniBatch=tMiniBatch, kwargs...)
         end
 
-        chainBackProp!(X,Y,model, model.outLayer.prevLayer, cnt; tMiniBatch=tMiniBatch)
+        chainBackProp!(X,Y,model, model.outLayer.prevLayer, cnt; tMiniBatch=tMiniBatch, kwargs...)
 
     elseif cLayer isa AddLayer
-        layerBackProp!(cLayer, model)
+        layerBackProp!(cLayer, model; kwargs...)
 
         if tMiniBatch > 0
-            layerUpdateParams!(model, cLayer, cnt; tMiniBatch=tMiniBatch)
+            layerUpdateParams!(model, cLayer, cnt; tMiniBatch=tMiniBatch, kwargs...)
         end
 
-        if !(cLayer.backCount < cnt) #in case layerBackProp did not do the back
+        if cLayer.backCount >= cnt #in case layerBackProp did not do the back
                                      #prop becasue the next layers are not all
                                      #done yet
             for prevLayer in cLayer.prevLayer
-                chainBackProp!(X,Y,model, prevLayer, cnt; tMiniBatch=tMiniBatch)
+                chainBackProp!(X,Y,model, prevLayer, cnt; tMiniBatch=tMiniBatch, kwargs...)
             end #for
         end
     else #if cLayer==nothing
-        layerBackProp!(cLayer, model)
+        layerBackProp!(cLayer, model; kwargs...)
 
         if tMiniBatch > 0
-            layerUpdateParams!(model, cLayer, cnt; tMiniBatch=tMiniBatch)
+            layerUpdateParams!(model, cLayer, cnt; tMiniBatch=tMiniBatch, kwargs...)
         end
 
-        if !(cLayer.backCount < cnt)#in case layerBackProp did not do the back
+        if cLayer.backCount >= cnt #in case layerBackProp did not do the back
                                      #prop becasue the next layers are not all
                                      #done yet
             if !(cLayer isa Input)
-                chainBackProp!(X,Y,model, cLayer.prevLayer, cnt; tMiniBatch=tMiniBatch)
+                chainBackProp!(X,Y,model, cLayer.prevLayer, cnt; tMiniBatch=tMiniBatch, kwargs...)
             end #if cLayer.prevLayer == nothing
         end
     end #if cLayer==nothing

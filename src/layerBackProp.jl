@@ -42,6 +42,7 @@ function layerBackProp!(
     model::Model,
     dA::AoN = nothing;
     labels::AoN = nothing,
+    kwargs...,
 ) where {AoN<:Union{AbstractArray,Nothing}}
     prevLayer = cLayer.prevLayer
     lossFun = model.lossFun
@@ -131,6 +132,7 @@ function layerBackProp!(
     model::Model,
     dA::AoN = nothing;
     labels::AoN = nothing,
+    kwargs...,
 ) where {AoN<:Union{AbstractArray,Nothing}}
     prevLayer = cLayer.prevLayer
     lossFun = model.lossFun
@@ -209,6 +211,7 @@ function layerBackProp!(
     model::Model,
     dA::AoN = nothing;
     labels::AoN = nothing,
+    kwargs...,
 ) where {AoN<:Union{AbstractArray,Nothing}}
 
     # m = size(cLayer.A)[end]
@@ -262,6 +265,7 @@ function layerBackProp!(
     model::Model,
     dA::AoN = nothing;
     labels::AoN = nothing,
+    kwargs...,
 ) where {AoN<:Union{AbstractArray,Nothing}}
 
     # m = size(cLayer.A)[end]
@@ -303,6 +307,7 @@ function layerBackProp!(
     model::Model,
     dA::AoN = nothing;
     labels::AoN = nothing,
+    kwargs...,
 ) where {AoN<:Union{AbstractArray,Nothing}}
     prevLayer = cLayer.prevLayer
     lossFun = model.lossFun

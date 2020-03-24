@@ -5,9 +5,11 @@
 function layerForProp!(
     cLayer::Conv1D,
     Ai::AbstractArray = Array{Any,1}(undef,0);
-    img2colConvolve::Bool = false,
-    NNlib::Bool = true,
-) 
+    kwargs...
+)
+
+    NNlib = haskey(kwargs, :NNlib) ? kwargs[:NNlib] : true
+    img2col = haskey(kwargs, :img2col) ? kwargs[:img2col] : false
     if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
@@ -21,7 +23,7 @@ function layerForProp!(
 
     if NNlib
         NNConv!(cLayer, Ai)
-    elseif img2colConvolve
+    elseif img2col
         ## in case input different size than previous time
         if (n_H * c, n_Hi * ci) != size(cLayer.K)
             cLayer.K = unroll(cLayer, (n_Hi, ci, m))
@@ -44,9 +46,10 @@ end #function layerForProp!(cLayer::Conv1D)
 function layerForProp!(
     cLayer::Conv2D,
     Ai::AbstractArray = Array{Any,1}(undef,0);
-    img2colConvolve::Bool = false,
-    NNlib::Bool = true,
+    kwargs...
 )
+    NNlib = haskey(kwargs, :NNlib) ? kwargs[:NNlib] : true
+    img2col = haskey(kwargs, :img2col) ? kwargs[:img2col] : false
     if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
@@ -64,7 +67,7 @@ function layerForProp!(
 
     if NNlib
         NNConv!(cLayer, Ai)
-    elseif img2colConvolve
+    elseif img2col
         ## in case input different size than previous time
         if (n_W * n_H * c, n_Hi * n_Wi * ci) != size(cLayer.K)
             cLayer.K = unroll(cLayer, (n_Hi, n_Wi, ci, m))
@@ -87,9 +90,10 @@ end #function layerForProp!(cLayer::Conv2D)
 function layerForProp!(
     cLayer::Conv3D,
     Ai::AbstractArray = Array{Any,1}(undef,0);
-    img2colConvolve::Bool = false,
-    NNlib::Bool = true,
+    kwargs...
 )
+    NNlib = haskey(kwargs, :NNlib) ? kwargs[:NNlib] : true
+    img2col = haskey(kwargs, :img2col) ? kwargs[:img2col] : false
     if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
@@ -107,7 +111,7 @@ function layerForProp!(
 
     if NNlib
         NNConv!(cLayer, Ai)
-    elseif img2colConvolve
+    elseif img2col
         ## in case input different size than previous time
         if (n_W * n_H * n_D * c, n_Hi * n_Wi * n_Di * ci) != size(cLayer.K)
             cLayer.K = unroll(cLayer, (n_Hi, n_Wi, n_Di, ci, m))
@@ -138,8 +142,10 @@ import NNlib.maxpool, NNlib.meanpool, NNlib.maxpool!, NNlib.meanpool!, NNlib.Poo
 function layerForProp!(
     cLayer::OneD,
     Ai::AbstractArray = Array{Any,1}(undef,0);
-    NNlib::Bool = true,
-) where {OneD<:Union{MaxPool1D,AveragePool1D},AoN<:Union{AbstractArray,Nothing}}
+    kwargs...
+) where {OneD<:Union{MaxPool1D,AveragePool1D}}
+
+    NNlib = haskey(kwargs, :NNlib) ? kwargs[:NNlib] : true
     if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
@@ -178,8 +184,10 @@ end #unction layerForProp!(cLayer::OneD) where {OneD <: Union{MaxPool1D, Average
 function layerForProp!(
     cLayer::TwoD,
     Ai::AbstractArray = Array{Any,1}(undef,0);
-    NNlib::Bool = true,
-) where {TwoD<:Union{MaxPool2D,AveragePool2D},AoN<:Union{AbstractArray,Nothing}}
+    kwargs...,
+) where {TwoD<:Union{MaxPool2D,AveragePool2D}}
+
+    NNlib = haskey(kwargs, :NNlib) ? kwargs[:NNlib] : true
     if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
@@ -221,11 +229,10 @@ end #function layerForProp!(cLayer::TwoD) where {TwoD <: Union{MaxPool2D, Averag
 function layerForProp!(
     cLayer::ThreeD,
     Ai::AbstractArray = Array{Any,1}(undef,0);
-    NNlib::Bool = true,
-) where {
-    ThreeD<:Union{MaxPool3D,AveragePool3D},
-    AoN<:Union{AbstractArray,Nothing},
-}
+    kwargs...,
+) where {ThreeD<:Union{MaxPool3D,AveragePool3D}}
+
+    NNlib = haskey(kwargs, :NNlib) ? kwargs[:NNlib] : true
     if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
