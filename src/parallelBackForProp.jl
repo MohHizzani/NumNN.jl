@@ -36,7 +36,7 @@ function chainForProp(X::AbstractArray{T,N}, cLayer::Layer, cnt::Integer=-1; FCa
         )
             FCache[cLayer] = layerForProp(cLayer; FCache = FCache, kwargs...)
             for nextLayer in cLayer.nextLayers
-                return chainForProp(X, nextLayer, cnt; FCache = FCache, kwargs...)
+                FCache = chainForProp(X, nextLayer, cnt; FCache = FCache, kwargs...)
             end
         end #if all
 
@@ -49,12 +49,14 @@ function chainForProp(X::AbstractArray{T,N}, cLayer::Layer, cnt::Integer=-1; FCa
                 FCache[cLayer] = layerForProp(cLayer; FCache = FCache, kwargs...)
             end
             for nextLayer in cLayer.nextLayers
-                return chainForProp(X, nextLayer, cnt; FCache = FCache, kwargs...)
+                FCache = chainForProp(X, nextLayer, cnt; FCache = FCache, kwargs...)
             end
 
         end #if cLayer.forwCount < cnt
         return FCache
     end #if cLayer.prevLayer!=nothing
+
+    return FCache
 
 end #function chainForProp!
 

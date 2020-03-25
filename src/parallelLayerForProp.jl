@@ -48,7 +48,7 @@ function layerForProp(
     FCache::Dict{Layer,Dict{Symbol, AbstractArray}},
     kwargs...,
     )
-    A = similar(cLayer.prevLayer[1].A) .= 0
+    A = similar(FCache[cLayer.prevLayer[1]][:A]) .= 0
     # if all(
     #     i -> (i.forwCount == cLayer.prevLayer[1].forwCount),
     #     cLayer.prevLayer,
@@ -102,12 +102,12 @@ function layerForProp(
     initWB!(cLayer)
 
     μ = mean(Ai, dims = 1:cLayer.dim)
-    Ai_μ = Ai .- cLayer.μ
+    Ai_μ = Ai .- μ
     N = prod(size(Ai)[1:cLayer.dim])
     Ai_μ_s = Ai_μ .^ 2
-    var = sum(cLayer.Ai_μ_s, dims = 1:cLayer.dim) ./ N
-    Z = Ai_μ ./ sqrt.(cLayer.var .+ cLayer.ϵ)
-    A = cLayer.W .* cLayer.Z .+ cLayer.B
+    var = sum(Ai_μ_s, dims = 1:cLayer.dim) ./ N
+    Z = Ai_μ ./ sqrt.(var .+ cLayer.ϵ)
+    A = cLayer.W .* Z .+ cLayer.B
     cLayer.forwCount += 1
     Ai_μ = nothing
     cLayer.inputS = cLayer.outputS = size(Ai)

@@ -81,9 +81,9 @@ function initWB!(
     if He
         coef = sqrt(2 / cn)
     end
-    N = ndims(cLayer.prevLayer.A)
+    N = length(cLayer.prevLayer.inputS)
     normDim = cLayer.dim
-    S = size(cLayer.prevLayer.A)
+    S = cLayer.prevLayer.outputS
     paramS = Array{Integer,1}(undef,0)
     for i=1:N
         if S[i] < 1 || i <= normDim

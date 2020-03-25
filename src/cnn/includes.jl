@@ -13,3 +13,7 @@ include("unroll.jl")
 include("img2colConvolve.jl")
 include("fastPooling.jl")
 include("NNConv.jl")
+
+
+###
+include("parallelLayerForProp.jl")
