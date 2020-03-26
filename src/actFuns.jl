@@ -5,7 +5,7 @@ export actFun
 
 
 
-
+export probToValue
 
 
 ### sigmoid
@@ -29,7 +29,7 @@ dσ(Z) = σ(Z) .* (1 .- σ(Z))
 export dσ
 
 
-function predict(
+function probToValue(
     actFun::Type{σ},
     probs::Array{T,N},
     labels::Aa = nothing,
@@ -113,7 +113,7 @@ end #dsoftmax
 export softmax, dsoftmax
 
 
-function predict(
+function probToValue(
     actFun::Type{S},
     probs::Array{T,N};
     labels = nothing,
@@ -128,8 +128,8 @@ function predict(
         ax = axes(bool_labels)[1:end-1]
         endax = axes(bool_labels)[end]
         for i in endax
-            lab = bool_labels[ax..., i]
-            pred = Ŷ_bool[ax..., i]
+            lab = view(bool_labels, ax..., i)
+            pred = view(Ŷ_bool, ax..., i)
             acc += (lab == pred) ? 1 : 0
         end
         acc /= size(labels)[end]

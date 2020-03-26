@@ -94,10 +94,16 @@ function layerForProp(
     kwargs...,
 )
 
+    prediction = haskey(kwargs, :prediction) ? kwargs[:prediction] : false
     prevLayer = cLayer.prevLayer
     if length(Ai) == 0
         Ai = FCache[prevLayer][:A]
     end
+
+    if prediction
+        cLayer.forwCount += 1
+        return Dict(:A => Ai)
+    end #prediction
 
     initWB!(cLayer)
 

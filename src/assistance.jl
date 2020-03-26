@@ -42,3 +42,8 @@ function resetCount!(outLayer::Layer,
 end #function resetForwCount
 
 export resetCount!
+
+
+### to extend the haskey fun
+
+Base.haskey(it, key; default) = haskey(it, key) ? it[key] : default

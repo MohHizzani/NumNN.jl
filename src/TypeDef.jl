@@ -294,6 +294,7 @@ export BatchNorm
 
 mutable struct Model
     # layers::Array{Layer,1}
+    inLayer::Layer
     outLayer::Layer
     lossFun::Symbol
 
@@ -325,6 +326,7 @@ mutable struct Model
     function Model(
         X,
         Y,
+        inLayer::Layer,
         outLayer::Layer,
         α;
         optimizer = :gds,
@@ -343,6 +345,7 @@ mutable struct Model
         resetCount!(outLayer, :forwCount)
         @assert regulization in [0, 1, 2]
         return new(
+            inLayer,
             outLayer,
             lossFun,
             paramsDtype,

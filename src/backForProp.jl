@@ -78,7 +78,7 @@ function predictBatch(
     outLayer = model.outLayer
     actFun = outLayer.actFun
     # if isbool(Y)
-    return predict(eval(:($actFun)), Ŷ, labels=Y)
+    return probToValue(eval(:($actFun)), Ŷ, labels=Y)
 
 end #predict
 
