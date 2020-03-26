@@ -241,7 +241,7 @@ function chainBackProp(
     model::Model,
     FCache::Dict{Layer,Dict{Symbol,AbstractArray}},
     cLayer::L = nothing,
-    BCache::Dict{Layer,Dict{Symbol,AbstractArray}}(),
+    BCache::Dict{Layer,Dict{Symbol,AbstractArray}}=Dict{Layer,Dict{Symbol,AbstractArray}}(),
     cnt = -1;
     tMiniBatch::Integer = -1, #can be used to perform both back and update params
     kwargs...,
@@ -270,8 +270,8 @@ function chainBackProp(
             Y,
             model,
             FCache,
-            BCache,
             cLayer.prevLayer,
+            BCache,
             cnt;
             tMiniBatch = tMiniBatch,
             kwargs...,
@@ -299,8 +299,8 @@ function chainBackProp(
                     Y,
                     model,
                     FCache,
-                    BCache,
                     prevLayer,
+                    BCache,
                     cnt;
                     tMiniBatch = tMiniBatch,
                     kwargs...,
@@ -329,8 +329,8 @@ function chainBackProp(
                     Y,
                     model,
                     FCache,
-                    BCache,
                     cLayer.prevLayer,
+                    BCache,
                     cnt;
                     tMiniBatch = tMiniBatch,
                     kwargs...,
