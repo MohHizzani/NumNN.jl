@@ -105,6 +105,8 @@ end #function layerBackProp(cLayer::Input
 
 ### Pooling Layers
 
+#TODO make the fastPooling with most priority
+
 #import only the needed parts not to have conflict
 import NNlib.∇maxpool, NNlib.∇meanpool, NNlib.∇maxpool!, NNlib.∇meanpool!, NNlib.PoolDims
 
@@ -172,4 +174,4 @@ function layerBackProp(
     cLayer.backCount += 1
     return Dict(:dA => dAi)
 
-end #unction layerBackProp(cLayer::OneD) where {OneD <: Union{MaxPool1D, AveragePool1D}}
+end #unction layerBackProp(cLayer::PL,
