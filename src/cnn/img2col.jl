@@ -32,14 +32,14 @@ export img2col
 
 ### col2img
 
-function col2img1D(
+function col2img(
     Av::AbstractArray{T,2},
     outputS::Tuple{Integer,Integer,Integer},
 )::AbstractArray{T,3} where {T}
     return reshape(Av, outputS)
 end #function col2img(Av::Array{T,2}, c::Integer)
 
-function col2img2D(
+function col2img(
     Av::AbstractArray{T,2},
     outputS::Tuple{Integer,Integer,Integer,Integer},
 )::AbstractArray{T,4} where {T}
@@ -47,7 +47,7 @@ function col2img2D(
     return permutedims(reshape(Av, (W, H, c, m)), [2, 1, 3, 4])
 end #function col2img(Av::Array{T,2}, c::Integer; H::Integer=-1, W::Integer=-1)
 
-function col2img3D(
+function col2img(
     Av::AbstractArray{T,2},
     outputS::Tuple{Integer,Integer,Integer,Integer,Integer},
 )::AbstractArray{T,5} where {T}

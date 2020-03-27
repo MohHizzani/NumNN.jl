@@ -17,3 +17,4 @@ include("unroll.jl")
 
 ###
 include("parallelLayerForProp.jl")
+include("parallelLayerBackProp.jl")
