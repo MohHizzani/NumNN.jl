@@ -1,12 +1,12 @@
 
-function img2colConvolve(cLayer::CL, Ai::AbstractArray{T,3}) where {T, CL <: ConvLayer}
+function img2colConvolve(cLayer::CL, Ai::AbstractArray{T,N}) where {T,N, CL <: ConvLayer}
 
     Aip = padding(cLayer, Ai)
     axBT = axes(cLayer.B)
     axB = axBT[1:end-2]
     axBend = axBT[end]
     Z = col2img(cLayer.K * img2col(Aip), cLayer.outputS) .+
-            view(cLayer.B, axes, 1, axBend)
+            view(cLayer.B, axB..., 1, axBend)
 
     actFun = cLayer.actFun
     Ao = eval(:($actFun($Z)))
