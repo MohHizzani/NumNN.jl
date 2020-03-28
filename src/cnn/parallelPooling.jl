@@ -19,9 +19,12 @@ function pooling!(
         pool = mean
     end #if cLayer isa MaxPoolLayer
 
-    @simd for mi = 1:m
-        @simd for ci = 1:c
-            @simd for hi = 1:n_H
+    # @simd
+    for mi = 1:m,
+        # @simd for
+        ci = 1:c
+            # @simd
+            Threads.@threads for hi = 1:n_H
                 h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
                 h_end = hi * s_H - (s_H == 1 ? 0 : s_H - 1) + f_H - 1
                 @inbounds ai = view(Aip,h_start:h_end, ci, mi)
@@ -29,7 +32,7 @@ function pooling!(
                 # ai = nothing
                 # Base.GC.gc()
             end #for
-        end #for ci=1:c
+        # end #for ci=1:c
     end #for mi=1:m, ci=1:c
 
     return nothing
@@ -53,10 +56,14 @@ function pooling!(
     else
         pool = mean
     end #if cLayer isa MaxPoolLayer
-    @simd for mi = 1:m
-        @simd for ci = 1:c
-            @simd for wi = 1:n_W
-                @simd for hi = 1:n_H
+    # @simd
+    for mi = 1:m,
+        # @simd for
+        ci = 1:c,
+            # @simd for
+            wi = 1:n_W
+                # @simd
+                Threads.@threads for hi = 1:n_H
                     h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
                     h_end = hi * s_H - (s_H == 1 ? 0 : s_H - 1) + f_H - 1
                     w_start = wi * s_W - (s_W == 1 ? 0 : s_W - 1)
@@ -67,8 +74,8 @@ function pooling!(
                     # ai = nothing
                     # Base.GC.gc()
                 end #for hi=1:n_H
-            end #for wi=1:n_W
-        end #for ci=1:c
+        #     end #for wi=1:n_W
+        # end #for ci=1:c
     end #for mi=1:m,
     return nothing
 end #function pooling!(cLayer::TwoD,
@@ -95,11 +102,16 @@ function pooling!(
         pool = mean
     end #if cLayer isa MaxPoolLayer
 
-    @simd for mi = 1:m
-        @simd for ci = 1:c
-            @simd for di = 1:n_D
-                @simd for wi = 1:n_W
-                    @simd for hi = 1:n_H
+    # @simd
+    for mi = 1:m,
+        # @simd for
+        ci = 1:c,
+            # @simd for
+            di = 1:n_D,
+                # @simd for
+                wi = 1:n_W
+                    # @simd
+                    Threads.@threads for hi = 1:n_H
                         h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
                         h_end = hi * s_H - (s_H == 1 ? 0 : s_H - 1) + f_H - 1
                         w_start = wi * s_W - (s_W == 1 ? 0 : s_W - 1)
@@ -117,9 +129,9 @@ function pooling!(
                         # ai = nothing
                         # Base.GC.gc()
                     end #for hi=1:n_H
-                end #for wi=1:n_W
-            end #for di=1:n_D
-        end #for ci=1:c
+        #         end #for wi=1:n_W
+        #     end #for di=1:n_D
+        # end #for ci=1:c
     end #for mi=1:m, ci=1:c
 
     return nothing
@@ -147,9 +159,12 @@ function dpooling!(
     n_H = (n_Hi - f_H) ÷ s_H + 1
 
     if sS == fS #to use the @simd the parallele the operation
-        @simd for mi = 1:m
-            @simd for ci = 1:c
-                @simd for hi = 1:n_H
+        # @simd
+        for mi = 1:m,
+            # @simd for
+            ci = 1:c
+                # @simd
+                Threads.@threads for hi = 1:n_H
                     h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
                     h_end = hi * s_H - (s_H == 1 ? 0 : s_H - 1) + f_H - 1
                     @inbounds ai = Aip[h_start:h_end, ci, mi]
@@ -164,11 +179,13 @@ function dpooling!(
                             (dAo[hi, ci, mi] .* mask)
                     end #if cLayer isa MaxPoolLayer
                 end #for hi=1:n_H
-            end #for ci=1:c
+            # end #for ci=1:c
         end #for mi=1:m
     else
-        @simd for mi = 1:m
-            @simd for ci = 1:c
+        # @simd
+        for mi = 1:m
+            # @simd
+            Threads.@threads for ci = 1:c
                 for hi = 1:n_H
                     h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
                     h_end = hi * s_H - (s_H == 1 ? 0 : s_H - 1) + f_H - 1
@@ -212,10 +229,14 @@ function dpooling!(
     n_H = (n_Hi - f_H) ÷ s_H + 1
     n_W = (n_Wi - f_W) ÷ s_W + 1
     if sS == fS
-        @simd for mi = 1:m
-            @simd for ci = 1:c
-                @simd for wi = 1:n_W
-                    @simd for hi = 1:n_H
+        # @simd
+        for mi = 1:m,
+            # @simd for
+            ci = 1:c,
+                # @simd for
+                wi = 1:n_W
+                    # @simd
+                    Threads.@threads for hi = 1:n_H
                         h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
                         h_end = hi * s_H - (s_H == 1 ? 0 : s_H - 1) + f_H - 1
                         w_start = wi * s_W - (s_W == 1 ? 0 : s_W - 1)
@@ -240,12 +261,14 @@ function dpooling!(
                             ] .+= (dAo[hi, wi, ci, mi] .* mask)
                         end #if cLayer isa MaxPoolLayer
                     end #for hi=1:n_H
-                end #for wi=1:n_W
-            end #for ci=1:c
+            #     end #for wi=1:n_W
+            # end #for ci=1:c
         end #for mi=1:m
     else
-        @simd for mi = 1:m
-            @simd for ci = 1:c
+        # @simd
+        for mi = 1:m
+            # @simd
+            Threads.@threads for ci = 1:c
                 for wi = 1:n_W, hi = 1:n_H
                     h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
                     h_end = hi * s_H - (s_H == 1 ? 0 : s_H - 1) + f_H - 1
@@ -294,11 +317,16 @@ function dpooling!(
     n_D = (n_Di - f_D) ÷ s_D + 1
 
     if sS == fS
-        @simd for mi = 1:m
-            @simd for ci = 1:c
-                @simd for di = 1:n_D
-                    @simd for wi = 1:n_W
-                        @simd for hi = 1:n_H
+        # @simd
+        for mi = 1:m,
+            # @simd for
+            ci = 1:c,
+                # @simd for
+                di = 1:n_D,
+                    # @simd for
+                    wi = 1:n_W
+                        # @simd
+                        Threads.@threads for hi = 1:n_H
                             h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
                             h_end =
                                 hi * s_H - (s_H == 1 ? 0 : s_H - 1) + f_H - 1
@@ -336,14 +364,16 @@ function dpooling!(
                                 ] .+= (dAo[hi, wi, di, ci, mi] .* mask)
                             end #if cLayer isa MaxPoolLayer
                         end #for hi=1:n_H
-                    end #for wi=1:n_W
-                end #for di=1:n_D
-            end #for ci=1:c
+            #         end #for wi=1:n_W
+            #     end #for di=1:n_D
+            # end #for ci=1:c
         end #for mi=1:m
 
     else
-        @simd for mi = 1:m
-            @simd for ci = 1:c
+        # @simd
+        for mi = 1:m
+            # @simd
+            Threads.@threads for ci = 1:c
                 for di = 1:n_D, wi = 1:n_W, hi = 1:n_H
                     h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
                     h_end = hi * s_H - (s_H == 1 ? 0 : s_H - 1) + f_H - 1
