@@ -1,13 +1,20 @@
 #Naive convolution method using for loops with some parallel using
 #@simd and @inbounds
 
-function convolve(cLayer::Conv1D, Ai::AbstractArray{T,3}, Z::AbstractArray{T,3}) where {T}
+function convolve(cLayer::Conv1D, Ai::AbstractArray{T1,3}) where {T1}
 
     Aip = padding(cLayer, Ai)
 
     f_H = cLayer.f
     s_H = cLayer.s
     lastDim = ndims(Ai)
+    paddedS = paddedSize(cLayer, Ai)[1:end-2]
+    s = cLayer.s
+    f = cLayer.f
+    outputS = outDims(cLayer, Ai)[1:end-2]
+    ci, m = cLayer.inputS[end-1:end]
+    co = cLayer.channels
+    Z = zeros(eltype(Ai), outputS..., co, m)
     n_H, c, m = size(Z)
     W = cLayer.W
     B = cLayer.B
@@ -36,13 +43,21 @@ function convolve(cLayer::Conv1D, Ai::AbstractArray{T,3}, Z::AbstractArray{T,3})
 end #function convolve(cLayer::Conv1D
 
 
-function convolve(cLayer::Conv2D, Ai::AbstractArray{T,4}, Z::AbstractArray{T,4}) where {T}
+function convolve(cLayer::Conv2D, Ai::AbstractArray{T1,4}) where {T1}
 
     Aip = padding(cLayer, Ai)
 
     f_H, f_W = cLayer.f
     s_H, s_W = cLayer.s
     lastDim = ndims(Ai)
+    cLayer.inputS = size(Ai)
+    paddedS = paddedSize(cLayer, Ai)[1:end-2]
+    s = cLayer.s
+    f = cLayer.f
+    outputS = outDims(cLayer, Ai)[1:end-2]
+    ci, m = cLayer.inputS[end-1:end]
+    co = cLayer.channels
+    Z = zeros(eltype(Ai), outputS..., co, m)
     n_H, n_W, c, m = size(Z)
     W = cLayer.W
     B = cLayer.B
@@ -75,13 +90,20 @@ function convolve(cLayer::Conv2D, Ai::AbstractArray{T,4}, Z::AbstractArray{T,4})
     return Dict(:Z => Z, :A => Ao)
 end #function convolve(cLayer::Conv2D
 
-function convolve(cLayer::Conv3D, Ai::AbstractArray{T,5}, Z::AbstractArray{T,5}) where {T}
+function convolve(cLayer::Conv3D, Ai::AbstractArray{T1,5}) where {T1}
 
     Aip = padding(cLayer, Ai)
 
     f_H, f_W, f_D = cLayer.f
     s_H, s_W, s_D = cLayer.s
     lastDim = ndims(Ai)
+    paddedS = paddedSize(cLayer, Ai)[1:end-2]
+    s = cLayer.s
+    f = cLayer.f
+    outputS = outDims(cLayer, Ai)[1:end-2]
+    ci, m = cLayer.inputS[end-1:end]
+    co = cLayer.channels
+    Z = zeros(eltype(Ai), outputS..., co, m)
     n_H, n_W, n_D, c, m = size(Z)
     W = cLayer.W
     B = cLayer.B
@@ -135,10 +157,10 @@ export convolve
 
 function dconvolve!(
     cLayer::Conv1D,
-    Ai::AbstractArray{T,3},
-    dAi::AbstractArray{T,3},
-    dZ::AbstractArray{T,3},
-) where {T}
+    Ai::AbstractArray{T1,3},
+    dAi::AbstractArray{T2,3},
+    dZ::AbstractArray{T3,3},
+) where {T1,T2,T3}
 
     Aip = padding(cLayer, Ai)
     padS = paddingSize(cLayer, Ai)
@@ -180,10 +202,10 @@ end #function dconvolve(cLayer::Conv1D
 
 function dconvolve!(
     cLayer::Conv2D,
-    Ai::AbstractArray{T,4},
-    dAi::AbstractArray{T,4},
-    dZ::AbstractArray{T,4},
-) where {T}
+    Ai::AbstractArray{T1,4},
+    dAi::AbstractArray{T2,4},
+    dZ::AbstractArray{T3,4},
+) where {T1,T2,T3}
 
     Aip = padding(cLayer, Ai)
     padS = paddingSize(cLayer, Ai)
@@ -227,10 +249,10 @@ end #function dconvolve(cLayer::Conv2D
 
 function dconvolve!(
     cLayer::Conv3D,
-    Ai::AbstractArray{T,5},
-    dAi::AbstractArray{T,5},
-    dZ::AbstractArray{T,5},
-) where {T}
+    Ai::AbstractArray{T1,5},
+    dAi::AbstractArray{T2,5},
+    dZ::AbstractArray{T3,5},
+) where {T1,T2,T3}
 
     Aip = padding(cLayer, Ai)
     padS = paddingSize(cLayer, Ai)

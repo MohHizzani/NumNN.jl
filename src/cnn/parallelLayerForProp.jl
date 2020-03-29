@@ -34,8 +34,7 @@ function layerForProp(
         end
         D = img2colConvolve(cLayer, Ai)
     else
-        Z = zeros(eltype(Ai), outputS..., co, m)
-        D = convolve(cLayer, Ai, Z)
+        D = convolve(cLayer, Ai)
     end
 
     cLayer.outputS = size(D[:A])
@@ -82,15 +81,15 @@ function layerForProp(
 
     Ao = zeros(eltype(Ai), outputS..., co, m)
 
-    if s == f && fastPool #to use the built-in reshape and maximum and mean
-        fastPooling!(cLayer, Ai, Ao)
-    elseif NNlib
+    if NNlib
         pooldims = PoolDims(Ai, f, stride = s, padding = padS)
         if cLayer isa MaxPoolLayer
             maxpool!(Ao, Ai, pooldims)
         elseif cLayer isa AveragePoolLayer
             meanpool!(Ao, Ai, pooldims)
         end #if cLayer isa MaxPoolLayer
+    elseif s == f && fastPool #to use the built-in reshape and maximum and mean
+        fastPooling!(cLayer, Ai, Ao)
     else
         pooling!(cLayer, Ai, Ao)
     end #if NNlibConv

@@ -32,8 +32,8 @@ function layerBackProp(
 ) where {CL <: ConvLayer}
 
     kwargs = Dict(kwargs...)
-    NNlib = getindex(kwargs, :NNlib; default=true)
-    img2col = getindex(kwargs, :img2col; default=true)
+    NNlib = getindex(kwargs, :NNlib; default=false)
+    img2col = getindex(kwargs, :img2col; default=false)
 
     if length(Ai) == 0
         Ai = FCache[cLayer.prevLayer][:A]
@@ -83,18 +83,12 @@ function layerBackProp(
 
     dAi = zeros(promote_type(eltype(Ai),eltype(dZ)), size(Ai))
 
-    if NNlib
-
+    if ! (NNlib || img2col)
+        dconvolve!(cLayer, Ai, dAi, dZ)
+    elseif NNlib
         dNNConv!(cLayer, Ai, dAi, dZ)
-
-    else
-
-        if img2col
-            dimg2colConvolve!(cLayer, Ai, dAi, dZ)
-        else
-            dconvolve!(cLayer, Ai, dAi, dZ)
-        end #if img2col
-
+    elseif img2col
+        dimg2colConvolve!(cLayer, Ai, dAi, dZ)
     end #if NNlib
 
     cLayer.backCount += 1
@@ -158,9 +152,7 @@ function layerBackProp(
     dAi = zeros(promote_type(eltype(Ai), eltype(dAo)), size(Ai))
 
 
-    if cLayer.s == cLayer.f && fastPool
-        dfastPooling!(cLayer, Ai, dAi, Ao, dAo)
-    elseif NNlib
+    if NNlib
         pooldims = PoolDims(Ai, cLayer.f, stride = cLayer.s, padding = padS)
         if cLayer isa MaxPoolLayer
             ∇maxpool!(dAi, dAo, Ao, Ai, pooldims)
@@ -168,6 +160,8 @@ function layerBackProp(
             ∇meanpool!(dAi, dAo, Ao, Ai, pooldims)
         end #if cLayer isa MaxPoolLayer
 
+    elseif cLayer.s == cLayer.f && fastPool
+        dfastPooling!(cLayer, Ai, dAi, Ao, dAo)
     else
         dpooling!(cLayer, Ai, dAi, Ao, dAo)
 
