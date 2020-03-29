@@ -158,30 +158,30 @@ function dpooling!(
     f_H = fS = cLayer.f
     n_H = (n_Hi - f_H) ÷ s_H + 1
 
-    if sS == fS #to use the @simd the parallele the operation
-        # @simd
-        for mi = 1:m,
-            # @simd for
-            ci = 1:c
-                # @simd
-                Threads.@threads for hi = 1:n_H
-                    h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
-                    h_end = hi * s_H - (s_H == 1 ? 0 : s_H - 1) + f_H - 1
-                    @inbounds ai = Aip[h_start:h_end, ci, mi]
-                    if cLayer isa MaxPoolLayer
-                        mask = (Ao[hi,ci,mi] .== ai)
-                        @inbounds dAip[h_start:h_end, ci, mi] .+=
-                            (dAo[hi, ci, mi] .* mask)
-                    else
-                        mask = similar(ai)
-                        mask .= 1 / prod(size(ai))
-                        @inbounds dAip[h_start:h_end, ci, mi] .+=
-                            (dAo[hi, ci, mi] .* mask)
-                    end #if cLayer isa MaxPoolLayer
-                end #for hi=1:n_H
-            # end #for ci=1:c
-        end #for mi=1:m
-    else
+    # if sS == fS #to use the @simd the parallele the operation
+    #     # @simd
+    #     for mi = 1:m,
+    #         # @simd for
+    #         ci = 1:c
+    #             # @simd
+    #             Threads.@threads for hi = 1:n_H
+    #                 h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
+    #                 h_end = hi * s_H - (s_H == 1 ? 0 : s_H - 1) + f_H - 1
+    #                 @inbounds ai = Aip[h_start:h_end, ci, mi]
+    #                 if cLayer isa MaxPoolLayer
+    #                     mask = (Ao[hi,ci,mi] .== ai)
+    #                     @inbounds dAip[h_start:h_end, ci, mi] .+=
+    #                         (dAo[hi, ci, mi] .* mask)
+    #                 else
+    #                     mask = similar(ai)
+    #                     mask .= 1 / prod(size(ai))
+    #                     @inbounds dAip[h_start:h_end, ci, mi] .+=
+    #                         (dAo[hi, ci, mi] .* mask)
+    #                 end #if cLayer isa MaxPoolLayer
+    #             end #for hi=1:n_H
+    #         # end #for ci=1:c
+    #     end #for mi=1:m
+    # else
         # @simd
         for mi = 1:m
             # @simd
@@ -203,7 +203,7 @@ function dpooling!(
                 end #for hi=1:n_H
             end #for ci=1:c
         end #for mi=1:m
-    end #if sS == fS
+    # end #if sS == fS
 
     dAi .= dAip[1+padS[1]:end-padS[2], :, :]
 
@@ -228,43 +228,43 @@ function dpooling!(
     f_H, f_W = fS = cLayer.f
     n_H = (n_Hi - f_H) ÷ s_H + 1
     n_W = (n_Wi - f_W) ÷ s_W + 1
-    if sS == fS
-        # @simd
-        for mi = 1:m,
-            # @simd for
-            ci = 1:c,
-                # @simd for
-                wi = 1:n_W
-                    # @simd
-                    Threads.@threads for hi = 1:n_H
-                        h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
-                        h_end = hi * s_H - (s_H == 1 ? 0 : s_H - 1) + f_H - 1
-                        w_start = wi * s_W - (s_W == 1 ? 0 : s_W - 1)
-                        w_end = wi * s_W - (s_W == 1 ? 0 : s_W - 1) + f_W - 1
-                        @inbounds ai = Aip[h_start:h_end, w_start:w_end, ci, mi]
-                        if cLayer isa MaxPoolLayer
-                            mask = (Ao[hi,wi,ci,mi] .== ai)
-                            @inbounds dAip[
-                                h_start:h_end,
-                                w_start:w_end,
-                                ci,
-                                mi,
-                            ] .+= (dAo[hi, wi, ci, mi] .* mask)
-                        else
-                            mask = similar(ai)
-                            mask .= 1 / prod(size(ai))
-                            @inbounds dAip[
-                                h_start:h_end,
-                                w_start:w_end,
-                                ci,
-                                mi,
-                            ] .+= (dAo[hi, wi, ci, mi] .* mask)
-                        end #if cLayer isa MaxPoolLayer
-                    end #for hi=1:n_H
-            #     end #for wi=1:n_W
-            # end #for ci=1:c
-        end #for mi=1:m
-    else
+    # if sS == fS
+    #     # @simd
+    #     for mi = 1:m,
+    #         # @simd for
+    #         ci = 1:c,
+    #             # @simd for
+    #             wi = 1:n_W
+    #                 # @simd
+    #                 Threads.@threads for hi = 1:n_H
+    #                     h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
+    #                     h_end = hi * s_H - (s_H == 1 ? 0 : s_H - 1) + f_H - 1
+    #                     w_start = wi * s_W - (s_W == 1 ? 0 : s_W - 1)
+    #                     w_end = wi * s_W - (s_W == 1 ? 0 : s_W - 1) + f_W - 1
+    #                     @inbounds ai = Aip[h_start:h_end, w_start:w_end, ci, mi]
+    #                     if cLayer isa MaxPoolLayer
+    #                         mask = (Ao[hi,wi,ci,mi] .== ai)
+    #                         @inbounds dAip[
+    #                             h_start:h_end,
+    #                             w_start:w_end,
+    #                             ci,
+    #                             mi,
+    #                         ] .+= (dAo[hi, wi, ci, mi] .* mask)
+    #                     else
+    #                         mask = similar(ai)
+    #                         mask .= 1 / prod(size(ai))
+    #                         @inbounds dAip[
+    #                             h_start:h_end,
+    #                             w_start:w_end,
+    #                             ci,
+    #                             mi,
+    #                         ] .+= (dAo[hi, wi, ci, mi] .* mask)
+    #                     end #if cLayer isa MaxPoolLayer
+    #                 end #for hi=1:n_H
+    #         #     end #for wi=1:n_W
+    #         # end #for ci=1:c
+    #     end #for mi=1:m
+    # else
         # @simd
         for mi = 1:m
             # @simd
@@ -288,7 +288,7 @@ function dpooling!(
                 end #for wi=1:n_W, hi=1:n_H
             end #for ci=1:c
         end #for mi=1:m
-    end #if sS == fS
+    # end #if sS == fS
 
     dAi .= dAip[1+padS[1]:end-padS[2], 1+padS[3]:end-padS[4], :, :]
 
@@ -316,60 +316,60 @@ function dpooling!(
     n_W = (n_Wi - f_W) ÷ s_W + 1
     n_D = (n_Di - f_D) ÷ s_D + 1
 
-    if sS == fS
-        # @simd
-        for mi = 1:m,
-            # @simd for
-            ci = 1:c,
-                # @simd for
-                di = 1:n_D,
-                    # @simd for
-                    wi = 1:n_W
-                        # @simd
-                        Threads.@threads for hi = 1:n_H
-                            h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
-                            h_end =
-                                hi * s_H - (s_H == 1 ? 0 : s_H - 1) + f_H - 1
-                            w_start = wi * s_W - (s_W == 1 ? 0 : s_W - 1)
-                            w_end =
-                                wi * s_W - (s_W == 1 ? 0 : s_W - 1) + f_W - 1
-                            d_start = di * s_D - (s_D == 1 ? 0 : s_D - 1)
-                            d_end =
-                                di * s_D - (s_D == 1 ? 0 : s_D - 1) + f_D - 1
-                            @inbounds ai = Aip[
-                                h_start:h_end,
-                                w_start:w_end,
-                                d_start:d_end,
-                                ci,
-                                mi,
-                            ]
-                            if cLayer isa MaxPoolLayer
-                                mask = (Ao[hi,wi,di,ci,mi] .== ai)
-                                @inbounds dAip[
-                                    h_start:h_end,
-                                    w_start:w_end,
-                                    d_start:d_end,
-                                    ci,
-                                    mi,
-                                ] .+= (dAo[hi, wi, di, ci, mi] .* mask)
-                            else
-                                mask = similar(ai)
-                                mask .= 1 / prod(size(ai))
-                                @inbounds dAip[
-                                    h_start:h_end,
-                                    w_start:w_end,
-                                    d_start:d_end,
-                                    ci,
-                                    mi,
-                                ] .+= (dAo[hi, wi, di, ci, mi] .* mask)
-                            end #if cLayer isa MaxPoolLayer
-                        end #for hi=1:n_H
-            #         end #for wi=1:n_W
-            #     end #for di=1:n_D
-            # end #for ci=1:c
-        end #for mi=1:m
-
-    else
+    # if sS == fS
+    #     # @simd
+    #     for mi = 1:m,
+    #         # @simd for
+    #         ci = 1:c,
+    #             # @simd for
+    #             di = 1:n_D,
+    #                 # @simd for
+    #                 wi = 1:n_W
+    #                     # @simd
+    #                     Threads.@threads for hi = 1:n_H
+    #                         h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
+    #                         h_end =
+    #                             hi * s_H - (s_H == 1 ? 0 : s_H - 1) + f_H - 1
+    #                         w_start = wi * s_W - (s_W == 1 ? 0 : s_W - 1)
+    #                         w_end =
+    #                             wi * s_W - (s_W == 1 ? 0 : s_W - 1) + f_W - 1
+    #                         d_start = di * s_D - (s_D == 1 ? 0 : s_D - 1)
+    #                         d_end =
+    #                             di * s_D - (s_D == 1 ? 0 : s_D - 1) + f_D - 1
+    #                         @inbounds ai = Aip[
+    #                             h_start:h_end,
+    #                             w_start:w_end,
+    #                             d_start:d_end,
+    #                             ci,
+    #                             mi,
+    #                         ]
+    #                         if cLayer isa MaxPoolLayer
+    #                             mask = (Ao[hi,wi,di,ci,mi] .== ai)
+    #                             @inbounds dAip[
+    #                                 h_start:h_end,
+    #                                 w_start:w_end,
+    #                                 d_start:d_end,
+    #                                 ci,
+    #                                 mi,
+    #                             ] .+= (dAo[hi, wi, di, ci, mi] .* mask)
+    #                         else
+    #                             mask = similar(ai)
+    #                             mask .= 1 / prod(size(ai))
+    #                             @inbounds dAip[
+    #                                 h_start:h_end,
+    #                                 w_start:w_end,
+    #                                 d_start:d_end,
+    #                                 ci,
+    #                                 mi,
+    #                             ] .+= (dAo[hi, wi, di, ci, mi] .* mask)
+    #                         end #if cLayer isa MaxPoolLayer
+    #                     end #for hi=1:n_H
+    #         #         end #for wi=1:n_W
+    #         #     end #for di=1:n_D
+    #         # end #for ci=1:c
+    #     end #for mi=1:m
+    #
+    # else
         # @simd
         for mi = 1:m
             # @simd
@@ -406,7 +406,7 @@ function dpooling!(
                 end #for wi=1:n_W, hi=1:n_H, di=1:n_D
             end #for ci=1:c
         end #for mi=1:m
-    end #if sS == fS
+    # end #if sS == fS
 
     dAi .= dAip[1+padS[1]:end-padS[2],
         1+padS[3]:end-padS[4],
