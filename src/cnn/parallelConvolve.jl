@@ -114,7 +114,7 @@ function convolve(cLayer::Conv3D, Ai::AbstractArray{T,5}, Z::AbstractArray{T,5})
                     end #for hi=1:n_H
         #         end #for wi=1:n_W
         #     end #for di=1:n_D
-        # end #for ci=1:c
+        end #for ci=1:c
     end #for mi=1:m
     # @inbounds Z .+= B[:, :, :, 1, :]
     actFun = cLayer.actFun
@@ -251,7 +251,7 @@ function dconvolve!(
     for mi = 1:m
         # @simd
         Threads.@threads for ci = 1:c
-            for wi = 1:n_W, hi = 1:n_H, di = 1:n_D
+            for di = 1:n_D, wi = 1:n_W, hi = 1:n_H
                 h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
                 h_end = hi * s_H - (s_H == 1 ? 0 : s_H - 1) + f_H - 1
                 w_start = wi * s_W - (s_W == 1 ? 0 : s_W - 1)
