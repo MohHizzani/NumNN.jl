@@ -14,16 +14,17 @@ function fastPooling!(
     n_H = (n_Hi - f_H) ÷ s_H + 1
 
     if cLayer isa MaxPoolLayer
-        Ao .= reshape(
-            maximum(reshape(Aip, f_H, n_H, c, m), dims = 1),
-            n_H,
-            c,
-            m,
-        )
+        pool = maximum
     else
-        Ao .=
-            reshape(mean(reshape(Aip, f_H, n_H, c, m), dims = 1), n_H, c, m)
-    end #if cLayer isa MaxPoolLayer
+        pool = mean
+    end
+
+    Ao .= reshape(
+        pool(reshape(Aip, f_H, n_H, c, m), dims = 1),
+        n_H,
+        c,
+        m,
+    )
 
     return nothing
 end #function fastPooling!(cLayer::OneD
@@ -43,34 +44,24 @@ function fastPooling!(
     n_W = (n_Wi - f_W) ÷ s_W + 1
 
     if cLayer isa MaxPoolLayer
-        Ao .= reshape(
-            maximum(
-                permutedims(
-                    reshape(Aip, f_H, n_H, f_W, n_W, c, m),
-                    [1, 3, 2, 4, 5, 6],
-                ),
-                dims = 1:2,
-            ),
-            n_H,
-            n_W,
-            c,
-            m,
-        )
+        pool = maximum
     else
-        Ao .= reshape(
-            mean(
-                permutedims(
-                    reshape(Aip, f_H, n_H, f_W, n_W, c, m),
-                    [1, 3, 2, 4, 5, 6],
-                ),
-                dims = 1:2,
+        pool = mean
+    end
+
+    Ao .= reshape(
+        pool(
+            permutedims(
+                reshape(Aip, f_H, n_H, f_W, n_W, c, m),
+                [1, 3, 2, 4, 5, 6],
             ),
-            n_H,
-            n_W,
-            c,
-            m,
-        )
-    end #if cLayer isa MaxPoolLayer
+            dims = 1:2,
+        ),
+        n_H,
+        n_W,
+        c,
+        m,
+    )
 
     return nothing
 end #function fastPooling!(cLayer::TwoD,
@@ -92,36 +83,25 @@ function fastPooling!(
     n_D = (n_Di - f_D) ÷ s_D + 1
 
     if cLayer isa MaxPoolLayer
-        Ao .= reshape(
-            maximum(
-                permutedims(
-                    reshape(Aip, f_H, n_H, f_W, n_W, f_D, n_D, c, m),
-                    [1, 3, 5, 2, 4, 6, 7, 8],
-                ),
-                dims = 1:3,
-            ),
-            n_H,
-            n_W,
-            n_D,
-            c,
-            m,
-        )
+        pool = maximum
     else
-        Ao .= reshape(
-            mean(
-                permutedims(
-                    reshape(Aip, f_H, n_H, f_W, n_W, f_D, n_D, c, m),
-                    [1, 3, 5, 2, 4, 6, 7, 8],
-                ),
-                dims = 1:3,
+        pool = mean
+    end
+
+    Ao .= reshape(
+        pool(
+            permutedims(
+                reshape(Aip, f_H, n_H, f_W, n_W, f_D, n_D, c, m),
+                [1, 3, 5, 2, 4, 6, 7, 8],
             ),
-            n_H,
-            n_W,
-            n_D,
-            c,
-            m,
-        )
-    end #if cLayer isa MaxPoolLayer
+            dims = 1:3,
+        ),
+        n_H,
+        n_W,
+        n_D,
+        c,
+        m,
+    )
 
     return nothing
 end #function fastPooling!(cLayer::ThreeD,
