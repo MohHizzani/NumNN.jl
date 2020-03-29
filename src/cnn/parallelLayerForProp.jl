@@ -11,8 +11,9 @@ function layerForProp(
     kwargs...
 ) where {CL <: ConvLayer}
 
-    NNlib = haskey(kwargs, :NNlib) ? kwargs[:NNlib] : true
-    img2col = haskey(kwargs, :img2col) ? kwargs[:img2col] : false
+    kwargs = Dict(kwargs...)
+    NNlib = getindex(kwargs, :NNlib; default=true)
+    img2col = getindex(kwargs, :img2col; default=false)
     if length(Ai) == 0
         Ai = FCache[cLayer.prevLayer][:A]
     end
@@ -62,7 +63,9 @@ function layerForProp(
     kwargs...
 ) where {PL <: PoolLayer}
 
-    NNlib = haskey(kwargs, :NNlib) ? kwargs[:NNlib] : true
+    kwargs = Dict(kwargs...)
+    fastPool = getindex(kwargs, :fastPool; default=true)
+    NNlib = getindex(kwargs, :NNlib; default=true)
     if length(Ai) == 0
         Ai = FCache[cLayer.prevLayer][:A]
     end
@@ -79,15 +82,15 @@ function layerForProp(
 
     Ao = zeros(eltype(Ai), outputS..., co, m)
 
-    if NNlib
+    if s == f && fastPool #to use the built-in reshape and maximum and mean
+        fastPooling!(cLayer, Ai, Ao)
+    elseif NNlib
         pooldims = PoolDims(Ai, f, stride = s, padding = padS)
         if cLayer isa MaxPoolLayer
             maxpool!(Ao, Ai, pooldims)
         elseif cLayer isa AveragePoolLayer
             meanpool!(Ao, Ai, pooldims)
         end #if cLayer isa MaxPoolLayer
-    elseif s == f #to use the built-in reshape and maximum and mean
-        fastPooling!(cLayer, Ai, Ao)
     else
         pooling!(cLayer, Ai, Ao)
     end #if NNlibConv

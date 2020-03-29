@@ -44,6 +44,6 @@ end #function resetForwCount
 export resetCount!
 
 
-### to extend the haskey fun
+### to extend the getindex fun
 
-Base.haskey(it, key; default) = haskey(it, key) ? it[key] : default
+Base.getindex(it, key; default) = haskey(it, key) ? it[key] : default

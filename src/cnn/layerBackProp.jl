@@ -29,8 +29,8 @@ function layerBackProp!(
     kwargs...
 ) where {CL <: ConvLayer}
 
-    NNlib = haskey(kwargs, :NNlib) ? kwargs[:NNlib] : true
-    img2col = haskey(kwargs, :img2col) ? kwargs[:img2col] : false
+    NNlib = getindex(kwargs, :NNlib; default=true)
+    img2col = getindex(kwargs, :img2col; default=true)
 
     if length(Ai) == 0
         Ai = cLayer.prevLayer.A
@@ -115,7 +115,7 @@ function layerBackProp!(
     kwargs...
 ) where {OneD<:Union{MaxPool1D,AveragePool1D}}
 
-    NNlib = haskey(kwargs, :NNlib) ? kwargs[:NNlib] : true
+    NNlib = getindex(kwargs, :NNlib) ? kwargs[:NNlib] : true
     if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
@@ -177,7 +177,7 @@ function layerBackProp!(
     kwargs...
 ) where {TwoD<:Union{MaxPool2D,AveragePool2D}}
 
-    NNlib = haskey(kwargs, :NNlib) ? kwargs[:NNlib] : true
+    NNlib = getindex(kwargs, :NNlib) ? kwargs[:NNlib] : true
     if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
@@ -239,7 +239,7 @@ function layerBackProp!(
     kwargs...,
 ) where {ThreeD<:Union{MaxPool3D,AveragePool3D}}
 
-    NNlib = haskey(kwargs, :NNlib) ? kwargs[:NNlib] : true
+    NNlib = getindex(kwargs, :NNlib) ? kwargs[:NNlib] : true
     if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end

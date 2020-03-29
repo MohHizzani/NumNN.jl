@@ -94,7 +94,7 @@ function layerForProp(
     kwargs...,
 )
 
-    prediction = haskey(kwargs, :prediction) ? kwargs[:prediction] : false
+    prediction = getindex(kwargs, :prediction; default=false)
     prevLayer = cLayer.prevLayer
     if length(Ai) == 0
         Ai = FCache[prevLayer][:A]

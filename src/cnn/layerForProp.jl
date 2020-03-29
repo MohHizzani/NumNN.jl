@@ -8,8 +8,8 @@ function layerForProp!(
     kwargs...
 )
 
-    NNlib = haskey(kwargs, :NNlib) ? kwargs[:NNlib] : true
-    img2col = haskey(kwargs, :img2col) ? kwargs[:img2col] : false
+    NNlib = getindex(kwargs, :NNlib) ? kwargs[:NNlib] : true
+    img2col = getindex(kwargs, :img2col) ? kwargs[:img2col] : false
     if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
@@ -48,8 +48,8 @@ function layerForProp!(
     Ai::AbstractArray = Array{Any,1}(undef,0);
     kwargs...
 )
-    NNlib = haskey(kwargs, :NNlib) ? kwargs[:NNlib] : true
-    img2col = haskey(kwargs, :img2col) ? kwargs[:img2col] : false
+    NNlib = getindex(kwargs, :NNlib) ? kwargs[:NNlib] : true
+    img2col = getindex(kwargs, :img2col) ? kwargs[:img2col] : false
     if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
@@ -92,8 +92,8 @@ function layerForProp!(
     Ai::AbstractArray = Array{Any,1}(undef,0);
     kwargs...
 )
-    NNlib = haskey(kwargs, :NNlib) ? kwargs[:NNlib] : true
-    img2col = haskey(kwargs, :img2col) ? kwargs[:img2col] : false
+    NNlib = getindex(kwargs, :NNlib) ? kwargs[:NNlib] : true
+    img2col = getindex(kwargs, :img2col) ? kwargs[:img2col] : false
     if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
@@ -145,7 +145,7 @@ function layerForProp!(
     kwargs...
 ) where {OneD<:Union{MaxPool1D,AveragePool1D}}
 
-    NNlib = haskey(kwargs, :NNlib) ? kwargs[:NNlib] : true
+    NNlib = getindex(kwargs, :NNlib) ? kwargs[:NNlib] : true
     if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
@@ -187,7 +187,7 @@ function layerForProp!(
     kwargs...,
 ) where {TwoD<:Union{MaxPool2D,AveragePool2D}}
 
-    NNlib = haskey(kwargs, :NNlib) ? kwargs[:NNlib] : true
+    NNlib = getindex(kwargs, :NNlib) ? kwargs[:NNlib] : true
     if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end
@@ -232,7 +232,7 @@ function layerForProp!(
     kwargs...,
 ) where {ThreeD<:Union{MaxPool3D,AveragePool3D}}
 
-    NNlib = haskey(kwargs, :NNlib) ? kwargs[:NNlib] : true
+    NNlib = getindex(kwargs, :NNlib) ? kwargs[:NNlib] : true
     if length(Ai) == 0
         Ai = cLayer.prevLayer.A
     end

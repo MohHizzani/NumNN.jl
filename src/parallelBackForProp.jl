@@ -93,7 +93,7 @@ export chainForProp
 function predictBatch(model::Model, X::AbstractArray, Y = nothing; kwargs...)
 
     kwargs = Dict(kwargs...)
-    kwargs[:prediction] = haskey(kwargs, :prediction, default = true)
+    kwargs[:prediction] = getindex(kwargs, :prediction, default = true)
 
     FCache = chainForProp(X, model.inLayer; kwargs...)
     Ŷ = FCache[model.outLayer][:A]
@@ -110,12 +110,12 @@ export predictBatch
 function predict(model::Model, X_In::AbstractArray, Y_In = nothing; kwargs...)
 
     kwargs = Dict(kwargs...)
-    batchSize = haskey(kwargs, :batchSize; default = 32)
-    printAcc = haskey(kwargs, :printAcc; default = true)
-    useProgBar = haskey(kwargs, :useProgBar; default = false)
-    GCInt = haskey(kwargs, :GCInt, default = 5)
-    noBool = haskey(kwargs, :noBool, default = false)
-    kwargs[:prediction] = haskey(kwargs, :prediction, default = true)
+    batchSize = getindex(kwargs, :batchSize; default = 32)
+    printAcc = getindex(kwargs, :printAcc; default = true)
+    useProgBar = getindex(kwargs, :useProgBar; default = false)
+    GCInt = getindex(kwargs, :GCInt, default = 5)
+    noBool = getindex(kwargs, :noBool, default = false)
+    kwargs[:prediction] = getindex(kwargs, :prediction, default = true)
 
     outLayer, lossFun, α = model.outLayer, model.lossFun, model.α
     Costs = []
