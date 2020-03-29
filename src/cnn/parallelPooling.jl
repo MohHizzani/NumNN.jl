@@ -20,11 +20,11 @@ function pooling!(
     end #if cLayer isa MaxPoolLayer
 
     # @simd
-    for mi = 1:m,
+    for mi = 1:m
         # @simd for
-        ci = 1:c
+        Threads.@threads for ci = 1:c
             # @simd
-            Threads.@threads for hi = 1:n_H
+            for hi = 1:n_H
                 h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
                 h_end = hi * s_H - (s_H == 1 ? 0 : s_H - 1) + f_H - 1
                 @inbounds ai = view(Aip,h_start:h_end, ci, mi)
@@ -32,7 +32,7 @@ function pooling!(
                 # ai = nothing
                 # Base.GC.gc()
             end #for
-        # end #for ci=1:c
+        end #for ci=1:c
     end #for mi=1:m, ci=1:c
 
     return nothing
@@ -57,13 +57,13 @@ function pooling!(
         pool = mean
     end #if cLayer isa MaxPoolLayer
     # @simd
-    for mi = 1:m,
+    for mi = 1:m
         # @simd for
-        ci = 1:c,
+        Threads.@threads for ci = 1:c
             # @simd for
-            wi = 1:n_W
+
                 # @simd
-                Threads.@threads for hi = 1:n_H
+                for wi = 1:n_W, hi = 1:n_H
                     h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
                     h_end = hi * s_H - (s_H == 1 ? 0 : s_H - 1) + f_H - 1
                     w_start = wi * s_W - (s_W == 1 ? 0 : s_W - 1)
@@ -75,7 +75,7 @@ function pooling!(
                     # Base.GC.gc()
                 end #for hi=1:n_H
         #     end #for wi=1:n_W
-        # end #for ci=1:c
+        end #for ci=1:c
     end #for mi=1:m,
     return nothing
 end #function pooling!(cLayer::TwoD,
@@ -103,15 +103,15 @@ function pooling!(
     end #if cLayer isa MaxPoolLayer
 
     # @simd
-    for mi = 1:m,
+    for mi = 1:m
         # @simd for
-        ci = 1:c,
+        Threads.@threads for ci = 1:c
             # @simd for
-            di = 1:n_D,
+
                 # @simd for
-                wi = 1:n_W
+
                     # @simd
-                    Threads.@threads for hi = 1:n_H
+                    for di = 1:n_D, wi = 1:n_W, hi = 1:n_H
                         h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
                         h_end = hi * s_H - (s_H == 1 ? 0 : s_H - 1) + f_H - 1
                         w_start = wi * s_W - (s_W == 1 ? 0 : s_W - 1)
@@ -131,7 +131,7 @@ function pooling!(
                     end #for hi=1:n_H
         #         end #for wi=1:n_W
         #     end #for di=1:n_D
-        # end #for ci=1:c
+        end #for ci=1:c
     end #for mi=1:m, ci=1:c
 
     return nothing
