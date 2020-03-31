@@ -31,9 +31,9 @@ function layerBackProp(
     kwargs...
 ) where {CL <: ConvLayer}
 
-    kwargs = Dict(kwargs...)
-    NNlib = getindex(kwargs, :NNlib; default=false)
-    img2col = getindex(kwargs, :img2col; default=false)
+    kwargs = Dict{Symbol, Any}(kwargs...)
+    NNlib = getindex(kwargs, :NNlib; default=true)
+    img2col = getindex(kwargs, :img2col; default=true)
 
     if length(Ai) == 0
         Ai = FCache[cLayer.prevLayer][:A]
@@ -83,12 +83,12 @@ function layerBackProp(
 
     dAi = zeros(promote_type(eltype(Ai),eltype(dZ)), size(Ai))
 
-    if ! (NNlib || img2col)
-        dconvolve!(cLayer, Ai, dAi, dZ)
-    elseif NNlib
+    if NNlib
         dNNConv!(cLayer, Ai, dAi, dZ)
     elseif img2col
         dimg2colConvolve!(cLayer, Ai, dAi, dZ)
+    else
+        dconvolve!(cLayer, Ai, dAi, dZ)
     end #if NNlib
 
     cLayer.backCount += 1
@@ -116,7 +116,7 @@ function layerBackProp(
     kwargs...
 ) where {PL <: PoolLayer}
 
-    kwargs = Dict(kwargs...)
+    kwargs = Dict{Symbol, Any}(kwargs...)
 
     fastPool = getindex(kwargs, :fastPool; default=true)
     NNlib = getindex(kwargs, :NNlib; default=true)
