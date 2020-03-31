@@ -164,13 +164,13 @@ function dconvolve!(
 
     Aip = padding(cLayer, Ai)
     padS = paddingSize(cLayer, Ai)
-    dAip = similar(Aip)
-    dAip .= 0
+    dAip = zeros(promote_type(eltype(dZ),eltype(Ai)), size(Aip))
+
 
     f_H = cLayer.f
     s_H = cLayer.s
     lastDim = ndims(Ai)
-    n_H, c, m = size(cLayer.Z)
+    n_H, c, m = size(dZ)
     W = cLayer.W
     cLayer.dW = similar(W)
     cLayer.dW .= 0
@@ -209,13 +209,12 @@ function dconvolve!(
 
     Aip = padding(cLayer, Ai)
     padS = paddingSize(cLayer, Ai)
-    dAip = similar(Aip)
-    dAip .= 0
+    dAip = zeros(promote_type(eltype(dZ),eltype(Ai)), size(Aip))
 
     f_H, f_W = cLayer.f
     s_H, s_W = cLayer.s
     lastDim = ndims(Ai)
-    n_H, n_W, c, m = size(cLayer.Z)
+    n_H, n_W, c, m = size(dZ)
     W = cLayer.W
     cLayer.dW = similar(W)
     cLayer.dW .= 0
@@ -256,13 +255,12 @@ function dconvolve!(
 
     Aip = padding(cLayer, Ai)
     padS = paddingSize(cLayer, Ai)
-    dAip = similar(Aip)
-    dAip .= 0
+    dAip = zeros(promote_type(eltype(dZ),eltype(Ai)), size(Aip))
 
     f_H, f_W, f_D = cLayer.f
     s_H, s_W, s_D = cLayer.s
     lastDim = ndims(Ai)
-    n_H, n_W, n_D, c, m = size(cLayer.Z)
+    n_H, n_W, n_D, c, m = size(dZ)
     W = cLayer.W
     cLayer.dW = similar(W)
     cLayer.dW .= 0
