@@ -6,6 +6,7 @@ function layerUpdateParams!(
     cLayer::CL,
     cnt::Integer = -1;
     tMiniBatch::Integer = 1,
+    kwargs...,
 ) where {CL<:ConvLayer}
 
     optimizer = model.optimizer
@@ -17,7 +18,7 @@ function layerUpdateParams!(
     end #if cLayer.updateCount >= cnt
 
     if !all(
-        i -> (i.backCount == cLayer.nextLayers[1].backCount),
+        i -> (i.updateCount == cLayer.nextLayers[1].updateCount),
         cLayer.nextLayers,
     )
         return nothing
@@ -77,6 +78,7 @@ function layerUpdateParams!(
     cLayer::PL,
     cnt::Integer = -1;
     tMiniBatch::Integer = 1,
+    kwargs...,
 ) where {PL<:PoolLayer}
 
 
@@ -85,7 +87,7 @@ function layerUpdateParams!(
     end #if cLayer.updateCount >= cnt
 
     if !all(
-        i -> (i.backCount == cLayer.nextLayers[1].backCount),
+        i -> (i.updateCount == cLayer.nextLayers[1].updateCount),
         cLayer.nextLayers,
     )
         return nothing
