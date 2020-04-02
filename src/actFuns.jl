@@ -31,7 +31,7 @@ export dσ
 
 function probToValue(
     actFun::Type{σ},
-    probs::Array{T,N},
+    probs::AbstractArray{T,N},
     labels::Aa = nothing,
 ) where {Aa<:Union{<:AbstractArray,Nothing},T,N}
 
@@ -43,7 +43,7 @@ function probToValue(
         # println("Accuracy = $acc")
     end
     return Ŷ_bool, acc
-end #predictpredict(probs::Array{T, 2},
+end #predictpredict(probs::AbstractArray{T, 2},
 
 
 ### relu
@@ -54,18 +54,18 @@ abstract type relu <: actFun end
 """
     return the ReLU output
 """
-function relu(Z::Array{T,N}) where {T,N}
+function relu(Z::AbstractArray{T,N}) where {T,N}
     max.(zero(T), Z)
-end #function relu(Z::Array{T,N}) where {T,N}
+end #function relu(Z::AbstractArray{T,N}) where {T,N}
 
 export relu
 
 """
     return the derivative of ReLU function
 """
-function drelu(Z::Array{T,N}) where {T,N}
+function drelu(Z::AbstractArray{T,N}) where {T,N}
     return T.(Z .> zero(T))
-end #function drelu(z::Array{T,N}) where {T,N}
+end #function drelu(z::AbstractArray{T,N}) where {T,N}
 
 export drelu
 
@@ -91,7 +91,7 @@ end #softmax
 function dsoftmax(Ŷ, dim = 1)
     sŶ = softmax(Ŷ)
     T = eltype(Ŷ)
-    softMat = Array{T,3}(undef, 0, 0, 0)
+    softMat = AbstractArray{T,3}(undef, 0, 0, 0)
     sSize = size(Ŷ)[dim]
     for c in eachcol(sŶ)
         tmpMat = zeros(T, sSize, sSize)
@@ -115,7 +115,7 @@ export softmax, dsoftmax
 
 function probToValue(
     actFun::Type{S},
-    probs::Array{T,N};
+    probs::AbstractArray{T,N};
     labels = nothing,
 ) where {T,N,S<:softmaxFamily}
 
@@ -130,7 +130,7 @@ function probToValue(
         for i in endax
             lab = view(bool_labels, ax..., i)
             pred = view(Ŷ_bool, ax..., i)
-            acc += (lab == pred) ? 1 : 0
+            acc += Integer(lab == pred)
         end
         acc /= size(labels)[end]
         # println("Accuracy = $acc")
@@ -138,7 +138,7 @@ function probToValue(
 
 
     return Ŷ_bool, acc
-end #predictpredict(probs::Array{T, 2}, :softmax)
+end #predictpredict(probs::AbstractArray{T, 2}, :softmax)
 
 export predict
 
@@ -147,11 +147,11 @@ export predict
 abstract type tanh <: actFun end
 
 
-Base.tanh(Z::Array{T,N}) where {T,N} = Base.tanh.(Z)
+Base.tanh(Z::AbstractArray{T,N}) where {T,N} = Base.tanh.(Z)
 
-tanh(Z::Array{T,N}) where {T,N} = Base.tanh.(Z)
+tanh(Z::AbstractArray{T,N}) where {T,N} = Base.tanh.(Z)
 
-dtanh(Z::Array{T,N}) where {T,N} = 1 .- (Base.tanh.(Z)) .^ 2
+dtanh(Z::AbstractArray{T,N}) where {T,N} = 1 .- (Base.tanh.(Z)) .^ 2
 
 export dtanh, tanh
 
