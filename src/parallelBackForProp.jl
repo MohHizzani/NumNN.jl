@@ -487,11 +487,11 @@ function train(
             end #if embedUpdate
             if useProgBar
                 if :accuracy in metrics && :cost in metrics
-                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+j; showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Accuracy, mean(minAcc)), (:Cost, mean(minCosts))])
+                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+j; showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Accuracy, round(mean(minAcc); digits=4)), (:Cost, round(mean(minCosts); digits=4))])
                 elseif :accuracy in metrics
-                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+j; showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Accuracy, mean(minAcc))])
+                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+j; showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Accuracy, round(mean(minAcc); digits=4))])
                 elseif :cost in metrics
-                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+j; showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Cost, mean(minCosts))])
+                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+j; showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Cost, round(mean(minCosts); digits=4))])
                 else
                     update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+j; showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize)])
                 end
@@ -554,11 +554,11 @@ function train(
         if useProgBar
             if useProgBar
                 if :accuracy in metrics && :cost in metrics
-                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+(nB + 1); showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", m), (:Accuracy, mean(minAcc)), (:Cost, mean(minCosts))])
+                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+(nB + 1); showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", m), (:Accuracy, round(mean(minAcc); digits=4)), (:Cost, round(mean(minCosts); digits=4))])
                 elseif :accuracy in metrics
-                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+(nB + 1); showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Accuracy, mean(minAcc))])
+                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+(nB + 1); showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Accuracy, round(mean(minAcc); digits=4))])
                 elseif :cost in metrics
-                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+(nB + 1); showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Cost, mean(minCosts))])
+                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+(nB + 1); showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Cost, round(mean(minCosts); digits=4))])
                 else
                     update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+(nB + 1); showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize)])
                 end
