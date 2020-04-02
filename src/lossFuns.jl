@@ -67,3 +67,30 @@ export categoricalCrossentropy, dcategoricalCrossentropy
 prevnextfloat(x) = x==0 ? nextfloat(x) : x==1 ? prevfloat(x) : x
 
 export prevnextfloat
+
+
+### cost function
+
+function cost(
+    loss::Type{categoricalCrossentropy},
+    A::AbstractArray{T1,N},
+    Y::AbstractArray{T2,N},
+) where {T1, T2, N}
+
+    c, m = size(A)[N-1:N]
+    costs = sum(loss(A,Y)) / m
+    return costs
+
+end #function cost
+
+function cost(
+    loss::Type{binaryCrossentropy},
+    A::AbstractArray{T1,N},
+    Y::AbstractArray{T2,N},
+) where {T1, T2, N}
+
+    c, m = size(A)[N-1:N]
+    costs = sum(loss(A,Y)) / (c*m)
+    return costs
+
+end #function cost
