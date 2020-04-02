@@ -6,6 +6,7 @@ function layerUpdateParams!(
                        cLayer::FoB,
                        cnt::Integer = -1;
                        tMiniBatch::Integer = 1,
+                       kwargs...,
                        ) where {FoB <: Union{FCLayer, BatchNorm}}
 
     optimizer = model.optimizer
@@ -66,6 +67,7 @@ function layerUpdateParams!(
                        cLayer::IoA,
                        cnt::Integer = -1;
                        tMiniBatch::Integer = 1,
+                       kwargs...,
                        ) where {IoA <: Union{Input, Activation, AddLayer}}
 
     optimizer = model.optimizer
@@ -76,7 +78,7 @@ function layerUpdateParams!(
         return nothing
     end #if cLayer.updateCount >= cnt
 
-    if !all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+    if !all(i->(i.updateCount==cLayer.nextLayers[1].updateCount), cLayer.nextLayers)
         return nothing
     end
 
