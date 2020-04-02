@@ -92,7 +92,7 @@ export chainForProp
 """
 function predictBatch(model::Model, X::AbstractArray, Y = nothing; kwargs...)
 
-    kwargs = Dict(kwargs...)
+    kwargs = Dict{Symbol, Any}(kwargs...)
     kwargs[:prediction] = getindex(kwargs, :prediction, default = true)
 
     FCache = chainForProp(X, model.inLayer; kwargs...)
@@ -109,10 +109,10 @@ export predictBatch
 
 function predict(model::Model, X_In::AbstractArray, Y_In = nothing; kwargs...)
 
-    kwargs = Dict(kwargs...)
+    kwargs = Dict{Symbol, Any}(kwargs...)
     batchSize = getindex(kwargs, :batchSize; default = 32)
     printAcc = getindex(kwargs, :printAcc; default = true)
-    useProgBar = getindex(kwargs, :useProgBar; default = false)
+    useProgBar = getindex(kwargs, :useProgBar; default = true)
     GCInt = getindex(kwargs, :GCInt, default = 5)
     noBool = getindex(kwargs, :noBool, default = false)
     kwargs[:prediction] = getindex(kwargs, :prediction, default = true)
@@ -217,7 +217,7 @@ export predict
 
 ### chainBackProp
 include("parallelLayerBackProp.jl")
-
+include("layerUpdateParams.jl")
 
 
 """
@@ -343,3 +343,231 @@ function chainBackProp(
 end #backProp
 
 export chainBackProp
+
+###update parameters
+
+include("layerUpdateParams.jl")
+
+
+
+
+
+function chainUpdateParams!(model::Model,
+                           cLayer::L=nothing,
+                           cnt = -1;
+                           tMiniBatch::Integer = 1) where {L<:Union{Layer,Nothing}}
+
+    if cnt < 0
+        cnt = model.outLayer.updateCount + 1
+    end
+
+
+    if cLayer==nothing
+        layerUpdateParams!(model, model.outLayer, cnt, tMiniBatch=tMiniBatch)
+        chainUpdateParams!(model, model.outLayer.prevLayer, cnt, tMiniBatch=tMiniBatch)
+
+    elseif cLayer isa AddLayer
+        #update the AddLayer updateCounter
+        if cLayer.updateCount < cnt
+            cLayer.updateCount += 1
+        end
+        for prevLayer in cLayer.prevLayer
+            chainUpdateParams!(model, prevLayer, cnt, tMiniBatch=tMiniBatch)
+        end #for
+    else #if cLayer==nothing
+        layerUpdateParams!(model, cLayer, cnt, tMiniBatch=tMiniBatch)
+        if !(cLayer isa Input)
+            chainUpdateParams!(model, cLayer.prevLayer, cnt, tMiniBatch=tMiniBatch)
+        end #if cLayer.prevLayer == nothing
+    end #if cLayer==nothing
+
+    return nothing
+end #function chainUpdateParams!
+
+
+export chainUpdateParams!
+
+### train
+
+"""
+    Repeat the trainging (forward/backward propagation)
+
+    inputs:
+    X_train := the training input
+    Y_train := the training labels
+    model   := the model to train
+    epochs  := the number of repetitions of the training phase
+    ;
+    kwarg:
+    batchSize := the size of training when mini batch training
+    printCostsIntervals := the interval (every what to print the current cost value)
+    useProgBar := (true, false) value to use prograss bar
+
+
+"""
+function train(
+               X_train,
+               Y_train,
+               model::Model,
+               epochs;
+               kwargs...,
+               )
+
+
+    kwargs = Dict{Symbol, Any}(kwargs...)
+    batchSize = getindex(kwargs, :batchSize; default = 32)
+    printCostsInterval = getindex(kwargs, :printCostsInterval; default = 0)
+    useProgBar = getindex(kwargs, :useProgBar; default = false)
+    embedUpdate = getindex(kwargs, :embedUpdate; default = true)
+    metrics = getindex(kwargs, :metrics; default = [:accuracy, :cost])
+
+    inLayer, outLayer, lossFun, α = model.inLayer, model.outLayer, model.lossFun, model.α
+    Costs = []
+    outAct = outLayer.actFun
+    m = size(X_train)[end]
+    c = size(Y_train)[end-1]
+    nB = m ÷ batchSize
+    shufInd = randperm(m)
+    N = ndims(X_train)
+    axX = axes(X_train)[1:end-1]
+    axY = axes(Y_train)[1:end-1]
+    if useProgBar
+        p = Progress(epochs*(nB + ((m % batchSize == 0) ? 0 : 1)), 0.5)
+    end
+    Accuracies = []
+    currentCost = 0.0
+    currentAccuracy = 0.0
+    for i=1:epochs
+        minCosts = [] #the costs of all mini-batches
+        minAcc = []
+        for j=1:nB
+            downInd = (j-1)*batchSize+1
+            upInd   = j * batchSize
+            batchInd = shufInd[downInd:upInd]
+            X = X_train[axX..., batchInd]
+            Y = Y_train[axY..., batchInd]
+
+            FCache = chainForProp(X, inLayer; kwargs...)
+            a = FCache[outLayer][:A]
+            if :accuracy in metrics
+                _, acc = probToValue(eval(:($outAct)), a; labels = Y)
+                push!(minAcc, acc)
+                currentAccuracy = acc
+            # else
+            #     chainForProp!(X,
+            #                   model.outLayer)
+            end
+
+
+            if :cost in metrics
+                minCost = cost(eval(:($lossFun)), a, Y)
+                # sum(eval(:($lossFun($a, $Y))))/batchSize
+                #
+                # if lossFun==:binaryCrossentropy
+                #     minCost /= c
+                # end #if lossFun==:binaryCrossentropy
+
+                push!(minCosts, minCost)
+                currentCost = minCost
+            end
+
+            if embedUpdate
+                BCache = chainBackProp(X,Y,
+                                       model,
+                                       FCache;
+                                       tMiniBatch = j,
+                                       kwargs...)
+            else
+                BCache = chainBackProp(X,Y,
+                                      model,
+                                      FCache;
+                                      kwargs...)
+
+                chainUpdateParams!(model; tMiniBatch = j)
+            end #if embedUpdate
+            if useProgBar
+                if :accuracy in metrics && :cost in metrics
+                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+j; showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Accuracy, mean(minAcc)), (:Cost, mean(minCosts))])
+                elseif :accuracy in metrics
+                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+j; showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Accuracy, mean(minAcc))])
+                elseif :cost in metrics
+                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+j; showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Cost, mean(minCosts))])
+                else
+                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+j; showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize)])
+                end
+            end
+            # chainUpdateParams!(model; tMiniBatch = j)
+
+        end #for j=1:nB iterate over the mini batches
+
+        if m%batchSize != 0
+            downInd = (nB)*batchSize+1
+            batchInd = shufInd[downInd:end]
+            X = X_train[axX..., batchInd]
+            Y = Y_train[axY..., batchInd]
+
+            FCache = chainForProp(X, inLayer; kwargs...)
+            if :accuracy in metrics
+                _, acc = probToValue(eval(:($outAct)), FCache[outLayer][:A]; labels = Y)
+                push!(minAcc, acc)
+                currentAccuracy = acc
+            # else
+            #     chainForProp!(X,
+            #                   model.outLayer)
+            end
+
+            a = FCache[outLayer][:A]
+            if :cost in metrics
+                minCost = cost(eval(:($lossFun)), a, Y)
+                # sum(eval(:($lossFun($a, $Y))))/batchSize
+                #
+                # if lossFun==:binaryCrossentropy
+                #     minCost /= c
+                # end #if lossFun==:binaryCrossentropy
+
+                push!(minCosts, minCost)
+                currentCost = minCost
+            end
+
+            if embedUpdate
+                BCache = chainBackProp(X,Y,
+                                       model,
+                                       FCache;
+                                       tMiniBatch = nB + 1,
+                                       kwargs...)
+            else
+                BCache = chainBackProp(X,Y,
+                                      model,
+                                      FCache;
+                                      kwargs...)
+
+                chainUpdateParams!(model; tMiniBatch = nB + 1)
+            end #if embedUpdate
+        end
+
+        push!(Accuracies, mean(minAcc))
+        push!(Costs, mean(minCosts))
+        if printCostsInterval>0 && i%printCostsInterval==0
+            println("N = $i, Cost = $(Costs[end])")
+        end
+
+        if useProgBar
+            if useProgBar
+                if :accuracy in metrics && :cost in metrics
+                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+(nB + 1); showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", m), (:Accuracy, mean(minAcc)), (:Cost, mean(minCosts))])
+                elseif :accuracy in metrics
+                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+(nB + 1); showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Accuracy, mean(minAcc))])
+                elseif :cost in metrics
+                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+(nB + 1); showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Cost, mean(minCosts))])
+                else
+                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+(nB + 1); showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize)])
+                end
+            end
+        end
+    end
+
+    # model.W, model.B = W, B
+    return Costs
+end #train
+
+export train
