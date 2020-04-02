@@ -11,7 +11,7 @@ function layerForProp(
     kwargs...
 ) where {CL <: ConvLayer}
 
-    kwargs = Dict(kwargs...)
+    kwargs = Dict{Symbol, Any}(kwargs...)
     NNlib = getindex(kwargs, :NNlib; default=true)
     img2col = getindex(kwargs, :img2col; default=false)
     if length(Ai) == 0
@@ -62,7 +62,7 @@ function layerForProp(
     kwargs...
 ) where {PL <: PoolLayer}
 
-    kwargs = Dict(kwargs...)
+    kwargs = Dict{Symbol, Any}(kwargs...)
     fastPool = getindex(kwargs, :fastPool; default=true)
     NNlib = getindex(kwargs, :NNlib; default=true)
     if length(Ai) == 0
