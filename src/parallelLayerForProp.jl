@@ -113,8 +113,8 @@ function layerForProp(
         return Dict(:A => Ao)
     end #prediction
 
-    initWB!(cLayer)
-    initVS!(cLayer, model.optimizer)
+    # initWB!(cLayer)
+    # initVS!(cLayer, model.optimizer)
 
     N = ndims(Ai)
     Ai = permutedims(Ai, [N,(1:N-1)...])
