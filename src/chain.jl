@@ -6,18 +6,22 @@
 """
 function chain(X, arr::Array{L,1}) where {L<:Layer}
     if ! (arr[1] isa Input)
-        X = Input(X)
+        X_Input = Input(X)
     end
 
     for l=1:length(arr)
         if l==1
-            X = arr[l](X)
+            if ! isa(arr[l],Input)
+                X = arr[l](X_Input)
+            else
+                X_Input = X = arr[l](X)
+            end
         else
             X = arr[l](X)
         end
     end #for
 
-    return X
+    return X_Input, X
 end
 
 export chain
@@ -56,7 +60,15 @@ function (l::BatchNorm)(li_1::Layer)
 
     l.channels = li_1.channels
 
+    N = length(li_1.outputS)
+
+    if l.dim >= N
+        throw(DimensionMismatch("Normalization Dimension must be less than $N"))
+    end
+
     l.inputS = l.outputS = li_1.outputS
+
+
 
     if ! in(l,li_1.nextLayers)
         push!(li_1.nextLayers, l)
