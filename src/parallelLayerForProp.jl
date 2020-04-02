@@ -102,28 +102,45 @@ function layerForProp(
 
     if prediction
         cLayer.forwCount += 1
-        return Dict(:A => Ai)
+        NDim = cLayer.dim
+        μ = mean(Ai, dims = 1:NDim)
+        Ai_μ = Ai .- μ
+        Num = prod(size(Ai)[1:NDim])
+        Ai_μ_s = Ai_μ .^ 2
+        var = sum(Ai_μ_s, dims = 1:NDim) ./ Num
+        Z = Ai_μ ./ sqrt.(var .+ cLayer.ϵ)
+        Ao = cLayer.W .* Z .+ cLayer.B
+        return Dict(:A => Ao)
     end #prediction
 
     initWB!(cLayer)
+    initVS!(cLayer, model.optimizer)
 
-    μ = mean(Ai, dims = 1:cLayer.dim)
+    N = ndims(Ai)
+    Ai = permutedims(Ai, [N,(1:N-1)...])
+
+    NDim = cLayer.dim + 1
+
+    μ = mean(Ai, dims = 1:NDim)
     Ai_μ = Ai .- μ
-    N = prod(size(Ai)[1:cLayer.dim])
+    Num = prod(size(Ai)[1:NDim])
     Ai_μ_s = Ai_μ .^ 2
-    var = sum(Ai_μ_s, dims = 1:cLayer.dim) ./ N
+    var = sum(Ai_μ_s, dims = 1:NDim) ./ Num
     Z = Ai_μ ./ sqrt.(var .+ cLayer.ϵ)
-    A = cLayer.W .* Z .+ cLayer.B
+    Ap = cLayer.W .* Z .+ cLayer.B
+    Ao = permutedims(Ap, [(2:N)..., 1])
     cLayer.forwCount += 1
-    Ai_μ = nothing
-    cLayer.inputS = cLayer.outputS = size(Ai)
+    # Ai_μ = nothing
+    cLayer.inputS = cLayer.outputS = size(Ao)
     # Base.GC.gc()
     return Dict(
         :μ => μ,
+        :Ai_μ => Ai_μ,
         :Ai_μ_s => Ai_μ_s,
         :var => var,
         :Z => Z,
-        :A => A,
+        :A => Ao,
+        :Ap => Ap,
     )
 end #function layerForProp(cLayer::BatchNorm)
 

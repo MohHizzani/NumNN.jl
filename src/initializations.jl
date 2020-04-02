@@ -65,28 +65,19 @@ function initWB!(
     zro = false,
 ) where {T}
 
-    cn = 0
-    try
-        cn = cLayer.prevLayer.channels
-        if cn == 0
-            try
-                cn = cLayer.prevLayer.channels
-            catch e1
 
-            end
-        end #if cn ==0
-    catch e
-        cn = cLayer.prevLayer.channels
-    end #try/catch
+    cn = cLayer.prevLayer.channels
+
     if He
         coef = sqrt(2 / cn)
     end
     N = length(cLayer.prevLayer.inputS)
     normDim = cLayer.dim
-    S = cLayer.prevLayer.outputS
-    paramS = Array{Integer,1}(undef,0)
-    for i=1:N
-        if S[i] < 1 || i <= normDim
+    #bring the batch size into front
+    S = (cLayer.prevLayer.outputS[end], cLayer.prevLayer.outputS[1:end-1]...)
+    paramS = Array{Integer,1}([1])
+    for i=2:N
+        if S[i] < 1 || (i-1) <= normDim
             push!(paramS, 1)
         else
             push!(paramS, S[i])
@@ -231,8 +222,11 @@ function initVS!(
     )
 
     T = typeof(cLayer.W)
-    cLayer.V = Dict(:dw=>deepcopy(cLayer.dW), :db=>deepcopy(cLayer.dB))
-    cLayer.S = deepcopy(cLayer.V)
+    if (! haskey(cLayer.V, :dw)) || (size(cLayer.V[:dw]) != size(cLayer.dW))
+        cLayer.V = Dict(:dw=>deepcopy(cLayer.dW), :db=>deepcopy(cLayer.dB))
+        cLayer.S = deepcopy(cLayer.V)
+    end
+
 
     return nothing
 end

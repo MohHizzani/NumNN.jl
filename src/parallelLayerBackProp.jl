@@ -305,14 +305,19 @@ function layerBackProp(
     lossFun = model.lossFun
 
     Ao = FCache[cLayer][:A]
+    Ai = FCache[cLayer.prevLayer][:A]
 
     m = size(Ao)[end]
 
-    normDim = cLayer.dim
+    normDim = cLayer.dim+1
 
     regulization, λ = model.regulization, model.λ
+
+    N = length(cLayer.outputS)
+
     dZ = []
     if length(dAo) != 0
+        dAo = permutedims(dAo, [N, (1:N-1)...])
         dZ = cLayer.W .* dAo
     elseif all(
         i -> (i.backCount == cLayer.nextLayers[1].backCount),
@@ -326,10 +331,7 @@ function layerBackProp(
                 dAo = BCache[nextLayer][:dA] #need to initialize dA
             end #try/catch
         end #for
-
-
-        Z = FCache[cLayer][:Z]
-
+        dAo = permutedims(dAo, [N, (1:N-1)...])
         dZ = cLayer.W .* dAo
 
     else #in case not every next layer done backprop
@@ -337,7 +339,10 @@ function layerBackProp(
 
     end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
 
-    cLayer.dW = sum(dZ .* FCache[cLayer][:Z], dims = 1:normDim)
+
+
+    #Z is already flipped
+    cLayer.dW = sum(dAo .* FCache[cLayer][:Z], dims = 1:normDim)
 
     if regulization > 0
         if regulization == 1
@@ -347,20 +352,44 @@ function layerBackProp(
         end
     end
 
-    cLayer.dB = sum(dZ, dims = 1:normDim)
+    cLayer.dB = sum(dAo, dims = 1:normDim)
 
-    N = prod(size(dZ)[1:normDim])
+    Num = prod(size(dAo)[1:normDim])
 
     varep = FCache[cLayer][:var] .+ cLayer.ϵ
-
+    Ai_μ = FCache[cLayer][:Ai_μ]
     Ai_μ_s = FCache[cLayer][:Ai_μ_s]
 
-    dẐ =
-        dZ ./ sqrt.(varep) .*
-        (.-(Ai_μ_s) .* ((N - 1) / N^2) ./ (varep) .^ 2 .+ 1) .*
-        (1 - 1 / N)
+    svarep = sqrt.(varep)
 
-    dAi = dẐ
+    dZ1 = dZ ./ svarep
+
+    dZ2 = sum(dZ .* Ai_μ; dims = 1:normDim)
+    dZ2 .*= (-1 ./ (svarep .^ 2))
+    dZ2 .*= (0.5 ./ svarep)
+    dZ2 = dZ2 .* (1.0 / Num) .* ones(promote_type(eltype(Ai_μ), eltype(dZ2)), size(Ai_μ))
+    dZ2 .*= (2 .* Ai_μ)
+
+    dẐ = dZ1 .+ dZ2
+
+    dZ3 = dẐ
+
+    dZ4 = .- sum(dẐ; dims = 1:normDim)
+
+    dZ4 = dZ4 .* (1.0 / Num) .* ones(promote_type(eltype(Ai), eltype(dZ4)), size(dZ3))
+
+    dAip = dZ3 .+ dZ4
+
+    dAi = permutedims(dAip, [(2:N)..., 1])
+
+    # dẐ =
+    #     dZ ./ sqrt.(varep) .*
+    #     (.-(Ai_μ_s) .* ((N - 1) / N^2) ./ (varep) .^ 2 .+ 1) .*
+    #     (1 - 1 / N)
+    #
+    # dAi = dẐ
+
+
 
     cLayer.backCount += 1
 
