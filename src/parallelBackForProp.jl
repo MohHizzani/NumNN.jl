@@ -217,7 +217,7 @@ export predict
 
 ### chainBackProp
 include("parallelLayerBackProp.jl")
-include("layerUpdateParams.jl")
+# include("layerUpdateParams.jl")
 
 
 """
@@ -410,6 +410,8 @@ function train(
                Y_train,
                model::Model,
                epochs;
+               testData = nothing,
+               testLabels = nothing,
                kwargs...,
                )
 
@@ -420,9 +422,12 @@ function train(
     useProgBar = getindex(kwargs, :useProgBar; default = false)
     embedUpdate = getindex(kwargs, :embedUpdate; default = true)
     metrics = getindex(kwargs, :metrics; default = [:accuracy, :cost])
+    Accuracy = :accuracy in metrics
+    Cost = :cost in metrics
+    test = testData != nothing && testLabels != nothing
 
     inLayer, outLayer, lossFun, α = model.inLayer, model.outLayer, model.lossFun, model.α
-    Costs = []
+
     outAct = outLayer.actFun
     m = size(X_train)[end]
     c = size(Y_train)[end-1]
@@ -431,12 +436,33 @@ function train(
     N = ndims(X_train)
     axX = axes(X_train)[1:end-1]
     axY = axes(Y_train)[1:end-1]
+    nMiniBatch = (nB + Integer(m % batchSize != 0))
     if useProgBar
-        p = Progress(epochs*(nB + ((m % batchSize == 0) ? 0 : 1)), 0.5)
+        p = Progress(epochs*nMiniBatch, 0.1)
+        showValues = Dict{String, Real}("Epoch $(epochs)"=>0,
+                                        "Instances $(m)"=>0,
+                                        )
     end
+
+
+
+    if Accuracy
+        showValues["Train Accuracy"] = 0.0
+    end
+    if Cost
+        showValues["Train Cost"] = 0.0
+    end
+
+    if test
+        testAcc = []
+        testCost = []
+        showValues["Test Accuracy"] = 0.0
+        showValues["Test Cost"] = 0.0
+    end
+
+
     Accuracies = []
-    currentCost = 0.0
-    currentAccuracy = 0.0
+    Costs = []
     for i=1:epochs
         minCosts = [] #the costs of all mini-batches
         minAcc = []
@@ -449,26 +475,23 @@ function train(
 
             FCache = chainForProp(X, inLayer; kwargs...)
             a = FCache[outLayer][:A]
-            if :accuracy in metrics
+            if Accuracy
                 _, acc = probToValue(eval(:($outAct)), a; labels = Y)
                 push!(minAcc, acc)
-                currentAccuracy = acc
-            # else
-            #     chainForProp!(X,
-            #                   model.outLayer)
+                if useProgBar
+                    tmpAcc = mean(minAcc)
+                    showValues["Train Accuracy"] = round(tmpAcc ; digits=4)
+                end
             end
 
 
-            if :cost in metrics
+            if Cost
                 minCost = cost(eval(:($lossFun)), a, Y)
-                # sum(eval(:($lossFun($a, $Y))))/batchSize
-                #
-                # if lossFun==:binaryCrossentropy
-                #     minCost /= c
-                # end #if lossFun==:binaryCrossentropy
-
                 push!(minCosts, minCost)
-                currentCost = minCost
+                if useProgBar
+                    tmpCost = mean(minCosts)
+                    showValues["Train Cost"] = round(tmpCost; digits = 4)
+                end
             end
 
             if embedUpdate
@@ -486,16 +509,20 @@ function train(
                 chainUpdateParams!(model; tMiniBatch = j)
             end #if embedUpdate
             if useProgBar
-                if :accuracy in metrics && :cost in metrics
-                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+j; showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Accuracy, round(mean(minAcc); digits=4)), (:Cost, round(mean(minCosts); digits=4))])
-                elseif :accuracy in metrics
-                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+j; showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Accuracy, round(mean(minAcc); digits=4))])
-                elseif :cost in metrics
-                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+j; showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Cost, round(mean(minCosts); digits=4))])
-                else
-                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+j; showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize)])
-                end
+                showValues["Epoch $(epochs)"] = i
+                showValues["Instances $(m)"] = j*batchSize
+                update!(p, (i-1)*nMiniBatch+j; showvalues=[("Epoch $(epochs)", pop!(showValues, "Epoch $(epochs)")), ("Instances $(m)", pop!(showValues, "Instances $(m)")), showValues...])
             end
+                # if :accuracy in metrics && :cost in metrics
+                #     update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+j; showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Accuracy, round(mean(minAcc); digits=4)), (:Cost, round(mean(minCosts); digits=4))])
+                # elseif :accuracy in metrics
+                #     update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+j; showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Accuracy, round(mean(minAcc); digits=4))])
+                # elseif :cost in metrics
+                #     update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+j; showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Cost, round(mean(minCosts); digits=4))])
+                # else
+                #     update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+j; showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize)])
+                # end
+            # end
             # chainUpdateParams!(model; tMiniBatch = j)
 
         end #for j=1:nB iterate over the mini batches
@@ -507,26 +534,23 @@ function train(
             Y = Y_train[axY..., batchInd]
 
             FCache = chainForProp(X, inLayer; kwargs...)
-            if :accuracy in metrics
+            if Accuracy
                 _, acc = probToValue(eval(:($outAct)), FCache[outLayer][:A]; labels = Y)
                 push!(minAcc, acc)
-                currentAccuracy = acc
-            # else
-            #     chainForProp!(X,
-            #                   model.outLayer)
+                if useProgBar
+                    tmpAcc = mean(minAcc)
+                    showValues["Train Cost"] = round(tmpAcc ; digits=4)
+                end
             end
 
             a = FCache[outLayer][:A]
-            if :cost in metrics
+            if Cost
                 minCost = cost(eval(:($lossFun)), a, Y)
-                # sum(eval(:($lossFun($a, $Y))))/batchSize
-                #
-                # if lossFun==:binaryCrossentropy
-                #     minCost /= c
-                # end #if lossFun==:binaryCrossentropy
-
                 push!(minCosts, minCost)
-                currentCost = minCost
+                if useProgBar
+                    tmpCost = mean(minCosts)
+                    showValues["Train Cost"] = round(tmpCost; digits = 4)
+                end
             end
 
             if embedUpdate
@@ -545,29 +569,80 @@ function train(
             end #if embedUpdate
         end
 
-        push!(Accuracies, mean(minAcc))
-        push!(Costs, mean(minCosts))
+        if Accuracy
+            tmpAcc = mean(minAcc)
+            push!(Accuracies, tmpAcc)
+            if useProgBar
+                showValues["Train Accuracy"] = round(tmpAcc; digits=4)
+            end
+        end
+
+        if Cost
+            tmpCost = mean(minCosts)
+            push!(Costs, tmpCost)
+            if useProgBar
+                showValues["Train Cost"] = round(tmpCost; digits=4)
+            end
+        end
+
         if printCostsInterval>0 && i%printCostsInterval==0
             println("N = $i, Cost = $(Costs[end])")
         end
 
-        if useProgBar
-            if useProgBar
-                if :accuracy in metrics && :cost in metrics
-                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+(nB + 1); showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", m), (:Accuracy, round(mean(minAcc); digits=4)), (:Cost, round(mean(minCosts); digits=4))])
-                elseif :accuracy in metrics
-                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+(nB + 1); showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Accuracy, round(mean(minAcc); digits=4))])
-                elseif :cost in metrics
-                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+(nB + 1); showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Cost, round(mean(minCosts); digits=4))])
-                else
-                    update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+(nB + 1); showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize)])
+        if test
+            testDict = predict(model, testData, testLabels; useProgBar = false, batchSize=batchSize)
+            testcost = cost(eval(:($lossFun)), testDict[:YhatProb], testLabels)
+            if Accuracy
+                push!(testAcc, testDict[:accuracy])
+                if useProgBar
+                    showValues["Test Accuracy"] = round(testDict[:accuracy]; digits=4)
+                end
+            end
+            if Cost
+                push!(testCost, testcost)
+                if useProgBar
+                    showValues["Test Cost"] = round(testcost; digits=4)
                 end
             end
         end
+
+        if useProgBar
+            showValues["Epoch $(epochs)"] = i
+            showValues["Instances $(m)"] = m
+            update!(p, (i-1)*nMiniBatch+(nB+1); showvalues=[("Epoch $(epochs)", pop!(showValues, "Epoch $(epochs)")), ("Instances $(m)", pop!(showValues, "Instances $(m)")), showValues...])
+        end
+
+        # if useProgBar
+        #     if useProgBar
+        #         if :accuracy in metrics && :cost in metrics
+        #             update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+(nB + 1); showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", m), (:Accuracy, round(mean(minAcc); digits=4)), (:Cost, round(mean(minCosts); digits=4))])
+        #         elseif :accuracy in metrics
+        #             update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+(nB + 1); showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Accuracy, round(mean(minAcc); digits=4))])
+        #         elseif :cost in metrics
+        #             update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+(nB + 1); showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize), (:Cost, round(mean(minCosts); digits=4))])
+        #         else
+        #             update!(p, ((i-1)*(nB + ((m % batchSize == 0) ? 0 : 1)))+(nB + 1); showvalues=[("Epoch ($epochs)", i), ("Instances ($m)", j*batchSize)])
+        #         end
+        #     end
+        # end
     end
 
     # model.W, model.B = W, B
-    return Costs
+    outDict = Dict{Symbol, Array{T,1} where {T}}()
+    if Accuracy
+        outDict[:trainAccuracies] = Accuracies
+        if test
+            outDict[:testAccuracies] = testAcc
+        end
+    end
+
+    if Cost
+        outDict[:trainCosts] = Costs
+        if test
+            outDict[:testCosts] = testCost
+        end
+    end
+    return outDict
 end #train
 
 export train
