@@ -127,12 +127,13 @@ function probToValue(
         bool_labels = Bool.(labels)
         ax = axes(bool_labels)[1:end-1]
         endax = axes(bool_labels)[end]
-        for i in endax
+        trueFalse = Array{Bool,1}(undef, length(endax))
+        @simd for i in endax
             lab = view(bool_labels, ax..., i)
             pred = view(Ŷ_bool, ax..., i)
-            acc += Integer(lab == pred)
+            trueFalse[i] = (lab == pred)
         end
-        acc /= size(labels)[end]
+        acc = mean(trueFalse)
         # println("Accuracy = $acc")
     end
 
