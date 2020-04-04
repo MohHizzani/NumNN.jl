@@ -1,4 +1,7 @@
 
+"""
+    abstract type to include all layers
+"""
 abstract type Layer end
 
 export Layer
@@ -6,13 +9,74 @@ export Layer
 
 ### FCLayer
 
+@doc raw"""
+    FCLayer(channels=0, actFun=:noAct, [layerInput = nothing; keepProb = 1.0])
 
+Fully-connected layer (equivalent to Dense in TensorFlow etc.)
+
+# Arguments
+
+- `channels` := (`Integer`) is the number of nodes in the layer
+
+- `actFun` := (`Symbol`) is the activation function of this layer
+
+- `layerInput` := (`Layer` or `Array`) the input of this array (optional don't need to assign it)
+
+- `keepProb` := (`AbstractFloat`) the keep probability (1 - prob of the dropout rate)
+
+---------
+
+# Parameters
+
+- `channels::Integer` := is the number of nodes in the layer
+
+- `actFun::Symbol` := the activation function of this layer
+
+- `inputS::Tuple{Integer, Integer}` := input size of the layer, of the shape (channels of the previous layer, size of mini-batch)
+
+- `outputS::Tuple{Integer, Integer}` := output size of the layer, of the shape (channels of this layer, size of mini-batch)
+
+- `keepProb::AbstractFloat` := the keep probability (rate) of the drop-out operation `<1.0`
+
+- `W::Array{T,2} where {T}` := the scaling parameters of this layer `W * X`, of the shape (channels of this layer, channels of the previous layer)
+
+- `B::Array{T,2} where {T}` := the bias of this layer `W * X .+ B`, of the shape (channels of this layer, 1)
+
+- `dW::Array{T,2} where {T}` := the derivative of the loss function to the W parameters $\frac{dJ}{dW}$
+
+- `dB::Array{T,2} where {T}` := the derivative of the loss function to the B parameters $\frac{dJ}{dB}$
+
+- `forwCount::Integer` := forward propagation counter
+
+- `backCount::Integer` := backward propagation counter
+
+- `updateCount::Integer` := update parameters counter
+
+- `prevLayer::L where {L<:Union{Layer,Nothing}}` := the previous layer which is
+the input of this layer
+
+- `nextLayers::Array{Layer,1}` := An array of the next `layer`(s)
+
+---------
+
+# Examples
+
+```julia
+X_Input = Input(X_train)
+X = FCLayer(20, :relu)(X_Input)
+
+```
+
+In the previous example the variable `X_Input` is a pointer to the `Input` layer, and `X` is an pointer to the `FCLayer(20, :relu)` layer.
+**Note** that the layer instance can be used as a connecting function.
+
+"""
 mutable struct FCLayer <: Layer
     channels::Integer
     actFun::Symbol
 
-    inputS::Tuple
-    outputS::Tuple
+    inputS::Tuple{Integer, Integer}
+    outputS::Tuple{Integer, Integer}
 
     """
         drop-out keeping node probability
@@ -22,11 +86,11 @@ mutable struct FCLayer <: Layer
     B::Array{T,2} where {T}
     dW::Array{T,2} where {T}
     dB::Array{T,2} where {T}
-    ### adding Z & A place holder for recursive calling
-    ### and a counter for how many it was called
-    Z::Array{T,2} where {T}
-    dA::Array{T,2} where {T}
-    A::Array{T,2} where {T}
+    # ### adding Z & A place holder for recursive calling
+    # ### and a counter for how many it was called
+    # Z::Array{T,2} where {T}
+    # dA::Array{T,2} where {T}
+    # A::Array{T,2} where {T}
 
     V::Dict{Symbol,Array{T,2} where {T,N}}
     S::Dict{Symbol,Array{T,2} where {T,N}}
@@ -39,7 +103,7 @@ mutable struct FCLayer <: Layer
     """
     prevLayer::L where {L<:Union{Layer,Nothing}}
     nextLayers::Array{Layer,1}
-    function FCLayer(channels, actFun, layerInput = nothing; keepProb = 1.0)
+    function FCLayer(channels=0, actFun=:noAct, layerInput = nothing; keepProb = 1.0)
         # W, B
         if isa(layerInput, Layer)
             T = eltype(layerInput.W)
@@ -68,8 +132,8 @@ mutable struct FCLayer <: Layer
             Matrix{T}(undef, 0, 0),
             Matrix{T}(undef, 0, 0),
             Matrix{T}(undef, 0, 0),
-            Matrix{T}(undef, 0, 0),
-            Matrix{T}(undef, 0, 0),
+            # Matrix{T}(undef, 0, 0),
+            # Matrix{T}(undef, 0, 0),
             Dict(:dw => Matrix{T}(undef, 0, 0), :db => Matrix{T}(undef, 0, 0)),
             Dict(:dw => Matrix{T}(undef, 0, 0), :db => Matrix{T}(undef, 0, 0)),
             0,
@@ -86,7 +150,49 @@ export FCLayer
 
 ### AddLayer
 
+@doc raw"""
+    AddLayer(; [channels = 0])
 
+Layer performs and addition of multiple previous layers
+
+# Arguments
+
+- `channels` := (`Integer`) number of channels/nodes of this array which equals to the same of the previous layer(s)
+
+---------
+
+# Parameters
+
+- `channels::Integer` := is the number of nodes or `channels` in the layer
+
+- `inputS::Tuple` := input size of the layer
+
+- `outputS::Tuple` := output size of the layer
+
+- `forwCount::Integer` := forward propagation counter
+
+- `backCount::Integer` := backward propagation counter
+
+- `updateCount::Integer` := update parameters counter
+
+- `nextLayers::Array{Layer,1}` := An array of the next `layer`(s)
+
+- `prevLayer::Array{Layer,1}` := An array of the previous `layer`(s) to be added
+
+---------
+
+# Examples
+
+```julia
+XIn1 = Input(X_train)
+X1 = FCLayer(10, :relu)(XIn1)
+XIn2 = Input(X_train)
+X2 = FCLayer(10, :tanh)(XIn2)
+
+Xa = AddLayer()([X1,X2])
+```
+
+"""
 mutable struct AddLayer <: Layer
     channels::Integer
 
@@ -94,8 +200,8 @@ mutable struct AddLayer <: Layer
     outputS::Tuple
 
 
-    A::Array{T,N} where {T,N}
-    dA::Array{T,N} where {T,N}
+    # A::Array{T,N} where {T,N}
+    # dA::Array{T,N} where {T,N}
 
     forwCount::Integer
     backCount::Integer
@@ -126,7 +232,46 @@ export AddLayer
 
 
 ### Activation
+@doc raw"""
+    Activation(actFun)
 
+# Arguments
+
+- `actFun::Symbol` := the activation function of this layer
+
+---------
+
+# Parameters
+
+- `actFun::Symbol` := the activation function of this layer
+
+- `channels::Integer` := is the number of nodes or `channels` in the layer
+
+- `inputS::Tuple` := input size of the layer
+
+- `outputS::Tuple` := output size of the layer
+
+- `forwCount::Integer` := forward propagation counter
+
+- `backCount::Integer` := backward propagation counter
+
+- `updateCount::Integer` := update parameters counter
+
+- `nextLayers::Array{Layer,1}` := An array of the next `layer`(s)
+
+- `prevLayer::Array{Layer,1}` := An array of the previous `layer`(s) to be added
+
+---------
+
+# Examples
+
+```julia
+X_Input = Input(X_train)
+X = FCLayer(10, :noAct)(X_Input)
+X = Activation(:relu)(X)
+```
+
+"""
 mutable struct Activation <: Layer
     actFun::Symbol
     channels::Integer
@@ -137,9 +282,6 @@ mutable struct Activation <: Layer
     forwCount::Integer
     backCount::Integer
     updateCount::Integer
-
-    A::Array{T,N} where {T,N}
-    dA::Array{T,N} where {T,N}
 
     nextLayers::Array{Layer,1}
     prevLayer::L where {L<:Union{Layer,Nothing}}
@@ -153,8 +295,6 @@ mutable struct Activation <: Layer
             0,
             0,
             0,
-            Matrix{Nothing}(undef, 0, 0),
-            Matrix{Nothing}(undef, 0, 0),
             Array{Layer,1}(undef,0),
             nothing,
             )
@@ -168,14 +308,58 @@ export Activation
 
 ### Input
 
+@doc raw"""
+    Input(X_shape::Tuple)
+
+`Input` `Layer` that is used as a pointer to the input array(s).
+
+# Arguments
+
+- `X_shape::Tuple` := shape of the input Array
+
+-------
+
+# Parameters
+
+- `channels::Integer` := is the number of nodes or `channels` in the layer
+
+- `inputS::Tuple` := input size of the layer
+
+- `outputS::Tuple` := output size of the layer
+
+- `forwCount::Integer` := forward propagation counter
+
+- `backCount::Integer` := backward propagation counter
+
+- `updateCount::Integer` := update parameters counter
+
+- `nextLayers::Array{Layer,1}` := An array of the next `layer`(s)
+
+- `prevLayer::Array{Layer,1}` := An array of the previous `layer`(s) to be added
+
+
+------
+
+# Examples
+
+```julia
+X_Input = Input(size(X_train))
+X = FCLayer(10, :relu)(X_Input)
+```
+
+It is possible to use the Array instead of its size NumNN will take care of the rest
+
+```julia
+X_Input = Input(X_train)
+X = FCLayer(10, :relu)(X_Input)
+```
+
+"""
 mutable struct Input <: Layer
     channels::Integer
 
     inputS::Tuple
     outputS::Tuple
-
-    A::Array{T,N} where {T,N}
-    dA::Array{T,N} where {T,N}
 
     forwCount::Integer
     backCount::Integer
@@ -200,8 +384,6 @@ mutable struct Input <: Layer
             channels,
             X_shape, #inputS
             X_shape, #outputS
-            Array{Any,N}(undef, repeat([0],N)...), #A
-            Array{Any,N}(undef, repeat([0],N)...), #dA
             0,
             0,
             0,
@@ -221,6 +403,83 @@ export Input
 
 ### BatchNorm
 
+@doc raw"""
+    BatchNorm(;dim=1, ϵ=1e-10)
+
+Batch Normalization `Layer` that is used ot normalize across the dimensions specified by the argument `dim`.
+
+# Arguments
+
+- `dim::Integer` := is the dimension to normalize across
+
+- `ϵ::AbstractFloat` := is a backup constant that is used to prevent from division on zero when ``σ^2`` is zero
+
+---------
+
+# Parameters
+
+- `channels::Integer` := is the number of nodes in the layer
+
+- `inputS::Tuple{Integer, Integer}` := input size of the layer, of the shape (channels of the previous layer, size of mini-batch)
+
+- `outputS::Tuple{Integer, Integer}` := output size of the layer, of the shape (channels of this layer, size of mini-batch)
+
+- `dim::Integer` := the dimension to normalize across
+
+- `ϵ::AbstractFloat` := backup constant to protect from dividing on zero when ``σ^2 = 0``
+
+- `W::Array{T,2} where {T}` := the scaling parameters of this layer `W * X`, same shape of the mean `μ`
+
+- `B::Array{T,2} where {T}` := the bias of this layer `W * X .+ B`, same shape of the variance ``σ^2``
+
+- `dW::Array{T,2} where {T}` := the derivative of the loss function to the W parameters $\frac{dJ}{dW}$
+
+- `dB::Array{T,2} where {T}` := the derivative of the loss function to the B parameters $\frac{dJ}{dB}$
+
+- `forwCount::Integer` := forward propagation counter
+
+- `backCount::Integer` := backward propagation counter
+
+- `updateCount::Integer` := update parameters counter
+
+- `prevLayer::L where {L<:Union{Layer,Nothing}}` := the previous layer which is
+the input of this layer
+
+- `nextLayers::Array{Layer,1}` := An array of the next `layer`(s)
+
+---------
+
+# Examples
+
+```julia
+X_train = rand(14,14,3,32) #input of shape `14×14` with channels of `3` and mini-batch size `32`
+
+X_Input = Input(X_train)
+X = Conv2D(10, (3,3))(X_Input)
+X = BatchNorm(dim=3) #to normalize across the channels dimension
+X = Activation(:relu)
+```
+
+```julia
+X_train = rand(128,5,32) #input of shape `128` with channels of `5` and mini-batch size `32`
+
+X_Input = Input(X_train)
+X = Conv1D(10, 5)(X_Input)
+X = BatchNorm(dim=2) #to normalize across the channels dimension
+X = Activation(:relu)
+``
+
+
+```julia
+X_train = rand(64*64,32) #input of shape `64*64` and mini-batch size `32`
+
+X_Input = Input(X_train)
+X = FCLayer(10, :noAct)(X_Input)
+X = BatchNorm(dim=1) #to normalize across the features dimension
+X = Activation(:relu)
+````
+
+"""
 mutable struct BatchNorm <: Layer
     channels::Integer
 
@@ -231,9 +490,6 @@ mutable struct BatchNorm <: Layer
 
     ϵ::AbstractFloat
 
-    μ::Array{T,N} where{T,N}
-    var::Array{T,N} where {T,N}
-
     W::Array{T, N} where {T,N}
     dW::Array{T, N} where {T,N}
 
@@ -242,11 +498,6 @@ mutable struct BatchNorm <: Layer
 
     V::Dict{Symbol,Array}
     S::Dict{Symbol,Array}
-
-    Z::Array{T, M} where {T,M}
-    Ai_μ_s::Array{T, M} where {T,M}
-    dA::Array{T, M} where {T,M}
-    A::Array{T, M} where {T,M}
 
     forwCount::Integer
     backCount::Integer
@@ -263,8 +514,6 @@ mutable struct BatchNorm <: Layer
             (0,), #outputS
             dim,
             ϵ,
-            Array{Any,1}(undef,0), #μ
-            Array{Any,1}(undef,0), #var
             Array{Any,1}(undef,0), #W
             Array{Any,1}(undef,0), #dW
             Array{Any,1}(undef,0), #B
@@ -273,10 +522,6 @@ mutable struct BatchNorm <: Layer
                  :db=>Array{Any,1}(undef,0)), #V
             Dict(:dw=>Array{Any,1}(undef,0),
                  :db=>Array{Any,1}(undef,0)), #S
-            Array{Any,1}(undef,0), #Z
-            Array{Any,1}(undef,0), #Ai_μ_s
-            Array{Any,1}(undef,0), #dA
-            Array{Any,1}(undef,0), #A
             0, #forwCount
             0, #backCount
             0, #updateCount
