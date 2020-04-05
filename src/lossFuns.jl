@@ -1,5 +1,5 @@
 
-abstract type lossFun end
+abstract type lossFun <: Layer end
 
 export lossFun
 
@@ -18,23 +18,35 @@ export lossFun
     output:
         J := scaler value of the cross entropy loss
 """
+mutable struct binaryCrossentropy <: lossFun
+    A::Layer
+    # Y::AbstractArray{T,N}
+    function binaryCrossentropy(A::Layer,
+         # Y::AbstractArray{T,N},
+         )# where {T,N}
+        if A.actFun != σ
+            throw(TypeError(:binaryCrossentropy, "defining the loss `Layer`", σ, A.actFun))
+        end
+        return new(A,
+                    # Y,
+                    )
+    end
+end
 
-abstract type binaryCrossentropy <: lossFun end
-
-function binaryCrossentropy(a, y)
+macro binaryCrossentropy(a::AbstractArray, y::AbstractArray)
 
     aNew = prevnextfloat.(a)
     J = .-(y .* log.(aNew) .+ (1 .- y) .* log.(1 .- aNew))
     return J
 end #binaryCrossentropy
 
-export binaryCrossentropy
+export binaryCrossentropy, @binaryCrossentropy
 
 """
     compute the drivative of cross-entropy loss function to the input of the
     layer dZ
 """
-function dbinaryCrossentropy(a, y)
+macro dbinaryCrossentropy(a, y)
     dJ = a .- y
     return dJ
 end #dbinaryCrossentropy
@@ -91,6 +103,30 @@ function cost(
 
     c, m = size(A)[N-1:N]
     costs = sum(loss(A,Y)) / (c*m)
+    return costs
+
+end #function cost
+
+function cost(
+    loss::Val{:categoricalCrossentropy},
+    A::AbstractArray{T1,N},
+    Y::AbstractArray{T2,N},
+) where {T1, T2, N}
+
+    c, m = size(A)[N-1:N]
+    costs = sum(eval(:($loss($A,$Y)))) / m
+    return costs
+
+end #function cost
+
+function cost(
+    loss::Val{:binaryCrossentropy},
+    A::AbstractArray{T1,N},
+    Y::AbstractArray{T2,N},
+) where {T1, T2, N}
+
+    c, m = size(A)[N-1:N]
+    costs = sum(eval(:($loss($A,$Y)))) / (c*m)
     return costs
 
 end #function cost
