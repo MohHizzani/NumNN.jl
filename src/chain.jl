@@ -125,3 +125,6 @@ function (l::Input)(X::AbstractArray{T,N}) where {T,N}
 end #function (l::Input)(X::AbstractArray{T,N})
 
 export l
+
+
+#### chaining of losses
