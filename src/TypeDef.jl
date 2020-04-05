@@ -539,71 +539,55 @@ export BatchNorm
 
 mutable struct Model
     # layers::Array{Layer,1}
-    inLayer::Layer
+    inLayer::Array{Layer,1}
     outLayer::Layer
     lossFun::Symbol
 
+    trainParams::Dict{Layer,Dict}
+
     paramsDtype::DataType
 
-    """
-        regulization type
-            0 : means no regulization
-            1 : L1 regulization
-            2 : L2 regulization
-    """
-    regulization::Integer
-
-    """
-        regulization constant
-    """
-    λ::AbstractFloat
-
-    """
-        learning rate
-    """
-    α::AbstractFloat
-
-    optimizer::Symbol
-    ϵAdam::AbstractFloat
-    β1::AbstractFloat
-    β2::AbstractFloat
+    optimizer::Optimizer
 
     function Model(
-        X,
-        Y,
-        inLayer::Layer,
-        outLayer::Layer,
-        α;
-        optimizer = :gds,
-        β1 = 0.9,
-        β2 = 0.999,
-        ϵAdam = 1e-8,
-        regulization = 0,
-        λ = 1.0,
-        lossFun = :categoricalCrossentropy,
-        paramsDtype::DataType = Float64,
+        inLayer::Array{Layer,1},
+        outLayer::Array{Layer,1};
+        kwargs...,
     )
 
-        deepInitWB!(outLayer; dtype = paramsDtype)
+        optimizer = getindex(kwargs, :optimizer; default=SGD())
+        lossFun = getindex(kwargs, :lossFun; default=:categoricalCrossentropy)
+        paramsDtype = getindex(kwargs, :paramsDtype; default=Float64)
+
+        for oLayer in outLayer
+            deepInitWB!(oLayer; dtype = paramsDtype)
+        end
         resetCount!(outLayer, :forwCount)
-        deepInitVS!(outLayer, optimizer)
-        resetCount!(outLayer, :forwCount)
+        # deepInitVS!(outLayer, optimizer)
+        # resetCount!(outLayer, :forwCount)
         @assert regulization in [0, 1, 2]
         return new(
             inLayer,
             outLayer,
             lossFun,
             paramsDtype,
-            regulization,
-            λ,
-            α,
             optimizer,
-            ϵAdam,
-            β1,
-            β2,
         )
     end #inner-constructor
 
 end #Model
+
+function Model(inLayer::Layer,outLayer::AoL; kwargs...) where {AoL <: Union{Array{Layer,1}, Layer}}
+    if outLayer isa Array
+        return Model([inLayer], outLayer; kwargs...)
+    else
+        return Model([inLayer], [outLayer]; kwargs...)
+    end
+end
+
+function Model(inLayer::Array{Layer,1}, outLayer::Layer; kwargs...)
+    return Model(inLayer, [outLayer]; kwargs...)
+end
+
 
 export Model

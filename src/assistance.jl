@@ -47,3 +47,33 @@ export resetCount!
 ### to extend the getindex fun
 
 Base.getindex(it, key; default) = haskey(it, key) ? it[key] : default
+
+
+### getTrainParams
+
+function getTrainParams(
+    outLayer::AoL,
+    Params::Array{Symbol,1}=[:W,:B],
+    cLayer::LoN=nothing,
+    paramsDict::Dict{Layer,Array{Symbol,1}}=Dict(),
+    cnt::Integer = -1
+) where {AoL <: Union{Array{Layer,1},Layer}, LoN <: Union{Layer, Nothing}}
+
+    if outLayer isa Layer
+        outLayer = [outLayer]
+    end
+
+    if cLayer == nothing
+        for oLayer in outLayer
+            paramsDict = getTrainParams(outLayer, Params, oLayer, paramsDict, cnt)
+        end
+    end
+
+
+    if cLayer isa Input
+        cLayer.backCount += 1
+
+        for field in Params
+            if hasfield(cLayer, field)
+
+end
