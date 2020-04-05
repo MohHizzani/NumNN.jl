@@ -2,7 +2,6 @@
 include("TypeDef.jl")
 include("lossFuns.jl")
 include("actFuns.jl")
-include("optimizers.jl")
 include("initializations.jl")
 include("cnn/includes.jl")
 # include("backForProp.jl")
