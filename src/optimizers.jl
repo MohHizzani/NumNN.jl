@@ -213,7 +213,7 @@ model = Model(X_train, Y_train, inLayer=X_Input, outLayer=X_out; optimizer=opt)
 ```
 
 """
-mutable struct Adam <: Optimizer end
+mutable struct Adam <: Optimizer
     "Learning rate"
     α::AbstractFloat
 
