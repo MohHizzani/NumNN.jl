@@ -71,9 +71,32 @@ function getTrainParams(
 
 
     if cLayer isa Input
-        cLayer.backCount += 1
+        paramsDict[cLayer] = haskey(paramsDict, cLayer) ? paramsDict[cLayer] : layerGetTrainParams(cLayer, Params)
+    else
+        paramsDict[cLayer] = haskey(paramsDict, cLayer) ? paramsDict[cLayer] : layerGetTrainParams(cLayer, Params)
+        if cLayer isa AddLayer
+            for prevLayer in cLayer.prevLayer
+                if prevLayer.backCount < cnt
+                    paramsDict = getTrainParams(outLayer, Params, prevLayer, paramsDict, cnt)
+                end
+            end
+        else
+            prevLayer = cLayer.prevLayer
+            if prevLayer.backCount < cnt
+                paramsDict = getTrainParams(outLayer, Params, prevLayer, paramsDict, cnt)
+            end
+        end
+    end
+    return paramsDict
+end
 
-        for field in Params
-            if hasfield(cLayer, field)
-
+function layerGetTrainParams(cLayer::Layer, Params::Array{Symbol,1})
+    oP = []
+    for p in Params
+        if hasfield(cLayer, p)
+            push!(oP)
+        end
+    end
+    cLayer.backCount += 1
+    return oP
 end
