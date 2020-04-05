@@ -64,7 +64,7 @@ the input of this layer
 ```julia
 X_Input = Input(X_train)
 X = FCLayer(20, :relu)(X_Input)
-
+X = FCLayer(10, :softmax)(X)
 ```
 
 In the previous example the variable `X_Input` is a pointer to the `Input` layer, and `X` is an pointer to the `FCLayer(20, :relu)` layer.
@@ -92,8 +92,8 @@ mutable struct FCLayer <: Layer
     # dA::Array{T,2} where {T}
     # A::Array{T,2} where {T}
 
-    V::Dict{Symbol,Array{T,2} where {T,N}}
-    S::Dict{Symbol,Array{T,2} where {T,N}}
+    # V::Dict{Symbol,Array{T,2} where {T,N}}
+    # S::Dict{Symbol,Array{T,2} where {T,N}}
 
     forwCount::Integer
     backCount::Integer
@@ -134,8 +134,8 @@ mutable struct FCLayer <: Layer
             Matrix{T}(undef, 0, 0),
             # Matrix{T}(undef, 0, 0),
             # Matrix{T}(undef, 0, 0),
-            Dict(:dw => Matrix{T}(undef, 0, 0), :db => Matrix{T}(undef, 0, 0)),
-            Dict(:dw => Matrix{T}(undef, 0, 0), :db => Matrix{T}(undef, 0, 0)),
+            # Dict(:dw => Matrix{T}(undef, 0, 0), :db => Matrix{T}(undef, 0, 0)),
+            # Dict(:dw => Matrix{T}(undef, 0, 0), :db => Matrix{T}(undef, 0, 0)),
             0,
             0,
             0,
@@ -496,8 +496,8 @@ mutable struct BatchNorm <: Layer
     B::Array{T, N} where {T,N}
     dB::Array{T, N} where {T,N}
 
-    V::Dict{Symbol,Array}
-    S::Dict{Symbol,Array}
+    # V::Dict{Symbol,Array}
+    # S::Dict{Symbol,Array}
 
     forwCount::Integer
     backCount::Integer
@@ -518,10 +518,10 @@ mutable struct BatchNorm <: Layer
             Array{Any,1}(undef,0), #dW
             Array{Any,1}(undef,0), #B
             Array{Any,1}(undef,0), #dB
-            Dict(:dw=>Array{Any,1}(undef,0),
-                 :db=>Array{Any,1}(undef,0)), #V
-            Dict(:dw=>Array{Any,1}(undef,0),
-                 :db=>Array{Any,1}(undef,0)), #S
+            # Dict(:dw=>Array{Any,1}(undef,0),
+            #      :db=>Array{Any,1}(undef,0)), #V
+            # Dict(:dw=>Array{Any,1}(undef,0),
+            #      :db=>Array{Any,1}(undef,0)), #S
             0, #forwCount
             0, #backCount
             0, #updateCount
@@ -537,13 +537,16 @@ export BatchNorm
 
 ### Model
 
+include("optimizers.jl")
+
+
 mutable struct Model
     # layers::Array{Layer,1}
     inLayer::Array{Layer,1}
     outLayer::Layer
     lossFun::Symbol
 
-    trainParams::Dict{Layer,Dict}
+    trainParams::Dict{Layer,Array{Symbol, 1}}
 
     paramsDtype::DataType
 
@@ -562,7 +565,7 @@ mutable struct Model
         for oLayer in outLayer
             deepInitWB!(oLayer; dtype = paramsDtype)
         end
-        resetCount!(outLayer, :forwCount)
+        resetCount!(outLayer, :backCount)
         # deepInitVS!(outLayer, optimizer)
         # resetCount!(outLayer, :forwCount)
         @assert regulization in [0, 1, 2]
