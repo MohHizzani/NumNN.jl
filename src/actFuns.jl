@@ -28,15 +28,31 @@ dσ(Z) = σ(Z) .* (1 .- σ(Z))
 
 export dσ
 
+@doc raw"""
+    function probToValue(
+        actFun::Type{σ},
+        probs::AbstractArray{T,N},
+        labels::Aa = nothing;
+        evalConst = 0.5,
+    ) where {Aa<:Union{<:AbstractArray,Nothing},T,N}
 
+Convert the probabilities return out of sigmoid function to Bool value (i.e. 0,1) values based on comparing on a threshold value `evalConst`
+
+# Return
+
+- `Ŷ_bool` := Boolean valuse of the probabilites
+
+- `acc` := Accuracy when `labels` provided
+"""
 function probToValue(
     actFun::Type{σ},
     probs::AbstractArray{T,N},
-    labels::Aa = nothing,
+    labels::Aa = nothing;
+    evalConst = 0.5,
 ) where {Aa<:Union{<:AbstractArray,Nothing},T,N}
 
     s = size{probs}
-    Ŷ_bool = probs .> T(0.5)
+    Ŷ_bool = probs .> T(evalConst)
     acc = nothing
     if labels isa AbstractArray
         acc = sum(Ŷ_bool .== labels) / (s[end-1] * s[end])
@@ -112,7 +128,21 @@ end #dsoftmax
 
 export softmax, dsoftmax
 
+@doc raw"""
+    function probToValue(
+        actFun::Type{S},
+        probs::AbstractArray{T,N};
+        labels = nothing,
+    ) where {T,N,S<:softmaxFamily}
 
+convert the probabilites out of `softmax` or softmax-like functions into `Bool` values, where the max value gets 1 and the other get zeros
+
+# Return
+
+- `Ŷ_bool` := Boolean valuse of the probabilites
+
+- `acc` := Accuracy when `labels` provided
+"""
 function probToValue(
     actFun::Type{S},
     probs::AbstractArray{T,N};
@@ -141,7 +171,6 @@ function probToValue(
     return Ŷ_bool, acc
 end #predictpredict(probs::AbstractArray{T, 2}, :softmax)
 
-export predict
 
 ### tanh
 
