@@ -1,8 +1,10 @@
 
 
 """
-    returns the outLayer from an array of layers and
-    the input of the model X
+    function chain(X, arr::Array{L,1}) where {L<:Layer}
+
+Returns the input `Layer` and the output `Layer` from an `Array` of layers and the input of the model as and `Array` `X`
+
 """
 function chain(X, arr::Array{L,1}) where {L<:Layer}
     if ! (arr[1] isa Input)
