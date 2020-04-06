@@ -1,13 +1,23 @@
 
 
+@doc raw"""
+    function layerUpdateParams!(
+        model::Model,
+        cLayer::FoB,
+        cnt::Integer = -1;
+        tMiniBatch::Integer = 1,
+        kwargs...,
+    ) where {FoB <: Union{FCLayer, BatchNorm}}
 
+update trainable parameters for `FCLayer` and `BatchNorm` layers
+"""
 function layerUpdateParams!(
-                       model::Model,
-                       cLayer::FoB,
-                       cnt::Integer = -1;
-                       tMiniBatch::Integer = 1,
-                       kwargs...,
-                       ) where {FoB <: Union{FCLayer, BatchNorm}}
+    model::Model,
+    cLayer::FoB,
+    cnt::Integer = -1;
+    tMiniBatch::Integer = 1,
+    kwargs...,
+) where {FoB <: Union{FCLayer, BatchNorm}}
 
     optimizer = model.optimizer
     α = model.α
@@ -70,9 +80,9 @@ function layerUpdateParams!(
                        kwargs...,
                        ) where {IoA <: Union{Input, Activation, AddLayer}}
 
-    optimizer = model.optimizer
-    α = model.α
-    β1, β2, ϵAdam = model.β1, model.β2, model.ϵAdam
+    # optimizer = model.optimizer
+    # α = model.α
+    # β1, β2, ϵAdam = model.β1, model.β2, model.ϵAdam
 
     if cLayer.updateCount >= cnt
         return nothing
