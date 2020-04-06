@@ -1,6 +1,21 @@
 
-"""
-    convert array of integer classes into one Hot coding
+@doc raw"""
+    oneHot(Y; classes = [], numC = 0)
+
+convert array of integer classes into one Hot coding.
+
+# Arguments
+
+- `Y` := a vector of classes as a number
+
+- `classes` := the classes explicity represented (in case not all the classes are present in the labels given)
+
+- `numC` := number of classes as alternative to `classes` variable
+
+# Examples
+
+```julia
+Y = rand(0:9, 100); # a 100 item with class of [0-9]
 """
 function oneHot(Y; classes = [], numC = 0)
     if numC > 0
@@ -13,15 +28,44 @@ function oneHot(Y; classes = [], numC = 0)
         Cs = sort(unique(Y))
         c = length(Cs)
     end
-    hotY = BitArray{2}(undef, c, 0)
-    for y in Y
-        hotY = hcat(hotY, Integer.(Cs .== y))
+    hotY = BitArray{2}(undef, c, length(Y))
+    @simd for i=1:length(Y)
+        hotY[:,i] = (Cs .== y)
     end
     return hotY
 end #oneHot
 
 export oneHot
 
+
+@doc raw"""
+    resetCount!(outLayer::Layer, cnt::Symbol)
+
+to reset a counter in all layers under `outLayer`.
+
+# Arguments
+
+- `outLayer::Layer` := the layer from start reseting the counter
+
+- `cnt::Symbol` := the counter to be reseted
+
+# Examples
+
+```julia
+X_train = rand(128, 100);
+
+X_Input = Input(X_train);
+X = FCLayer(50, :relu)(X_Input);
+X_out = FCLayer(10, :softmax)(X);
+
+FCache = chainForProp(X_train, X_Input);
+
+# Now to reset the forwCount in all layers
+
+resetCount!(X_out, :forwCount)
+```
+
+"""
 function resetCount!(outLayer::Layer,
                      cnt::Symbol)
     prevLayer = outLayer.prevLayer
@@ -46,4 +90,22 @@ export resetCount!
 
 ### to extend the getindex fun
 
+@doc raw"""
+    getindex(it, key; default) = haskey(it, key) ? it[key] : default
+
+# Examples
+
+```julia
+D = Dict(:A=>"A", :B=>"B")
+
+A = getindex(D, :A)
+
+## this will return an error
+#C = getindex(D: :C)
+
+#instead
+C = getindex(D, :C; default="C")
+#this will return the `String` C
+```
+"""
 Base.getindex(it, key; default) = haskey(it, key) ? it[key] : default
