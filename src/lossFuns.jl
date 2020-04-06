@@ -9,8 +9,8 @@ export lossFun
     return the average cross entropy loss over vector of labels and predictions
 
     input:
-        a := (c,1) matrix of predicted values, where c is the number of classes
-        y := (c,1) matrix of predicted values, where c is the number of classes
+        a := (?1, c,m) matrix of predicted values, where c is the number of classes
+        y := (?1, c,m) matrix of predicted values, where c is the number of classes
 
         Note: in case the number of classes is one (1) it is okay to have
               a scaler values for a and y
@@ -18,7 +18,6 @@ export lossFun
     output:
         J := scaler value of the cross entropy loss
 """
-
 abstract type binaryCrossentropy <: lossFun end
 
 function binaryCrossentropy(a, y)
@@ -71,6 +70,16 @@ export prevnextfloat
 
 ### cost function
 
+"""
+    function cost(
+        loss::Type{categoricalCrossentropy},
+        A::AbstractArray{T1,N},
+        Y::AbstractArray{T2,N},
+    ) where {T1, T2, N}
+
+Compute the cost for `categoricalCrossentropy` loss function
+
+"""
 function cost(
     loss::Type{categoricalCrossentropy},
     A::AbstractArray{T1,N},
@@ -83,6 +92,16 @@ function cost(
 
 end #function cost
 
+"""
+    function cost(
+        loss::Type{binaryCrossentropy},
+        A::AbstractArray{T1,N},
+        Y::AbstractArray{T2,N},
+    ) where {T1, T2, N}
+
+Compute the cost for `binaryCrossentropy` loss function
+
+"""
 function cost(
     loss::Type{binaryCrossentropy},
     A::AbstractArray{T1,N},
