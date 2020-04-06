@@ -1,3 +1,7 @@
+"""
+This file holds all the includes commands for easier test and dev purpose
+"""
+
 
 include("TypeDef.jl")
 include("lossFuns.jl")

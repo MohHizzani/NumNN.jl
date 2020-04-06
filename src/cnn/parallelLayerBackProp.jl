@@ -99,8 +99,6 @@ end #function layerBackProp(cLayer::Input
 
 ### Pooling Layers
 
-#TODO make the fastPooling with most priority
-
 #import only the needed parts not to have conflict
 import NNlib.∇maxpool, NNlib.∇meanpool, NNlib.∇maxpool!, NNlib.∇meanpool!, NNlib.PoolDims
 

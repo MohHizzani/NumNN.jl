@@ -1,6 +1,8 @@
 
 ### single layer initWB
 
+#TODO create initializers dependent for each method
+
 """
     initialize W and B for layer with inputs of size of (nl_1) and layer size
         of (nl)
