@@ -7,21 +7,28 @@ using LinearAlgebra
 
 ###
 
-"""
-    perform the chained forward propagation using recursive calls
+@doc raw"""
+    function chainForProp(
+        X::AbstractArray{T,N},
+        cLayer::Layer,
+        cnt::Integer = -1;
+        FCache = Dict{Layer,Dict{Symbol,AbstractArray}}(),
+        kwargs...,
+    ) where {T,N}
 
-    input:
-    X := input of the input layer
-    cLayer := Input Layer
-    cnt := an internal counter used to cache the layers was performed
-           not to redo it again
+perform the chained forward propagation using recursive calls
 
-    returns:
-    Cache := the output each layer either A, Z or together As Dict of layer to dict of Symbols and Arrays
+# Arguments:
 
-    for internal use, it set again the values of Z and A in each layer
-        to be used later in back propagation and add one to the layer
-        forwCount value when pass through it
+- `X::AbstractArray{T,N}` := input of the input layer
+
+- `cLayer::Layer` := Input Layer
+
+- `cnt::Integer` := an internal counter used to cache the layers was performed not to redo it again
+
+# Returns
+
+- `Cache::Dict{Layer, Dict{Symbol, Array}}` := the output each layer either A, Z or together As Dict of layer to dict of Symbols and Arrays for internal use, it set again the values of Z and A in each layer to be used later in back propagation and add one to the layer forwCount value when pass through it
 """
 function chainForProp(
     X::AbstractArray{T,N},
@@ -77,18 +84,28 @@ end #function chainForProp!
 export chainForProp
 
 
-"""
-    predict Y using the model and the input X and the labels Y
-    inputs:
-        model := the trained model
-        X := the input matrix
-        Y := the input labels to compare with
+@doc raw"""
+    predictBatch(model::Model, X::AbstractArray, Y = nothing; kwargs...)
 
-    output:
-        a Dict of
-        "Yhat" := the predicted values
-        "Yhat_bools" := the predicted labels
-        "accuracy" := the accuracy of the predicted labels
+predict Y using the model and the input X and the labels Y
+
+# Inputs
+
+- `model::Model` := the trained model
+
+- `X::AbstractArray` := the input `Array`
+
+- `Y` := the input labels to compare with (optional)
+
+# Output
+
+- a `Tuple` of
+
+    * `Ŷ` := the predicted values
+    * `Ŷ_bool` := the predicted labels
+    * `"accuracy"` := the accuracy of the predicted labels
+
+
 """
 function predictBatch(model::Model, X::AbstractArray, Y = nothing; kwargs...)
 
@@ -107,6 +124,35 @@ end #predict
 
 export predictBatch
 
+
+###
+@doc raw"""
+    predict(model::Model, X_In::AbstractArray, Y_In = nothing; kwargs...)
+
+Run the prediction based on the trained `model`
+
+# Arguments
+
+- `model::Model` := the trained `Model` to predict on
+
+- `X_In` := the input `Array`
+
+- `Y_In` := labels (optional) to evaluate the model
+
+## Key-word Arugmets
+
+- `batchSize` := default `32`
+
+- `useProgBar` := (`Bool`) where or not to shoe the prograss bar
+
+# Return
+
+- a `Dict` of:
+
+    * `:YhatValue` := Array of the output of the integer prediction values
+    * `:YhatProb` := Array of the output probabilities
+    * `:accuracy` := the accuracy of prediction in case `Y_In` is given
+"""
 function predict(model::Model, X_In::AbstractArray, Y_In = nothing; kwargs...)
 
     kwargs = Dict{Symbol, Any}(kwargs...)
@@ -220,18 +266,44 @@ include("parallelLayerBackProp.jl")
 # include("layerUpdateParams.jl")
 
 
-"""
+@doc raw"""
+    function chainBackProp(
+        X::AbstractArray{T1,N1},
+        Y::AbstractArray{T2,N2},
+        model::Model,
+        FCache::Dict{Layer,Dict{Symbol,AbstractArray}},
+        cLayer::L = nothing,
+        BCache::Dict{Layer,Dict{Symbol,AbstractArray}}=Dict{Layer,Dict{Symbol,AbstractArray}}(),
+        cnt = -1;
+        tMiniBatch::Integer = -1, #can be used to perform both back and update params
+        kwargs...,
+    ) where {L<:Union{Layer,Nothing},T1,T2,N1,N2}
 
-    inputs:
-    X := is a (nx, m) matrix
-    Y := is a (c,  m) matrix
-    model := is the model to perform the back propagation on
-    FCache := the cached values of the forward propagation
-    cLayer := is an internal variable to hold the current layer
-    cnt := is an internal variable to count the step of back propagation currently on
+# Arguments
 
-    output:
-    nothing
+- `X` := train data
+
+- `Y` := train labels
+
+- `model` := is the model to perform the back propagation on
+
+- `FCache` := the cached values of the forward propagation as `Dict{Layer, Dict{Symbol, AbstractArray}}`
+
+- `cLayer` := is an internal variable to hold the current layer
+
+- `BCache` := to hold the cache of the back propagtion (internal variable)
+
+- `cnt` := is an internal variable to count the step of back propagation currently on to avoid re-do it
+
+## Key-word Arguments
+
+- `tMiniBatch` := to perform both the back prop and update trainable parameters in the same recursive call (if less than 1 update during back propagation is ditched)
+
+- `kwargs` := other key-word arguments to be bassed to `layerBackProp` methods
+
+# Return
+
+- `BCache` := the cached values of the back propagation
 
 
 """
@@ -351,7 +423,31 @@ include("layerUpdateParams.jl")
 
 
 
+@doc raw"""
+    chainUpdateParams!(model::Model,
+                       cLayer::L=nothing,
+                       cnt = -1;
+                       tMiniBatch::Integer = 1) where {L<:Union{Layer,Nothing}}
 
+Update trainable parameters using recursive call
+
+# Arguments
+
+- `model` := the model holds the training and update process
+
+- `cLayer` := internal variable for recursive call holds the current layer
+
+- `cnt` := an internal variable to hold the count of update in each layer not to re-do it
+
+## Key-word Arguments
+
+- `tMiniBatch` := the number of mini-batch of the total train collection
+
+# Return
+
+- `nothing`
+
+"""
 function chainUpdateParams!(model::Model,
                            cLayer::L=nothing,
                            cnt = -1;
@@ -389,20 +485,51 @@ export chainUpdateParams!
 
 ### train
 
-"""
-    Repeat the trainging (forward/backward propagation)
+@doc raw"""
+    train(
+          X_train,
+          Y_train,
+          model::Model,
+          epochs;
+          testData = nothing,
+          testLabels = nothing,
+          kwargs...,
+          )
 
-    inputs:
-    X_train := the training input
-    Y_train := the training labels
-    model   := the model to train
-    epochs  := the number of repetitions of the training phase
-    ;
-    kwarg:
-    batchSize := the size of training when mini batch training
-    printCostsIntervals := the interval (every what to print the current cost value)
-    useProgBar := (true, false) value to use prograss bar
+Repeat the trainging (forward/backward propagation and update parameters)
 
+# Argument
+
+- `X_train` := the training data
+
+- `Y_train` := the training labels
+
+- `model`   := the model to train
+
+- `epochs`  := the number of repetitions of the training phase
+
+# Key-word Arguments
+
+- `testData` := to evaluate the training process over test data too
+
+- `testLabels` := to evaluate the training process over test data too
+
+- `batchSize` := the size of training when mini batch training
+
+` `useProgBar` := (true, false) value to use prograss bar
+
+- `kwargs` := other key-word Arguments to pass for the lower functions in hierarchy
+
+# Return
+
+- A `Dict{Symbol, Vector}` of:
+
+    * `:trainAccuracies` := an `Array` of the accuracies of training data at each epoch
+    * `:trainCosts` := an `Array` of the costs of training data at each epoch
+    * In case `testDate` and `testLabels` are givens:
+
+        + `:testAccuracies` := an `Array` of the accuracies of test data at each epoch
+        + `:testCosts` := an `Array` of the costs of test data at each epoch
 
 """
 function train(
