@@ -1,5 +1,16 @@
 
+@doc raw"""
+    layerBackProp(
+        cLayer::FCLayer,
+        model::Model,
+        actFun::SoS,
+        Ao::AbstractArray,
+        labels::AbstractArray,
+    ) where {SoS<:Union{Type{softmax},Type{σ}}}
 
+For output `FCLayer` layers with softmax and sigmoid activation functions
+
+"""
 function layerBackProp(
     cLayer::FCLayer,
     model::Model,
@@ -19,6 +30,17 @@ function layerBackProp(
 end #softmax or σ layerBackProp
 
 
+@doc raw"""
+    layerBackProp(
+        cLayer::Activation,
+        model::Model,
+        actFun::SoS,
+        Ao::AbstractArray,
+        labels::AbstractArray,
+    ) where {SoS<:Union{Type{softmax},Type{σ}}}
+
+For output `Activation` layers with softmax and sigmoid activation functions
+"""
 function layerBackProp(
     cLayer::Activation,
     model::Model,
@@ -36,7 +58,37 @@ function layerBackProp(
     return dZ
 end #softmax or σ layerBackProp
 
+@doc raw"""
+    layerBackProp(
+        cLayer::FCLayer,
+        model::Model,
+        FCache::Dict{Layer, Dict{Symbol, AbstractArray}},
+        BCache::Dict{Layer, Dict{Symbol, AbstractArray}},
+        dAo::AbstractArray{T1,2} = Array{Any,2}(undef,0,0);
+        labels::AbstractArray{T2,2} = Array{Any,2}(undef,0,0),
+        kwargs...,
+    ) where {T1,T2}
 
+Perform the back propagation of `FCLayer` type on the activations and trainable parameters `W` and `B`
+
+# Argument
+
+- `cLayer` := the layer to perform the backprop on
+
+- `model` := the `Model`
+
+- `FCache` := the cache values of the forprop
+
+- `BCache` := the cache values of the backprop from the front `Layer`(s)
+
+- `dAo` := (for test purpose) the derivative of the front `Layer`
+
+- `labels` := in case this is the output layer
+
+# Return
+
+- A `Dict{Symbol, AbstractArray}(:dA => dAi)`
+"""
 function layerBackProp(
     cLayer::FCLayer,
     model::Model,
@@ -129,7 +181,37 @@ function layerBackProp(
 end #function layerBackProp(cLayer::FCLayer)
 
 
+@doc raw"""
+    layerBackProp(
+        cLayer::Activation,
+        model::Model,
+        FCache::Dict{Layer, Dict{Symbol, AbstractArray}},
+        BCache::Dict{Layer, Dict{Symbol, AbstractArray}},
+        dAo::AbstractArray{T1,N} = Array{Any,1}(undef,0);
+        labels::AbstractArray{T2,N} = Array{Any,1}(undef,0),
+        kwargs...,
+    ) where {T1,T2,N}
 
+Perform the back propagation of `Activation` type
+
+# Argument
+
+- `cLayer` := the layer to perform the backprop on
+
+- `model` := the `Model`
+
+- `FCache` := the cache values of the forprop
+
+- `BCache` := the cache values of the backprop from the front `Layer`(s)
+
+- `dAo` := (for test purpose) the derivative of the front `Layer`
+
+- `labels` := in case this is the output layer
+
+# Return
+
+- A `Dict{Symbol, AbstractArray}(:dA => dAi)`
+"""
 function layerBackProp(
     cLayer::Activation,
     model::Model,
@@ -214,7 +296,37 @@ function layerBackProp(
 end #function layerBackProp(cLayer::Activation
 
 
+@doc raw"""
+    layerBackProp(
+        cLayer::AddLayer,
+        model::Model,
+        FCache::Dict{Layer, Dict{Symbol, AbstractArray}},
+        BCache::Dict{Layer, Dict{Symbol, AbstractArray}},
+        dAo::AbstractArray{T1,N} = Array{Any,1}(undef,0);
+        labels::AbstractArray{T2,N} = Array{Any,1}(undef,0),
+        kwargs...,
+    ) where {T1,T2,N}
 
+Perform the back propagation of `AddLayer` type
+
+# Argument
+
+- `cLayer` := the layer to perform the backprop on
+
+- `model` := the `Model`
+
+- `FCache` := the cache values of the forprop
+
+- `BCache` := the cache values of the backprop from the front `Layer`(s)
+
+- `dAo` := (for test purpose) the derivative of the front `Layer`
+
+- `labels` := in case this is the output layer
+
+# Return
+
+- A `Dict{Symbol, AbstractArray}(:dA => dAi)`
+"""
 function layerBackProp(
     cLayer::AddLayer,
     model::Model,
@@ -253,7 +365,37 @@ function layerBackProp(
 end #function layerBackProp(cLayer::AddLayer
 
 
+@doc raw"""
+    layerBackProp(
+        cLayer::Input,
+        model::Model,
+        FCache::Dict{Layer, Dict{Symbol, AbstractArray}},
+        BCache::Dict{Layer, Dict{Symbol, AbstractArray}},
+        dAo::AbstractArray{T1,N} = Array{Any,1}(undef,0);
+        labels::AbstractArray{T2,N} = Array{Any,1}(undef,0),
+        kwargs...,
+    ) where {T1,T2,N}
 
+Perform the back propagation of `Input` type
+
+# Argument
+
+- `cLayer` := the layer to perform the backprop on
+
+- `model` := the `Model`
+
+- `FCache` := the cache values of the forprop
+
+- `BCache` := the cache values of the backprop from the front `Layer`(s)
+
+- `dAo` := (for test purpose) the derivative of the front `Layer`
+
+- `labels` := in case this is the output layer
+
+# Return
+
+- A `Dict{Symbol, AbstractArray}(:dA => dAi)`
+"""
 function layerBackProp(
     cLayer::Input,
     model::Model,
@@ -289,7 +431,37 @@ function layerBackProp(
     return Dict(:dA => dAo)
 end #function layerBackProp(cLayer::Input
 
+@doc raw"""
+    layerBackProp(
+        cLayer::BatchNorm,
+        model::Model,
+        FCache::Dict{Layer, Dict{Symbol, AbstractArray}},
+        BCache::Dict{Layer, Dict{Symbol, AbstractArray}},
+        dAo::AbstractArray = Array{Any,1}(undef,0);
+        labels::AbstractArray = Array{Any,1}(undef,0),
+        kwargs...,
+    )
 
+Perform the back propagation of `BatchNorm` type on the activations and trainable parameters `W` and `B`
+
+# Argument
+
+- `cLayer` := the layer to perform the backprop on
+
+- `model` := the `Model`
+
+- `FCache` := the cache values of the forprop
+
+- `BCache` := the cache values of the backprop from the front `Layer`(s)
+
+- `dAo` := (for test purpose) the derivative of the front `Layer`
+
+- `labels` := in case this is the output layer
+
+# Return
+
+- A `Dict{Symbol, AbstractArray}(:dA => dAi)`
+"""
 function layerBackProp(
     cLayer::BatchNorm,
     model::Model,
