@@ -1,6 +1,30 @@
 using Statistics
 
 ###Input Layer
+
+@doc raw"""
+    layerForProp(
+        cLayer::Input,
+        X::AbstractArray = Array{Any,1}(undef,0);
+        FCache::Dict{Layer,Dict{Symbol, AbstractArray}},
+        kwargs...,
+    )
+
+Perform forward propagation for `Input` `Layer`
+
+# Arguments
+
+- `cLayer` := the layer to perform for prop on
+
+- `X` := is the input data of the `Input` `Layer`
+
+- `FCache` := a cache holder of the for prop
+
+# Return
+
+- A `Dict{Symbol, AbstractArray}(:A => Ao)`
+
+"""
 function layerForProp(
     cLayer::Input,
     X::AbstractArray = Array{Any,1}(undef,0);
@@ -19,6 +43,28 @@ end
 
 ###FCLayer forprop
 
+@doc raw"""
+    layerForProp(
+        cLayer::FCLayer,
+        Ai::AbstractArray = Array{Any,1}(undef,0);
+        FCache::Dict{Layer,Dict{Symbol, AbstractArray}},
+        kwargs...,
+    )
+
+Perform forward propagation for `FCLayer` `Layer`
+
+# Arguments
+
+- `cLayer` := the layer to perform for prop on
+
+- `Ai` := is the input activation of the `FCLayer` `Layer`
+
+- `FCache` := a cache holder of the for prop
+
+# Return
+
+- A `Dict{Symbol, AbstractArray}(:A => Ao, :Z => Z)`
+"""
 function layerForProp(
     cLayer::FCLayer,
     Ai::AbstractArray = Array{Any,1}(undef,0);
@@ -43,11 +89,31 @@ end #function layerForProp(cLayer::FCLayer)
 
 ###AddLayer forprop
 
+@doc raw"""
+    layerForProp(
+        cLayer::AddLayer;
+        FCache::Dict{Layer,Dict{Symbol, AbstractArray}},
+        kwargs...,
+    )
+
+Perform forward propagation for `AddLayer` `Layer`
+
+# Arguments
+
+- `cLayer` := the layer to perform for prop on
+
+- `FCache` := a cache holder of the for prop
+
+# Return
+
+- A `Dict{Symbol, AbstractArray}(:A => Ao)`
+"""
 function layerForProp(
     cLayer::AddLayer;
     FCache::Dict{Layer,Dict{Symbol, AbstractArray}},
     kwargs...,
-    )
+)
+
     A = similar(FCache[cLayer.prevLayer[1]][:A]) .= 0
     # if all(
     #     i -> (i.forwCount == cLayer.prevLayer[1].forwCount),
@@ -65,6 +131,28 @@ end #function layerForProp(cLayer::AddLayer)
 ###Activation forprop
 
 
+@doc raw"""
+    layerForProp(
+        cLayer::Activation,
+        Ai::AbstractArray = Array{Any,1}(undef,0);
+        FCache::Dict{Layer,Dict{Symbol, AbstractArray}},
+        kwargs...,
+    )
+
+Perform forward propagation for `Activation` `Layer`
+
+# Arguments
+
+- `cLayer` := the layer to perform for prop on
+
+- `Ai` := is the input activation of the `Activation` `Layer`
+
+- `FCache` := a cache holder of the for prop
+
+# Return
+
+- A `Dict{Symbol, AbstractArray}(:A => Ao)`
+"""
 function layerForProp(
     cLayer::Activation,
     Ai::AbstractArray = Array{Any,1}(undef,0);
@@ -87,6 +175,37 @@ end #function layerForProp(cLayer::Activation)
 
 ###BatchNorm
 
+@doc raw"""
+    layerForProp(
+        cLayer::BatchNorm,
+        Ai::AbstractArray = Array{Any,1}(undef,0);
+        FCache::Dict{Layer,Dict{Symbol, AbstractArray}},
+        kwargs...,
+    )
+
+Perform forward propagation for `BatchNorm` `Layer` and trainable parameters W and B
+
+# Arguments
+
+- `cLayer` := the layer to perform for prop on
+
+- `Ai` := is the input activation of the `BatchNorm` `Layer`
+
+- `FCache` := a cache holder of the for prop
+
+# Return
+
+- `Dict(
+        :μ => μ,
+        :Ai_μ => Ai_μ,
+        :Ai_μ_s => Ai_μ_s,
+        :var => var,
+        :Z => Z,
+        :A => Ao,
+        :Ap => Ap,
+        )`
+
+"""
 function layerForProp(
     cLayer::BatchNorm,
     Ai::AbstractArray = Array{Any,1}(undef,0);
