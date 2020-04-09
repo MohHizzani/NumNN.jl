@@ -30,7 +30,7 @@ function oneHot(Y; classes = [], numC = 0)
     end
     hotY = BitArray{2}(undef, c, length(Y))
     @simd for i=1:length(Y)
-        hotY[:,i] = (Cs .== y)
+        hotY[:,i] .= (Cs .== Y[i])
     end
     return hotY
 end #oneHot
