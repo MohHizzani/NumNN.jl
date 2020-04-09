@@ -216,8 +216,8 @@ mutable struct AddLayer <: Layer
             channels,
             (0,), #inputS
             (0,), #outputS
-            Matrix{Nothing}(undef, 0, 0),
-            Matrix{Nothing}(undef, 0, 0),
+            # Matrix{Nothing}(undef, 0, 0),
+            # Matrix{Nothing}(undef, 0, 0),
             0,
             0,
             0,
