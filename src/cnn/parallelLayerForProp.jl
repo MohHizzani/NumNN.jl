@@ -4,6 +4,28 @@ include("parallelImg2colConvolve.jl")
 
 ###convolution layers forprop
 
+@doc raw"""
+    function layerForProp(
+        cLayer::ConvLayer,
+        Ai::AbstractArray = Array{Any,1}(undef,0);
+        FCache::Dict{Layer,Dict{Symbol, AbstractArray}},
+        kwargs...
+    )
+
+Perform the layer forward propagation for a `ConvLayer`
+
+# Arguments
+
+- `cLayer::ConvLayer`
+
+- `Ai` := optional activation of the previous layer
+
+- `FCache` := a `Dict` holds the outputs of `layerForProp` of the previous `Layer`(s)
+
+# Returns
+
+- `Dict(:Z => Z, :A => Ao)`
+"""
 function layerForProp(
     cLayer::CL,
     Ai::AbstractArray = Array{Any,1}(undef,0);
@@ -55,6 +77,29 @@ include("parallelPooling.jl")
 #import only the needed parts not to have conflict
 import NNlib.maxpool, NNlib.meanpool, NNlib.maxpool!, NNlib.meanpool!, NNlib.PoolDims
 
+@doc raw"""
+    layerForProp(
+        cLayer::PoolLayer},
+        Ai::AbstractArray = Array{Any,1}(undef,0);
+        FCache::Dict{Layer,Dict{Symbol, AbstractArray}},
+        kwargs...
+    )
+
+
+Perform the layer forward propagation for a `PoolLayer`
+
+# Arguments
+
+- `cLayer::PoolLayer`
+
+- `Ai` := optional activation of the previous layer
+
+- `FCache` := a `Dict` holds the outputs of `layerForProp` of the previous `Layer`(s)
+
+# Returns
+
+- `Dict(:A => Ao)`
+"""
 function layerForProp(
     cLayer::PL,
     Ai::AbstractArray = Array{Any,1}(undef,0);
