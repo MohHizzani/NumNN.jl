@@ -1,6 +1,23 @@
 
 
 ### convlayers
+
+@doc raw"""
+    function layerBackProp(
+        cLayer::ConvLayer,
+        model::Model,
+        actFun::SoS,
+        Ao::AbstractArray,
+        labels::AbstractArray,
+    ) where {SoS<:Union{Type{softmax},Type{σ}}}
+
+Derive the loss function to the input of the activation function when activation is either `softmax` or `σ`
+
+
+# Return
+
+- `dZ::AbstractArray` := the derivative of the loss function to the input of the activation function
+"""
 function layerBackProp(
     cLayer::ConvLayer,
     model::Model,
@@ -18,7 +35,43 @@ function layerBackProp(
     return dZ
 end #softmax or σ layerBackProp
 
+@doc raw"""
+    function layerBackProp(
+        cLayer::ConvLayer,
+        model::Model,
+        FCache::Dict{Layer, Dict{Symbol, AbstractArray}},
+        BCache::Dict{Layer, Dict{Symbol, AbstractArray}},
+        Ai::AbstractArray = Array{Any,1}(undef,0),
+        Ao::AbstractArray = Array{Any,1}(undef,0),
+        dAo::AbstractArray = Array{Any,1}(undef,0);
+        labels::AbstractArray = Array{Any,1}(undef,0),
+        kwargs...
+    )
 
+Performs the layer back propagation for a `ConvLayer`
+
+# Arguments
+
+- `cLayer::ConvLayer`
+
+- `model::Model`
+
+- `FCache` := the cache of the forward propagation step
+
+- `BCache` := the cache of so far done back propagation
+
+- for test purpose
+    Ai
+    Ao
+    dAo
+
+- `labels` := when `cLayer` is an output `Layer`
+
+
+# Return
+
+- `Dict(:dA => dAi)`
+"""
 function layerBackProp(
     cLayer::CL,
     model::Model,
@@ -102,6 +155,43 @@ end #function layerBackProp(cLayer::Input
 #import only the needed parts not to have conflict
 import NNlib.∇maxpool, NNlib.∇meanpool, NNlib.∇maxpool!, NNlib.∇meanpool!, NNlib.PoolDims
 
+@doc raw"""
+layerBackProp(
+    cLayer::PoolLayer,
+    model::Model,
+    FCache::Dict{Layer, Dict{Symbol, AbstractArray}},
+    BCache::Dict{Layer, Dict{Symbol, AbstractArray}},
+    Ai::AbstractArray = Array{Any,1}(undef,0),
+    Ao::AbstractArray = Array{Any,1}(undef,0),
+    dAo::AbstractArray = Array{Any,1}(undef,0);
+    labels::AbstractArray = Array{Any,1}(undef,0),
+    kwargs...
+)
+
+Performs the layer back propagation for a `PoolLayer`
+
+# Arguments
+
+- `cLayer::ConvLayer`
+
+- `model::Model`
+
+- `FCache` := the cache of the forward propagation step
+
+- `BCache` := the cache of so far done back propagation
+
+- for test purpose
+    Ai
+    Ao
+    dAo
+
+- `labels` := when `cLayer` is an output `Layer`
+
+
+# Return
+
+- `Dict(:dA => dAi)`
+"""
 function layerBackProp(
     cLayer::PL,
     model::Model,
