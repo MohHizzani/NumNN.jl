@@ -5,7 +5,23 @@ using PaddedViews
 #TODO build a reroll function to extract W from K
 
 ### unroll conv1d
+@doc raw"""
+    unroll(cLayer::Conv1D, AiS::Tuple, param::Symbol=:W)
 
+unroll the `param` of `Conv1D` into 2D matrix
+
+# Arguments
+
+- `cLayer` := the layer of the paramters to unroll
+
+- `AiS` := the `padded` input to determinde the size and shape of the output of `unroll`
+
+- `param` := `Conv1D` parameter to be `unroll`ed
+
+# Return
+
+- `K` := 2D `Matrix` of the `param`
+"""
 function unroll(cLayer::Conv1D, AiS::Tuple, param::Symbol=:W)
     prevLayer = cLayer.prevLayer
     n_Hi, ci, m = AiS
@@ -50,7 +66,23 @@ function unroll(cLayer::Conv1D, AiS::Tuple, param::Symbol=:W)
 end #function unroll(cLayer::Conv2D)
 
 ###unroll conv2d
+@doc raw"""
+    unroll(cLayer::Conv2D, AiS::Tuple, param::Symbol=:W)
 
+unroll the `param` of `Conv1D` into 2D matrix
+
+# Arguments
+
+- `cLayer` := the layer of the paramters to unroll
+
+- `AiS` := the `padded` input to determinde the size and shape of the output of `unroll`
+
+- `param` := `Conv1D` parameter to be `unroll`ed
+
+# Return
+
+- `K` := 2D `Matrix` of the `param`
+"""
 function unroll(cLayer::Conv2D, AiS::Tuple, param::Symbol=:W)
     prevLayer = cLayer.prevLayer
     n_Hi, n_Wi, ci, m = AiS
@@ -119,6 +151,23 @@ end #function unroll(cLayer::Conv2D)
 
 ###unroll conv3d
 
+@doc raw"""
+    unroll(cLayer::Conv3D, AiS::Tuple, param::Symbol=:W)
+
+unroll the `param` of `Conv3D` into 2D matrix
+
+# Arguments
+
+- `cLayer` := the layer of the paramters to unroll
+
+- `AiS` := the `padded` input to determinde the size and shape of the output of `unroll`
+
+- `param` := `Conv1D` parameter to be `unroll`ed
+
+# Return
+
+- `K` := 2D `Matrix` of the `param`
+"""
 function unroll(cLayer::Conv3D, AiS::Tuple, param::Symbol=:W)
     prevLayer = cLayer.prevLayer
     n_Hi, n_Wi, n_Di, ci, m = AiS
