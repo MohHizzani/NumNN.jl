@@ -4,9 +4,10 @@ import NNlib.conv, NNlib.conv!
 ### NNConv
 function NNConv(cLayer::CL, Ai::AbstractArray{T,N}) where {T,N, CL <: ConvLayer}
     padS = paddingSize(cLayer, Ai)
-    axW = axes(cLayer.W)[1:end-2]
-    raxW = reverse.(axW)
-    Z = conv(Ai, cLayer.W[raxW..., :, :], stride = cLayer.s, pad = padS)
+    # axW = axes(cLayer.W)[1:end-2]
+    # raxW = reverse.(axW)
+    # Z = conv(Ai, cLayer.W[raxW..., :, :], stride = cLayer.s, pad = padS)
+    Z = conv(Ai, cLayer.W, stride = cLayer.s, pad = padS, flipkernel=true)
     axB = axes(cLayer.B)[1:end-2]
     Z .+= cLayer.B[axB..., 1, :]
     actFun = cLayer.actFun
@@ -32,11 +33,12 @@ function dNNConv!(
 
     W = cLayer.W
     padS = paddingSize(cLayer, Ai)
-    convdim = DenseConvDims(Ai, W, stride = cLayer.s, padding = padS)
-    axW = axes(cLayer.W)[1:end-2]
-    raxW = reverse.(axW)
-    dAi .= ∇conv_data(dZ, W[raxW..., :, :], convdim)
-    cLayer.dW[raxW..., :, :] = ∇conv_filter(Ai, dZ, convdim)
+    convdim = DenseConvDims(Ai, W, stride = cLayer.s, padding = padS, flipkernel=true)
+    # axW = axes(cLayer.W)[1:end-2]
+    # raxW = reverse.(axW)
+    # dAi .= ∇conv_data(dZ, W[raxW..., :, :], convdim)
+    ∇conv_data!(dAi, dZ, W, convdim)
+    cLayer.dW = ∇conv_filter(Ai, dZ, convdim)
 
     cLayer.dB = sum(permutedims(dZ, [(1:N-2)..., N, N-1]), dims = 1:(N-1))
 
