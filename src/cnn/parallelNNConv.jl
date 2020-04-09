@@ -2,6 +2,15 @@
 import NNlib.conv, NNlib.conv!
 
 ### NNConv
+@doc raw"""
+    NNConv(cLayer::CL, Ai::AbstractArray{T,N}) where {T,N, CL <: ConvLayer}
+
+Perform the forward propagation for `cLayer::ConvLayer` using fast implementation of `NNlib`
+
+# Return
+
+- `Dict(:Z => Z, :A => A)`
+"""
 function NNConv(cLayer::CL, Ai::AbstractArray{T,N}) where {T,N, CL <: ConvLayer}
     padS = paddingSize(cLayer, Ai)
     # axW = axes(cLayer.W)[1:end-2]
@@ -23,6 +32,31 @@ export NNConv
 #import only the needed parts not to have conflict
 import NNlib.∇conv_data, NNlib.∇conv_filter, NNlib.DenseConvDims
 
+@doc raw"""
+    function dNNConv!(
+        cLayer::CL,
+        Ai::AbstractArray{T1,N},
+        dAi::AbstractArray{T2,N},
+        dZ::AbstractArray{T3,N},
+    ) where {T1, T2, T3, N, CL <: ConvLayer}
+
+Performs the back propagation for `cLayer::ConvLayer` and save values to the pre-allocated `Array` `dAi` and trainable parameters `W` & `B`
+
+# Arguments
+
+- `cLayer::ConvLayer`
+
+- `Ai::AbstractArray{T1,N}` := the input activation of `cLayer`
+
+- `dAi::AbstractArray{T2,N}` := pre-allocated to hold the derivative of the activation
+
+- `dZ::AbstractArray{T3,N}` := the derivative of the cost to the input of the activation function
+
+# Return
+
+`nothing`
+
+"""
 function dNNConv!(
     cLayer::CL,
     Ai::AbstractArray{T1,N},
