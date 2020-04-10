@@ -12,7 +12,7 @@ Since, the implementation and development process for testing novel number syste
 
 ### Examples of Multiple Dispatch
 
-```julia-repl
+```julia
 julia> aInt = 1; #with Integer type
 
 julia> bInt = 2; #with Integer type
@@ -29,7 +29,7 @@ julia> aInt + bFloat #will use the method +(::Int64, ::Float64)
 
 Now let's do something more interesting with **Posit** (continue on the previous example)
 
-```julia-repl
+```julia
 julia> using SoftPosit
 
 julia> aP = Posit16(1)
