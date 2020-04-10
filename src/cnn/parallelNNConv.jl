@@ -16,7 +16,7 @@ function NNConv(cLayer::CL, Ai::AbstractArray{T,N}) where {T,N, CL <: ConvLayer}
     # axW = axes(cLayer.W)[1:end-2]
     # raxW = reverse.(axW)
     # Z = conv(Ai, cLayer.W[raxW..., :, :], stride = cLayer.s, pad = padS)
-    Z = conv(Ai, cLayer.W, stride = cLayer.s, pad = padS, flipkernel=true)
+    Z = conv(Ai, cLayer.W, stride = cLayer.s, pad = padS, flipped=true)
     axB = axes(cLayer.B)[1:end-2]
     Z .+= cLayer.B[axB..., 1, :]
     actFun = cLayer.actFun

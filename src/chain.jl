@@ -70,6 +70,8 @@ function (l::Flatten)(li_1::Layer)
     if !(l in li_1.nextLayers)
         push!(li_1.nextLayers, l)
     end
+
+    return l
 end
 
 function (l::BatchNorm)(li_1::Layer)

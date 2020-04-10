@@ -124,14 +124,14 @@ mutable struct FCLayer <: Layer
         new(
             channels,
             actFun,
-            (0,), #inputS
-            (0,), #outputS
+            (0,0), #inputS
+            (0,0), #outputS
             keepProb,
             Matrix{T}(undef, 0, 0),
             Matrix{T}(undef, 0, 0),
             Matrix{T}(undef, 0, 0),
             Matrix{T}(undef, 0, 0),
-            Matrix{T}(undef, 0, 0),
+            # Matrix{T}(undef, 0, 0),
             # Matrix{T}(undef, 0, 0),
             # Matrix{T}(undef, 0, 0),
             Dict(:dw => Matrix{T}(undef, 0, 0), :db => Matrix{T}(undef, 0, 0)),

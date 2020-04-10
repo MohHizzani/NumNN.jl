@@ -32,7 +32,7 @@ function layerForProp(
     kwargs...,
 )
     if length(X) != 0
-        cLayer.A = X
+        # cLayer.A = X
         cLayer.inputS = cLayer.outputS = size(X)
     end
     cLayer.forwCount += 1

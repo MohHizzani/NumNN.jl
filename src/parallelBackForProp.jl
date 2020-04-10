@@ -167,12 +167,11 @@ function predict(model::Model, X_In::AbstractArray, Y_In = nothing; kwargs...)
     Costs = []
 
 
-    N = ndims(X_In)
+    nX = ndims(X_In)
     T = eltype(X_In)
     m = size(X_In)[end]
     # c = size(Y_train)[end-1]
     nB = m ÷ batchSize
-    N = ndims(X_In)
     axX = axes(X_In)[1:end-1]
     Y = nothing
     if Y_In != nothing
@@ -182,10 +181,11 @@ function predict(model::Model, X_In::AbstractArray, Y_In = nothing; kwargs...)
         p = Progress((m % batchSize != 0 ? nB + 1 : nB), 0.1)
     end
 
+    nY = length(model.outLayer.outputS)
     Ŷ_out =
-        Array{AbstractArray{T,N},1}(undef, nB + ((m % batchSize == 0) ? 0 : 1))
+        Array{AbstractArray{T,nY},1}(undef, nB + ((m % batchSize == 0) ? 0 : 1))
     Ŷ_prob_out =
-        Array{AbstractArray{T,N},1}(undef, nB + ((m % batchSize == 0) ? 0 : 1))
+        Array{AbstractArray{T,nY},1}(undef, nB + ((m % batchSize == 0) ? 0 : 1))
     accuracy =
         Array{AbstractFloat,1}(undef, nB + ((m % batchSize == 0) ? 0 : 1))
     # Threads.@threads
@@ -233,14 +233,9 @@ function predict(model::Model, X_In::AbstractArray, Y_In = nothing; kwargs...)
         Ŷ_values = nothing
         Ŷ_prob = nothing
     else
-        Ŷ_values = Array{T,N}(undef, repeat([0], N)...)
-        Ŷ_values = cat(Ŷ_values, Ŷ_out[1]; dims = 1:N)
-        Ŷ_prob = Array{T,N}(undef, repeat([0], N)...)
-        Ŷ_prob = cat(Ŷ_prob, Ŷ_prob_out[1]; dims = 1:N)
-        for i = 2:length(Ŷ_out)
-            Ŷ_values = cat(Ŷ_values, Ŷ_out[i], dims = N)
-            Ŷ_prob = cat(Ŷ_prob, Ŷ_prob_out[i], dims = N)
-        end
+        # Ŷ_values = Array{T,nY}(undef, repeat([0], nY)...)
+        Ŷ_values = cat(Ŷ_out... ; dims = nY)
+        Ŷ_prob = cat(Ŷ_prob_out...; dims = nY)
     end
 
     return Dict(
@@ -546,7 +541,7 @@ function train(
     kwargs = Dict{Symbol, Any}(kwargs...)
     batchSize = getindex(kwargs, :batchSize; default = 32)
     printCostsInterval = getindex(kwargs, :printCostsInterval; default = 0)
-    useProgBar = getindex(kwargs, :useProgBar; default = false)
+    useProgBar = getindex(kwargs, :useProgBar; default = true)
     embedUpdate = getindex(kwargs, :embedUpdate; default = true)
     metrics = getindex(kwargs, :metrics; default = [:accuracy, :cost])
     Accuracy = :accuracy in metrics

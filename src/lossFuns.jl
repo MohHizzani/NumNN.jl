@@ -88,7 +88,7 @@ function cost(
 
     c, m = size(A)[N-1:N]
     costs = sum(loss(A,Y)) / m
-    return costs
+    return Float64.(costs)
 
 end #function cost
 
@@ -110,6 +110,6 @@ function cost(
 
     c, m = size(A)[N-1:N]
     costs = sum(loss(A,Y)) / (c*m)
-    return costs
+    return Float64.(costs)
 
 end #function cost

@@ -25,7 +25,7 @@ function initWB!(
     if zro
         W = zeros(T, s...)
     else
-        W = randn(T, s...) .* coef
+        W = T.(randn(s...) .* coef)
     end
     B = zeros(T, (s[1], 1))
 
