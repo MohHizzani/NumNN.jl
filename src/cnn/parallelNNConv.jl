@@ -30,7 +30,7 @@ export NNConv
 ### dNNConv!
 
 #import only the needed parts not to have conflict
-import NNlib.∇conv_data, NNlib.∇conv_filter, NNlib.DenseConvDims
+import NNlib.∇conv_data!, NNlib.∇conv_filter, NNlib.DenseConvDims
 
 @doc raw"""
     function dNNConv!(
