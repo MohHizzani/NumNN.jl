@@ -108,7 +108,7 @@ function padding(
     Ai::AoN = nothing,
 ) where {P<:PaddableLayer,AoN<:Union{AbstractArray,Nothing}}
 
-    ndim = ndims(cLayer.A)
+    ndim = Ai
 
     if Ai == nothing
         Ai = cLayer.prevLayer.A
