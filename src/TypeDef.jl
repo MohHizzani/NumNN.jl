@@ -535,6 +535,40 @@ end #mutable struct BatchNorm
 
 export BatchNorm
 
+### Flatten
+
+export Flatten
+
+mutable struct Flatten <: Layer
+    channels::Integer
+
+    inputS::Tuple
+    outputS::Tuple
+
+    forwCount::Integer
+    backCount::Integer
+    updateCount::Integer
+
+    nextLayers::Array{Layer,1}
+    prevLayer::L where {L<:Union{Layer,Nothing}}
+
+    function Flatten()
+
+        return new(
+            0, #channels
+            (0,), #inputS
+            (0,), #outputS
+            0, #forwCount
+            0, #backCount
+            0, #updateCount
+            Array{Layer,1}(undef,0), #nextLayers
+            nothing,
+        )
+    end
+
+end
+
+
 ### Model
 
 mutable struct Model

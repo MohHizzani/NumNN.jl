@@ -57,6 +57,21 @@ function (l::Activation)(li_1::Layer)
     return l
 end
 
+
+function (l::Flatten)(li_1::Layer)
+    l.prevLayer = li_1
+
+    l.inputS = li_1.outputS
+
+    l.channels = prod(l.inputS[1:end-1])
+
+    l.outputS = (l.channels, l.inputS[end])
+
+    if !(l in li_1.nextLayers)
+        push!(li_1.nextLayers, l)
+    end
+end
+
 function (l::BatchNorm)(li_1::Layer)
     l.prevLayer = li_1
 
@@ -94,6 +109,7 @@ function (l::AddLayer)(ls::Array{L,1}) where {L<:Layer}
 
     return l
 end #function (l::AddLayer)(li::Array{Layer,1})
+
 
 """
     define input as X

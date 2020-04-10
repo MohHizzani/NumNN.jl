@@ -46,6 +46,18 @@ function initWB!(
     return nothing
 end
 
+
+function initWB!(
+    cLayer::Flatten,
+    p::Type{T} = Float64::Type{Float64};
+    He = true,
+    coef = 0.01,
+    zro = false,
+) where {T}
+
+    return nothing
+end
+
 function initWB!(
     cLayer::Input,
     p::Type{T} = Float64::Type{Float64};
@@ -213,7 +225,7 @@ end #function initVS!
 function initVS!(
     cLayer::IoA,
     optimizer::Symbol
-    ) where {IoA <: Union{Input, Activation}}
+    ) where {IoA <: Union{Input, Activation, Flatten}}
 
     return nothing
 end #

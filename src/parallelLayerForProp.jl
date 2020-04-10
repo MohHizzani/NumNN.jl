@@ -172,6 +172,52 @@ function layerForProp(
     return Dict(:A=>A)
 end #function layerForProp(cLayer::Activation)
 
+### Flatten
+
+@doc raw"""
+    layerForProp(
+        cLayer::Flatten,
+        Ai::AbstractArray = Array{Any,1}(undef,0);
+        FCache::Dict{Layer,Dict{Symbol, AbstractArray}},
+        kwargs...,
+    )
+
+Perform forward propagation for `Flatten` `Layer`
+
+# Arguments
+
+- `cLayer` := the layer to perform for prop on
+
+- `Ai` := is the input activation of the `Flatten` `Layer`
+
+- `FCache` := a cache holder of the for prop
+
+# Return
+
+- A `Dict{Symbol, AbstractArray}(:A => Ao)`
+"""
+function layerForProp(
+    cLayer::Flatten,
+    Ai::AbstractArray = Array{Any,1}(undef,0);
+    FCache::Dict{Layer,Dict{Symbol, AbstractArray}},
+    kwargs...,
+)
+    prevLayer = cLayer.prevLayer
+    if length(Ai) == 0
+        Ai = FCache[prevLayer][:A]
+    end
+
+    cLayer.inputS = size(Ai)
+
+    cLayer.outputS = (prod(cLayer.inputS[1:end-1]), cLayer.inputS[end])
+
+    A = reshape(Ai,cLayer.outputS)
+
+    cLayer.forwCount += 1
+    # Ai = nothing
+    # Base.GC.gc()
+    return Dict(:A=>A)
+end #function layerForProp(cLayer::Activation)
 
 ###BatchNorm
 

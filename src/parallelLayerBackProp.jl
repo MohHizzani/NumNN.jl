@@ -296,6 +296,87 @@ function layerBackProp(
 end #function layerBackProp(cLayer::Activation
 
 
+### Flatten
+
+@doc raw"""
+    layerBackProp(
+        cLayer::Flatten,
+        model::Model,
+        FCache::Dict{Layer, Dict{Symbol, AbstractArray}},
+        BCache::Dict{Layer, Dict{Symbol, AbstractArray}},
+        dAo::AbstractArray{T1,N} = Array{Any,1}(undef,0);
+        labels::AbstractArray{T2,N} = Array{Any,1}(undef,0),
+        kwargs...,
+    ) where {T1,T2,N}
+
+Perform the back propagation of `Flatten` type
+
+# Argument
+
+- `cLayer` := the layer to perform the backprop on
+
+- `model` := the `Model`
+
+- `FCache` := the cache values of the forprop
+
+- `BCache` := the cache values of the backprop from the front `Layer`(s)
+
+- `dAo` := (for test purpose) the derivative of the front `Layer`
+
+- `labels` := in case this is the output layer
+
+# Return
+
+- A `Dict{Symbol, AbstractArray}(:dA => dAi)`
+"""
+function layerBackProp(
+    cLayer::Flatten,
+    model::Model,
+    FCache::Dict{Layer, Dict{Symbol, AbstractArray}},
+    BCache::Dict{Layer, Dict{Symbol, AbstractArray}},
+    dAo::AbstractArray{T1,N} = Array{Any,1}(undef,0);
+    labels::AbstractArray{T2,N} = Array{Any,1}(undef,0),
+    kwargs...,
+) where {T1,T2,N}
+
+    prevLayer = cLayer.prevLayer
+
+    Ao = FCache[cLayer][:A]
+
+    regulization, λ = model.regulization, model.λ
+
+    if length(dAo) != 0 && all(
+        i -> (i.backCount == cLayer.nextLayers[1].backCount),
+        cLayer.nextLayers,
+    )
+        dAo = []
+        for nextLayer in cLayer.nextLayers
+            try
+                dAo .+= BCache[nextLayer][:dA]
+            catch e #in case first time DimensionMismatch
+                dAo = BCache[nextLayer][:dA]
+            end
+        end #for
+
+    else #in case not every next layer done backprop
+        return Dict(:dA => Array{Any,1}(undef,0))
+
+    end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+
+
+    dAi = reshape(dAo, cLayer.inputS)
+
+    cLayer.backCount += 1
+
+    return Dict(:dA => dAi)
+
+end #function layerBackProp(cLayer::Activation
+
+
+
+
+### AddLayer
+
 @doc raw"""
     layerBackProp(
         cLayer::AddLayer,
