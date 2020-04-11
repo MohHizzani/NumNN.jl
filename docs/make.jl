@@ -18,8 +18,9 @@ makedocs(
 )=#
 
 deploydocs(
-    repo = "github.com/mohhizzani/NumNN.jl.gi",
+    repo = "github.com/MohHizzani/NumNN.jl.git",
     target = "build",
     push_preview = true,
-    branch = "gh-pages"
+    branch = "gh-pages",
+    make = nothing,
 )
