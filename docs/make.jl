@@ -5,7 +5,7 @@ using NumNN
 
 makedocs(
     sitename = "NumNN.jl",
-    author = "Mohammad Hizzani"
+    authors = "Mohammad Hizzani",
     doctest   = false,
     clean     = true,
     linkcheck = false,
