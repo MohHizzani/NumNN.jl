@@ -1,2 +1,6 @@
 language: julia
+
 os: linux
+
+notifications:
+  email: false
