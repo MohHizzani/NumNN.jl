@@ -24,7 +24,9 @@ docs/site/
 Manifest.toml
 
 #Not to includ the test folder
-test
+test/MNIST_Fashion_CNN.jl
+test/twoDNNlibVsImg.jl
+test/twodunroll.jl
 
 #Not to include the old simpleNN
 simpleNN.jl
