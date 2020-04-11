@@ -1,13 +1,14 @@
 using Documenter
 
-push!(LOAD_PATH,"../src/")
+# push!(LOAD_PATH,"../src/")
 using NumNN
 
 makedocs(
     sitename = "NumNN.jl",
-    format = Documenter.HTML(),
+    format = Documenter.HTML(
+        prettyurls = get(ENV, "CI", nothing) == "true"
+    ),
     modules = [NumNN],
-
 )
 
 # Documenter can also automatically deploy documentation to gh-pages.
@@ -18,9 +19,11 @@ makedocs(
 )=#
 
 deploydocs(
+    root = "./",
     repo = "github.com/MohHizzani/NumNN.jl.git",
-    target = "build",
-    push_preview = true,
-    branch = "gh-pages",
-    make = nothing,
+    # target = "build",
+    # push_preview = true,
+    # branch = "gh-pages",
+    # make = nothing,
+    forcepush = true,
 )
