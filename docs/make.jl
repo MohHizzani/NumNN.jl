@@ -5,6 +5,7 @@ using NumNN
 
 makedocs(
     sitename = "NumNN.jl",
+    author = "Mohammad Hizzani"
     doctest   = false,
     clean     = true,
     linkcheck = false,
@@ -12,6 +13,10 @@ makedocs(
         prettyurls = get(ENV, "CI", nothing) == "true"
     ),
     modules = [NumNN],
+    pages = [
+        "Home" => "index.md",
+        "Docstrings" => "docstrings.md"
+    ]
 )
 
 # Documenter can also automatically deploy documentation to gh-pages.
@@ -24,9 +29,9 @@ makedocs(
 deploydocs(
     root = "./",
     repo = "github.com/MohHizzani/NumNN.jl.git",
-    # target = "build",
+    target = "build",
     push_preview = true,
     # branch = "gh-pages",
     # make = nothing,
-    forcepush = true,
+    # forcepush = true,
 )
