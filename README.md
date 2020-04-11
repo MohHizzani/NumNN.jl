@@ -1,3 +1,5 @@
+![.github/workflows/main.yml](https://github.com/MohHizzani/NumNN.jl/workflows/.github/workflows/main.yml/badge.svg)
+
 # NumNN.jl
 
 This package provides high-level Neural Network APIs deals with different number representations like [Posit][1], Logarithmic Data Representations, Residual Number System (RNS), and -for sure- the conventional IEEE formats.
