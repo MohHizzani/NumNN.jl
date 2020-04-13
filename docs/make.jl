@@ -29,9 +29,9 @@ makedocs(
 
 deploydocs(
     repo = "github.com/MohHizzani/NumNN.jl.git",
-    target = "../../gh-pages/build",
+    target = "build",
     push_preview = true,
-    # branch = "gh-pages",
+    branch = "gh-pages",
     # make = nothing,
-    # forcepush = true,
+    forcepush = true,
 )
