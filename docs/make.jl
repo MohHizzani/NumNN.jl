@@ -5,11 +5,10 @@ using NumNN
 
 makedocs(
     sitename = "NumNN.jl",
-    repo = "github.com/MohHizzani/NumNN.jl.git",
     authors = "Mohammad Hizzani",
-    doctest   = false,
-    clean     = true,
-    linkcheck = false,
+    # doctest   = false,
+    # clean     = true,
+    # linkcheck = false,
     format = Documenter.HTML(
         prettyurls = get(ENV, "CI", nothing) == "true"
     ),
@@ -30,8 +29,8 @@ makedocs(
 deploydocs(
     repo = "github.com/MohHizzani/NumNN.jl.git",
     target = "build",
-    push_preview = true,
+    # push_preview = true,
     branch = "gh-pages",
     # make = nothing,
-    forcepush = true,
+    # forcepush = true,
 )
