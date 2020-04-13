@@ -1,4 +1,4 @@
-using Documenter
+using Documenter, DocumenterTools
 
 # push!(LOAD_PATH,"../src/")
 using NumNN
@@ -29,7 +29,7 @@ makedocs(
 
 deploydocs(
     repo = "github.com/MohHizzani/NumNN.jl.git",
-    target = "build",
+    target = "../../gh-pages/build",
     push_preview = true,
     # branch = "gh-pages",
     # make = nothing,
