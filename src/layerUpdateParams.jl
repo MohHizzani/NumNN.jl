@@ -78,7 +78,7 @@ function layerUpdateParams!(
                        cnt::Integer = -1;
                        tMiniBatch::Integer = 1,
                        kwargs...,
-                       ) where {IoA <: Union{Input, Activation, AddLayer, Flatten}}
+                       ) where {IoA <: Union{Input, Activation, AddLayer, Flatten, ConcatLayer}}
 
     # optimizer = model.optimizer
     # α = model.α
