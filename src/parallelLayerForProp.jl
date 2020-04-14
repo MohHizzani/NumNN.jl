@@ -128,6 +128,23 @@ function layerForProp(
     return Dict(:A=>A)
 end #function layerForProp(cLayer::AddLayer)
 
+### ConcatLayer forprop
+
+function layerForProp(
+    cLayer::ConcatLayer;
+    FCache::Dict{Layer,Dict{Symbol, AbstractArray}},
+    kwargs...,
+)
+
+    N = ndims(FCache[cLayer.prevLayer[1]][:A])
+    A = cat([FCache[prevLayer][:A] for prevLayer in cLayer.prevLayer]...; dims=N-1)
+
+    cLayer.forwCount += 1
+    # Base.GC.gc()
+    return Dict(:A=>A)
+end #function layerForProp(cLayer::AddLayer)
+
+
 ###Activation forprop
 
 
