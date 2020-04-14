@@ -177,7 +177,7 @@ function deepInitWB!(
             outLayer.forwCount += 1
             initWB!(outLayer, T; He = He, coef = coef, zro = zro)
         end #if forwCount < cnt
-    elseif isa(outLayer, AddLayer)
+    elseif isa(outLayer, MILayer)
         if forwCount < cnt
             outLayer.forwCount += 1
             for prevLayer in outLayer.prevLayer
@@ -274,7 +274,7 @@ function deepInitVS!(outLayer::Layer, optimizer::Symbol, cnt::Integer = -1)
                 outLayer.forwCount += 1
                 initVS!(outLayer, optimizer)
             end #if outLayer.forwCount < cnt
-        elseif isa(outLayer, AddLayer)
+        elseif isa(outLayer, MILayer)
             if outLayer.forwCount < cnt
                 outLayer.forwCount += 1
                 for prevLayer in outLayer.prevLayer

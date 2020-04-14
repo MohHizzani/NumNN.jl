@@ -73,7 +73,7 @@ function resetCount!(outLayer::Layer,
         # if outLayer.forwCount != 0
             eval(:($outLayer.$cnt = 0))
         # end #if outLayer.forwCount != 0
-    elseif isa(outLayer, AddLayer) #if prevLayer == nothing
+    elseif isa(outLayer, MILayer) #if prevLayer == nothing
         for prevLayer in outLayer.prevLayer
             resetCount!(prevLayer, cnt)
         end #for
