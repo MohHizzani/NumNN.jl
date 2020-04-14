@@ -302,6 +302,8 @@ mutable struct ConcatLayer <: MILayer
 
     nextLayers::Array{Layer,1}
     prevLayer::Array{Layer,1}
+
+    LSlice::Dict{Layer,UnitRange{Integer}}
     function ConcatLayer(; channels = 0)
         # channels = l1.channels
         # T = eltype(l1.W)
@@ -316,6 +318,7 @@ mutable struct ConcatLayer <: MILayer
             0,
             Array{Layer,1}(undef,0), #nextLayers
             Array{Layer,1}(undef,0), #prevLayer
+            Dict{Layer,UnitRange{Integer}}(),
             )
     end #function ConcatLayer
 end #mutable struct ConcatLayer
