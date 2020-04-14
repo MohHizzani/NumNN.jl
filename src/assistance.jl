@@ -109,3 +109,26 @@ C = getindex(D, :C; default="C")
 ```
 """
 Base.getindex(it, key; default) = haskey(it, key) ? it[key] : default
+
+
+#### getLayerSlice
+
+export getLayerSlice
+
+function getLayerSlice(cLayer::Layer, nextLayer::ConcatLayer, BCache::Dict{Layer, Dict{Symbol, AbstractArray}})
+    N = ndims(BCache[nextLayer][:dA])
+    fAx = axes(BCache[nextLayer][:dA])[1:end-2]
+    lAx = axes(BCache[nextLayer][:dA])[end]
+    LSlice = nextLayer.LSlice[cLayer]
+    return BCache[nextLayer][:dA][fAx...,LSlice,lAx]
+end #function getLayerSlice(cLayer::Layer, nextLayer::ConcatLayer
+
+"""
+$(signature)
+
+Fall back method for  `Layer`s other than `ConcatLayer`
+
+"""
+function getLayerSlice(cLayer::Layer, nextLayer::Layer, BCache::Dict{Layer, Dict{Symbol, AbstractArray}})
+    return BCache[nextLayer][:dA]
+end #function getLayerSlice(cLayer::Layer, nextLayer::Layer
