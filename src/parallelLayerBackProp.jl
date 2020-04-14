@@ -345,7 +345,7 @@ function layerBackProp(
 
     regulization, λ = model.regulization, model.λ
 
-    if length(dAo) != 0 && all(
+    if length(dAo) == 0 && all(
         i -> (i.backCount == cLayer.nextLayers[1].backCount),
         cLayer.nextLayers,
     )
