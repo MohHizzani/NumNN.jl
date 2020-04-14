@@ -106,13 +106,13 @@ function (l::ConcatLayer)(ls::Array{L,1}) where {L<:Layer}
         end
     end #for
 
-    l.inputS = l.outputS = ls[1].outputS
+    l.inputS = ls[1].outputS
     l.channels = sum(li.channels for li in ls)
     l.LSlice[l.prevLayer[1]] = 1:l.prevLayer[1].channels
     for i=2:length(l.prevLayer)
-        l.LSlice[l.prevLayer[i]] = l.prevLayer[i-1].channels+1:l.prevLayer[i]
+        l.LSlice[l.prevLayer[i]] = (l.prevLayer[i-1].channels+1) : (l.prevLayer[i-1].channels+l.prevLayer[i].channels)
     end
-    l.outputS[end-1] = l.channels
+    l.outputS = (l.inputS[1:end-2]...,l.channels,l.inputS[end])
 
     return l
 end #function (l::AddLayer)(li::Array{Layer,1})
