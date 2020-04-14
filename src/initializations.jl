@@ -59,6 +59,17 @@ function initWB!(
 end
 
 function initWB!(
+    cLayer::ConcatLayer,
+    p::Type{T} = Float64::Type{Float64};
+    He = true,
+    coef = 0.01,
+    zro = false,
+) where {T}
+
+    return nothing
+end
+
+function initWB!(
     cLayer::Input,
     p::Type{T} = Float64::Type{Float64};
     He = true,
@@ -225,7 +236,7 @@ end #function initVS!
 function initVS!(
     cLayer::IoA,
     optimizer::Symbol
-    ) where {IoA <: Union{Input, Activation, Flatten}}
+    ) where {IoA <: Union{Input, Activation, Flatten, ConcatLayer}}
 
     return nothing
 end #
