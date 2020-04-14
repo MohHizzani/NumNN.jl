@@ -26,7 +26,13 @@ Fully-connected layer (equivalent to Dense in TensorFlow etc.)
 
 ---------
 
-# Parameters
+# Summary
+
+    mutable struct FCLayer <: Layer
+
+-------
+
+# Fields
 
 - `channels::Integer` := is the number of nodes in the layer
 
@@ -56,6 +62,12 @@ Fully-connected layer (equivalent to Dense in TensorFlow etc.)
 the input of this layer
 
 - `nextLayers::Array{Layer,1}` := An array of the next `layer`(s)
+
+---------
+
+# Supertype Hierarchy
+
+    FCLayer <: Layer <: Any
 
 ---------
 
@@ -147,6 +159,11 @@ end #struct FCLayer
 
 export FCLayer
 
+### Mulit-Input Layer MILayer
+
+export MILayer
+
+abstract type MILayer <: Layer end
 
 ### AddLayer
 
@@ -161,7 +178,11 @@ Layer performs and addition of multiple previous layers
 
 ---------
 
-# Parameters
+# Summary
+
+    mutable struct AddLayer <: MILayer
+
+# Fields
 
 - `channels::Integer` := is the number of nodes or `channels` in the layer
 
@@ -181,6 +202,12 @@ Layer performs and addition of multiple previous layers
 
 ---------
 
+# Supertype Hierarchy
+
+    AddLayer <: MILayer <: Layer <: Any
+
+-------
+
 # Examples
 
 ```julia
@@ -193,7 +220,7 @@ Xa = AddLayer()([X1,X2])
 ```
 
 """
-mutable struct AddLayer <: Layer
+mutable struct AddLayer <: MILayer
     channels::Integer
 
     inputS::Tuple
@@ -230,8 +257,71 @@ end
 export AddLayer
 
 
+### ConcatLayer
+
+export ConcatLayer
+
+
+@doc raw"""
+    ConcatLayer(; channels = 0)
+
+Perform concatenation of group of previous `Layer`s
+
+# Summary
+
+    mutable struct ConcatLayer <: MILayer
+
+# Fields
+
+    channels    :: Integer
+    inputS      :: Tuple
+    outputS     :: Tuple
+    forwCount   :: Integer
+    backCount   :: Integer
+    updateCount :: Integer
+    nextLayers  :: Array{Layer,1}
+    prevLayer   :: Array{Layer,1}
+
+# Supertype Hierarchy
+
+    ConcatLayer <: MILayer <: Layer <: Any
+"""
+mutable struct ConcatLayer <: MILayer
+    channels::Integer
+
+    inputS::Tuple
+    outputS::Tuple
+
+
+    # A::Array{T,N} where {T,N}
+    # dA::Array{T,N} where {T,N}
+
+    forwCount::Integer
+    backCount::Integer
+    updateCount::Integer
+
+    nextLayers::Array{Layer,1}
+    prevLayer::Array{Layer,1}
+    function ConcatLayer(; channels = 0)
+        # channels = l1.channels
+        # T = eltype(l1.W)
+        new(
+            channels,
+            (0,), #inputS
+            (0,), #outputS
+            # Matrix{Nothing}(undef, 0, 0),
+            # Matrix{Nothing}(undef, 0, 0),
+            0,
+            0,
+            0,
+            Array{Layer,1}(undef,0), #nextLayers
+            Array{Layer,1}(undef,0), #prevLayer
+            )
+    end #function ConcatLayer
+end #mutable struct ConcatLayer
 
 ### Activation
+
 @doc raw"""
     Activation(actFun)
 
@@ -241,7 +331,13 @@ export AddLayer
 
 ---------
 
-# Parameters
+# Summary
+
+mutable struct Activation <: Layer
+
+--------
+
+# Fields
 
 - `actFun::Symbol` := the activation function of this layer
 
@@ -260,6 +356,12 @@ export AddLayer
 - `nextLayers::Array{Layer,1}` := An array of the next `layer`(s)
 
 - `prevLayer::Array{Layer,1}` := An array of the previous `layer`(s) to be added
+
+---------
+
+# Supertype Hierarchy
+
+    Activation <: Layer <: An
 
 ---------
 
@@ -319,7 +421,11 @@ export Activation
 
 -------
 
-# Parameters
+# Summary
+
+    mutable struct Input <: Layer
+
+# Fields
 
 - `channels::Integer` := is the number of nodes or `channels` in the layer
 
@@ -340,6 +446,12 @@ export Activation
 
 ------
 
+# Supertype Hierarchy
+
+    Input <: Layer <: Any
+
+--------
+
 # Examples
 
 ```julia
@@ -347,7 +459,7 @@ X_Input = Input(size(X_train))
 X = FCLayer(10, :relu)(X_Input)
 ```
 
-It is possible to use the Array instead of its size NumNN will take care of the rest
+It is possible to use the Array instead of its size `NumNN` will take care of the rest
 
 ```julia
 X_Input = Input(X_train)
@@ -416,7 +528,13 @@ Batch Normalization `Layer` that is used ot normalize across the dimensions spec
 
 ---------
 
-# Parameters
+# Summary
+
+    mutable struct BatchNorm <: Layer
+
+-------
+
+# Fields
 
 - `channels::Integer` := is the number of nodes in the layer
 
@@ -446,6 +564,12 @@ Batch Normalization `Layer` that is used ot normalize across the dimensions spec
 the input of this layer
 
 - `nextLayers::Array{Layer,1}` := An array of the next `layer`(s)
+
+---------
+
+# Supertype Hierarchy
+
+    BatchNorm <: Layer <: Any
 
 ---------
 
@@ -539,6 +663,31 @@ export BatchNorm
 
 export Flatten
 
+
+@doc raw"""
+    Flatten()
+
+Flatten the input into 2D `Array`
+
+# Summary
+
+    mutable struct Flatten <: Layer
+
+# Fields
+
+    channels    :: Integer
+    inputS      :: Tuple
+    outputS     :: Tuple
+    forwCount   :: Integer
+    backCount   :: Integer
+    updateCount :: Integer
+    nextLayers  :: Array{Layer,1}
+    prevLayer   :: Union{Nothing, Layer}
+
+# Supertype Hierarchy
+
+    Flatten <: Layer <: Any
+"""
 mutable struct Flatten <: Layer
     channels::Integer
 
@@ -571,6 +720,42 @@ end
 
 ### Model
 
+@doc raw"""
+
+    function Model(
+        X,
+        Y,
+        inLayer::Layer,
+        outLayer::Layer,
+        α;
+        optimizer = :gds,
+        β1 = 0.9,
+        β2 = 0.999,
+        ϵAdam = 1e-8,
+        regulization = 0,
+        λ = 1.0,
+        lossFun = :categoricalCrossentropy,
+        paramsDtype::DataType = Float64,
+    )
+
+# Summary
+
+    mutable struct Model <: Any
+
+# Fields
+
+    inLayer      :: Layer
+    outLayer     :: Layer
+    lossFun      :: Symbol
+    paramsDtype  :: DataType
+    regulization :: Integer
+    λ            :: AbstractFloat
+    α            :: AbstractFloat
+    optimizer    :: Symbol
+    ϵAdam        :: AbstractFloat
+    β1           :: AbstractFloat
+    β2           :: AbstractFloat
+"""
 mutable struct Model
     # layers::Array{Layer,1}
     inLayer::Layer
