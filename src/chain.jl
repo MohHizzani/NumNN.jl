@@ -96,6 +96,24 @@ function (l::BatchNorm)(li_1::Layer)
 
 end #function (l::BatchNorm)
 
+function (l::ConcatLayer)(ls::Array{L,1}) where {L<:Layer}
+    for li in ls
+        if !in(li,l.prevLayer)
+            push!(l.prevLayer, li)
+        end
+        if !in(l, li.nextLayers)
+            push!(li.nextLayers, l)
+        end
+    end #for
+
+    l.inputS = l.outputS = ls[1].outputS
+    l.channels = sum(li.channels for li in ls)
+    l.outputS[end-1] = l.channels
+
+    return l
+end #function (l::AddLayer)(li::Array{Layer,1})
+
+
 function (l::AddLayer)(ls::Array{L,1}) where {L<:Layer}
     for li in ls
         if !in(li,l.prevLayer)
