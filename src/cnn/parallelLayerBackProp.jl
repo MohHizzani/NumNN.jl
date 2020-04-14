@@ -116,9 +116,9 @@ function layerBackProp(
         dAo = []
         for nextLayer in cLayer.nextLayers
             try
-                dAo .+= BCache[nextLayer][:dA]
+                dAo .+= getLayerSlice(cLayer, nextLayer, BCache)
             catch e
-                dAo = BCache[nextLayer][:dA] #need to initialize dA
+                dAo = getLayerSlice(cLayer, nextLayer, BCache) #need to initialize dA
             end #try/catch
         end #for
 
@@ -227,9 +227,9 @@ function layerBackProp(
             dAo = []
             for nextLayer in cLayer.nextLayers
                 try
-                    dAo .+= BCache[nextLayer][:dA]
+                    dAo .+= getLayerSlice(cLayer, nextLayer, BCache)
                 catch e
-                    dAo = BCache[nextLayer][:dA] #need to initialize dA
+                    dAo = getLayerSlice(cLayer, nextLayer, BCache) #need to initialize dA
                 end #try/catch
             end #for
         else

@@ -134,9 +134,9 @@ function layerBackProp(
         dAo = []
         for nextLayer in cLayer.nextLayers
             try
-                dAo .+= BCache[nextLayer][:dA]
+                dAo .+= getLayerSlice(cLayer, nextLayer, BCache)
             catch e #in case first time DimensionMismatch
-                dAo = BCache[nextLayer][:dA]
+                dAo = getLayerSlice(cLayer, nextLayer, BCache)
             end
         end #for
 
@@ -257,9 +257,9 @@ function layerBackProp(
         dAo = []
         for nextLayer in cLayer.nextLayers
             try
-                dAo .+= BCache[nextLayer][:dA]
+                dAo .+= getLayerSlice(cLayer, nextLayer, BCache)
             catch e #in case first time DimensionMismatch
-                dAo = BCache[nextLayer][:dA]
+                dAo = getLayerSlice(cLayer, nextLayer, BCache)
             end
         end #for
 
@@ -352,9 +352,9 @@ function layerBackProp(
         dAo = []
         for nextLayer in cLayer.nextLayers
             try
-                dAo .+= BCache[nextLayer][:dA]
+                dAo .+= getLayerSlice(cLayer, nextLayer, BCache)
             catch e #in case first time DimensionMismatch
-                dAo = BCache[nextLayer][:dA]
+                dAo = getLayerSlice(cLayer, nextLayer, BCache)
             end
         end #for
 
@@ -428,9 +428,9 @@ function layerBackProp(
         dAo = []
         for nextLayer in cLayer.nextLayers
             try
-                dAo .+= BCache[nextLayer][:dA]
+                dAo .+= getLayerSlice(cLayer, nextLayer, BCache)
             catch e
-                dAo = BCache[nextLayer][:dA] #to initialize dA
+                dAo = getLayerSlice(cLayer, nextLayer, BCache) #to initialize dA
             end #try/catch
         end #for
 
@@ -445,6 +445,45 @@ function layerBackProp(
     return Dict(:dA => dAo)
 end #function layerBackProp(cLayer::AddLayer
 
+
+### ConcatLayer
+
+function layerBackProp(
+    cLayer::ConcatLayer,
+    model::Model,
+    FCache::Dict{Layer, Dict{Symbol, AbstractArray}},
+    BCache::Dict{Layer, Dict{Symbol, AbstractArray}},
+    dAo::AbstractArray{T1,N} = Array{Any,1}(undef,0);
+    labels::AbstractArray{T2,N} = Array{Any,1}(undef,0),
+    kwargs...,
+) where {T1,T2,N}
+
+    if length(dAo) != 0
+        return Dict(:dA => dAo)
+
+    elseif all(
+        i -> (i.backCount == cLayer.nextLayers[1].backCount),
+        cLayer.nextLayers,
+    )
+        dAo = []
+        for nextLayer in cLayer.nextLayers
+            try
+                dAo .+= getLayerSlice(cLayer, nextLayer, BCache)
+            catch e
+                dAo = getLayerSlice(cLayer, nextLayer, BCache) #to initialize dA
+            end #try/catch
+        end #for
+
+
+    else #in case not every next layer done backprop
+        return Dict(:dA => Array{Any,1}(undef,0))
+
+    end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
+
+    cLayer.backCount += 1
+
+    return Dict(:dA => dAo)
+end #function layerBackProp(cLayer::AddLayer
 
 @doc raw"""
     layerBackProp(
@@ -496,9 +535,9 @@ function layerBackProp(
         dAo = []
         for nextLayer in cLayer.nextLayers
             try
-                dAo .+= BCache[nextLayer][:dA]
+                dAo .+= getLayerSlice(cLayer, nextLayer, BCache)
             catch e
-                dAo = BCache[nextLayer][:dA] #need to initialize dA
+                dAo = getLayerSlice(cLayer, nextLayer, BCache) #need to initialize dA
             end #try/catch
         end #for
 
@@ -579,9 +618,9 @@ function layerBackProp(
         dAo = []
         for nextLayer in cLayer.nextLayers
             try
-                dAo .+= BCache[nextLayer][:dA]
+                dAo .+= getLayerSlice(cLayer, nextLayer, BCache)
             catch e
-                dAo = BCache[nextLayer][:dA] #need to initialize dA
+                dAo = getLayerSlice(cLayer, nextLayer, BCache) #need to initialize dA
             end #try/catch
         end #for
         dAo = permutedims(dAo, [N, (1:N-1)...])
