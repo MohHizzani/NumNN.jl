@@ -46,7 +46,7 @@ function chainForProp(
             FCache[cLayer] = layerForProp(cLayer; FCache = FCache, kwargs...)
         end #if cLayer.forwCount < cnt
         return FCache
-    elseif isa(cLayer, AddLayer) #if typeof(cLayer)==AddLayer
+    elseif isa(cLayer, MILayer) #if typeof(cLayer)==AddLayer
         if all(
             i -> (i.forwCount == cLayer.prevLayer[1].forwCount),
             cLayer.prevLayer,
@@ -344,7 +344,7 @@ function chainBackProp(
             kwargs...,
         )
 
-    elseif cLayer isa AddLayer
+    elseif cLayer isa MILayer
         BCache[cLayer] = layerBackProp(cLayer, model, FCache, BCache; kwargs...)
 
         if tMiniBatch > 0
@@ -457,7 +457,7 @@ function chainUpdateParams!(model::Model,
         layerUpdateParams!(model, model.outLayer, cnt, tMiniBatch=tMiniBatch)
         chainUpdateParams!(model, model.outLayer.prevLayer, cnt, tMiniBatch=tMiniBatch)
 
-    elseif cLayer isa AddLayer
+    elseif cLayer isa MILayer
         #update the AddLayer updateCounter
         if cLayer.updateCount < cnt
             cLayer.updateCount += 1
