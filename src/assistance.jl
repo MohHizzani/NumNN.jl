@@ -124,7 +124,7 @@ function getLayerSlice(cLayer::Layer, nextLayer::ConcatLayer, BCache::Dict{Layer
 end #function getLayerSlice(cLayer::Layer, nextLayer::ConcatLayer
 
 """
-$(signature)
+    getLayerSlice(cLayer::Layer, nextLayer::Layer, BCache::Dict{Layer, Dict{Symbol, AbstractArray}})
 
 Fall back method for  `Layer`s other than `ConcatLayer`
 
