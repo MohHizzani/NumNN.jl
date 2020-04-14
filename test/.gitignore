@@ -1,0 +1,5 @@
+#Not to includ the test folder
+MNIST_Fashion_CNN.jl
+twoDNNlibVsImg.jl
+twodunroll.jl
+typesTest.jl
