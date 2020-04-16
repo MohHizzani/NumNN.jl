@@ -3,8 +3,11 @@ include("parallelLayerForProp.jl")
 
 using ProgressMeter
 
-ProgressMeter.ijulia_behavior(:clear)
+try
+    ProgressMeter.ijulia_behavior(:clear)
+catch
 
+end
 using Random
 using LinearAlgebra
 
