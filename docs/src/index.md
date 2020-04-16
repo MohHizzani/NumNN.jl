@@ -1,9 +1,5 @@
 # NumNN.jl
 
-Documentation for NumNN.jl
-
-# NumNN.jl
-
 This package provides high-level Neural Network APIs deals with different number representations like [Posit][1], Logarithmic Data Representations, Residual Number System (RNS), and -for sure- the conventional IEEE formats.
 
 Since, the implementation and development process for testing novel number systems on different Deep Learning applications using the current available DP frameworks in easily feasible. An urgent need for an unconventional library that provides both the easiness and complexity of simulating and testing and evaluate new number systems before the hardware design complex process— was resurfaced.
