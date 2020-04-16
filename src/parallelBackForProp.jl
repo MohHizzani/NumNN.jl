@@ -2,6 +2,9 @@ include("parallelLayerForProp.jl")
 
 
 using ProgressMeter
+
+ProgressMeter.ijulia_behavior(:clear)
+
 using Random
 using LinearAlgebra
 
