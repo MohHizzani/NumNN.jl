@@ -33,7 +33,7 @@ deploydocs(
     # push_preview = true,
     branch = "gh-pages",
     devurl = "dev",
-    versions = ["stable" => "v^", "v#.#.#", devurl => devurl],
+    versions = ["stable" => "v^", "v#.#.#", "dev" => "dev"],
     # make = nothing,
     # forcepush = true,
 )
