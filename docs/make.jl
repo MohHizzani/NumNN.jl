@@ -16,6 +16,7 @@ makedocs(
     pages = Any[
         "Home" => "index.md",
         "Docstrings" => "docstrings.md",
+        "Tutorials" => "tutorials.md"
     ],
 )
 

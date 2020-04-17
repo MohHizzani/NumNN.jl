@@ -1,6 +1,6 @@
 # NumNN.jl
 
-This package provides high-level Neural Network APIs deals with different number representations like [Posit][1], Logarithmic Data Representations, Residual Number System (RNS), and -for sure- the conventional IEEE formats.
+This package provides high-level Neural Network APIs deals with different number representations like [Posit](https://www.superfri.org/superfri/article/view/137 "Beating Floating Point at its Own Game: Posit Arithmetic"), Logarithmic Data Representations, Residual Number System (RNS), and -for sure- the conventional IEEE formats.
 
 Since, the implementation and development process for testing novel number systems on different Deep Learning applications using the current available DP frameworks in easily feasible. An urgent need for an unconventional library that provides both the easiness and complexity of simulating and testing and evaluate new number systems before the hardware design complex process— was resurfaced.
 
@@ -8,7 +8,7 @@ Since, the implementation and development process for testing novel number syste
 
 ## Why Julia?
 
-[Julia][2] provides in an unconventional way the ability to simulate new number systems and deploy this simulation to be used as high-level primitive type. **[Multiple Dispatch][3]** provides a unique ability to write a general code then specify the implementation based on the type.
+[Julia](https://julialang.org/ "Julia Language") provides in an unconventional way the ability to simulate new number systems and deploy this simulation to be used as high-level primitive type. **[Multiple Dispatch](https://docs.julialang.org/en/v1/manual/methods/ "Julia Multiple Dispatch")** provides a unique ability to write a general code then specify the implementation based on the type.
 
 ### Examples of Multiple Dispatch
 
@@ -42,7 +42,7 @@ julia> aInt + aP #Note how the result is in Posit16 type
 Posit16(0x5000)
 ```
 
-The output was of type `Posit16` because in **Julia** you can define a [Promote Rule][4] which mean when the output can be in either type(s) of the input, **promote** the output to be of the specified type. Which can be defined as follows:
+The output was of type `Posit16` because in **Julia** you can define a [Promote Rule](https://docs.julialang.org/en/v1/manual/conversion-and-promotion/#Promotion-1 "Juila Promotion") which mean when the output can be in either type(s) of the input, **promote** the output to be of the specified type. Which can be defined as follows:
 
 ```julia
 Base.promote_rule(::Type{Int64}, ::Type{Posit16}) = Posit16
@@ -50,11 +50,7 @@ Base.promote_rule(::Type{Int64}, ::Type{Posit16}) = Posit16
 
 This means that the output of an operation on both `Int64` and `Posit16` should be converted to `Posit16`.
 
-[1]: <superfri.org/superfri/article/view/137> "Beating Floating Point at its Own Game: Posit Arithmetic"
-[2]: <julialang.org> "Julia Language"
-[3]: <https://docs.julialang.org/en/v1/manual/methods/> "Julia Multiple Dispatch"
-[4]: <https://docs.julialang.org/en/v1/manual/conversion-and-promotion/#Promotion-1> "Juila Promotion"
 
 ```@contents
-Pages = ["index.md", "docstrings.md"]
+Pages = ["docstrings.md", "tutorials.md"]
 ```
