@@ -1,7 +1,6 @@
-![.github/workflows/main.yml](https://github.com/MohHizzani/NumNN.jl/workflows/.github/workflows/main.yml/badge.svg)  [![Build Status](https://travis-ci.com/MohHizzani/NumNN.jl.svg?branch=master)](https://travis-ci.com/MohHizzani/NumNN.jl)
-
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://mohhizzani.github.io/NumNN.jl/stable)
-[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://mohhizzani.github.io/NumNN.jl/dev)
+GitHub main.yml Status | Travis CI building Status | Stable Documentation | Dev Documentation
+----------|-----------|----------|-----------
+![.github/workflows/main.yml](https://github.com/MohHizzani/NumNN.jl/workflows/.github/workflows/main.yml/badge.svg) | [![Build Status](https://travis-ci.com/MohHizzani/NumNN.jl.svg?branch=master)](https://travis-ci.com/MohHizzani/NumNN.jl) | [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://mohhizzani.github.io/NumNN.jl/stable) | [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://mohhizzani.github.io/NumNN.jl/dev)
 
 # NumNN.jl
 
