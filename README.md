@@ -55,6 +55,21 @@ Base.promote_rule(::Type{Int64}, ::Type{Posit16}) = Posit16
 
 This means that the output of an operation on both `Int64` and `Posit16` should be converted to `Posit16`.
 
+
+## Install
+
+To install in Julia
+
+```julia
+julia> ] add NumNN
+```
+## To Use
+
+```julia
+julia> using NumNN
+```
+
+
 [1]: <superfri.org/superfri/article/view/137> "Beating Floating Point at its Own Game: Posit Arithmetic"
 [2]: <julialang.org> "Julia Language"
 [3]: <https://docs.julialang.org/en/v1/manual/methods/> "Julia Multiple Dispatch"
