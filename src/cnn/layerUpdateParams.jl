@@ -30,7 +30,7 @@ function layerUpdateParams!(
     if optimizer == :adam || optimizer == :momentum
         VCorrected = Dict(:dw => similar(cLayer.dW), :db => similar(cLayer.dB))
 
-        if tMinitBatch == 1
+        if tMiniBatch == 1
             cLayer.V[:dw] .= 0
             cLayer.V[:db] .= 0
         end
@@ -46,7 +46,7 @@ function layerUpdateParams!(
             SCorrected =
                 Dict(:dw => similar(cLayer.dW), :db => similar(cLayer.dB))
 
-            if tMinitBatch == 1
+            if tMiniBatch == 1
                 cLayer.S[:dw] .= 0
                 cLayer.S[:db] .= 0
             end
