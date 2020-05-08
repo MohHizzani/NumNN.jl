@@ -560,7 +560,7 @@ function train(
     m = size(X_train)[end]
     c = size(Y_train)[end-1]
     nB = m ÷ batchSize
-    shufInd = randperm(m)
+
     N = ndims(X_train)
     axX = axes(X_train)[1:end-1]
     axY = axes(Y_train)[1:end-1]
@@ -592,6 +592,7 @@ function train(
     Accuracies = []
     Costs = []
     for i=1:epochs
+        shufInd = randperm(m)
         minCosts = [] #the costs of all mini-batches
         minAcc = []
         for j=1:nB
