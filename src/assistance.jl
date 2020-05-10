@@ -150,7 +150,7 @@ function chParamType!(cLayer::Layer, T::DataType, cnt::Integer = -1)
                 cLayer.B = T.(cLayer.B)
                 cLayer.updateCount += 1
             catch
-
+                cLayer.updateCount += 1
             end
         end #if cLayer.forwCount < cnt
         return nothing
@@ -164,7 +164,7 @@ function chParamType!(cLayer::Layer, T::DataType, cnt::Integer = -1)
                 cLayer.B = T.(cLayer.B)
                 cLayer.updateCount += 1
             catch
-
+                cLayer.updateCount += 1
             end
             for nextLayer in cLayer.nextLayers
                 chParamType!(nextLayer, T, cnt)
@@ -180,7 +180,7 @@ function chParamType!(cLayer::Layer, T::DataType, cnt::Integer = -1)
                     cLayer.B = T.(cLayer.B)
                     cLayer.updateCount += 1
                 catch
-
+                    cLayer.updateCount += 1
                 end
             else
                 try
@@ -188,7 +188,7 @@ function chParamType!(cLayer::Layer, T::DataType, cnt::Integer = -1)
                     cLayer.B = T.(cLayer.B)
                     cLayer.updateCount += 1
                 catch
-
+                    cLayer.updateCount += 1
                 end
             end
             for nextLayer in cLayer.nextLayers
