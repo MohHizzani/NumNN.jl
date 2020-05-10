@@ -194,7 +194,7 @@ function predict(model::Model, X_In::AbstractArray, Y_In = nothing; kwargs...)
         Array{AbstractArray{T,nY},1}(undef, nB + ((m % batchSize == 0) ? 0 : 1))
     accuracy =
         Array{AbstractFloat,1}(undef, nB + ((m % batchSize == 0) ? 0 : 1))
-    # Threads.@threads
+    # Threads.@threads for j = 1:nB
     @simd for j = 1:nB
         downInd = (j - 1) * batchSize + 1
         upInd = j * batchSize

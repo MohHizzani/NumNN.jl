@@ -132,3 +132,74 @@ Fall back method for  `Layer`s other than `ConcatLayer`
 function getLayerSlice(cLayer::Layer, nextLayer::Layer, BCache::Dict{Layer, Dict{Symbol, AbstractArray}})
     return BCache[nextLayer][:dA]
 end #function getLayerSlice(cLayer::Layer, nextLayer::Layer
+
+
+###
+
+export chParamType
+
+function chParamType!(cLayer::Layer, T::DataType, cnt::Integer = -1)
+    if cnt < 0
+        cnt = cLayer.updateCount + 1
+    end
+
+    if length(cLayer.nextLayers) == 0
+        if cLayer.updateCount < cnt
+            try
+                cLayer.W = T.(cLayer.W)
+                cLayer.B = T.(cLayer.B)
+                cLayer.updateCount += 1
+            catch
+
+            end
+        end #if cLayer.forwCount < cnt
+        return nothing
+    elseif isa(cLayer, MILayer) #if typeof(cLayer)==AddLayer
+        if all(
+            i -> (i.updateCount == cLayer.prevLayer[1].udpateCount),
+            cLayer.prevLayer,
+        )
+            try
+                cLayer.W = T.(cLayer.W)
+                cLayer.B = T.(cLayer.B)
+                cLayer.updateCount += 1
+            catch
+
+            end
+            for nextLayer in cLayer.nextLayers
+                chParamType!(nextLayer, T, cnt)
+            end
+        end #if all
+
+        return FCache
+    else #if cLayer.prevLayer==nothing
+        if cLayer.forwCount < cnt
+            if cLayer isa Input
+                try
+                    cLayer.W = T.(cLayer.W)
+                    cLayer.B = T.(cLayer.B)
+                    cLayer.updateCount += 1
+                catch
+
+                end
+            else
+                try
+                    cLayer.W = T.(cLayer.W)
+                    cLayer.B = T.(cLayer.B)
+                    cLayer.updateCount += 1
+                catch
+
+                end
+            end
+            for nextLayer in cLayer.nextLayers
+                chParamType!(nextLayer, T, cnt)
+            end
+
+        end #if cLayer.forwCount < cnt
+        return nothing
+    end #if cLayer.prevLayer!=nothing
+
+    return nothing
+
+
+end #function chParamType(cLayer::Layer, T::DataType)
