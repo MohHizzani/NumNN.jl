@@ -156,7 +156,7 @@ function chParamType!(cLayer::Layer, T::DataType, cnt::Integer = -1)
         return nothing
     elseif isa(cLayer, MILayer) #if typeof(cLayer)==AddLayer
         if all(
-            i -> (i.updateCount == cLayer.prevLayer[1].udpateCount),
+            i -> (i.updateCount == cLayer.prevLayer[1].updateCount),
             cLayer.prevLayer,
         )
             try
