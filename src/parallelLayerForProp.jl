@@ -283,7 +283,7 @@ function layerForProp(
         Ai = FCache[prevLayer][:A]
     end
 
-    cLayer.ϵ = eltype(Ai)(cLayer.ϵ)
+    cLayer.ϵ = eltype(cLayer.W)(cLayer.ϵ)
 
     if prediction
         cLayer.forwCount += 1
