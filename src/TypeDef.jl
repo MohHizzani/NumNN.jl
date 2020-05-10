@@ -634,7 +634,7 @@ mutable struct BatchNorm <: Layer
     prevLayer::L where {L<:Union{Layer,Nothing}}
 
 
-    function BatchNorm(;dim=1, ϵ=1e-10)
+    function BatchNorm(;dim=1, ϵ=1e-7)
         new(
             0, #channels
             (0,), #inputS
