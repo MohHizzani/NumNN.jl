@@ -171,7 +171,7 @@ function chParamType!(cLayer::Layer, T::DataType, cnt::Integer = -1)
             end
         end #if all
 
-        return FCache
+        return nothing
     else #if cLayer.prevLayer==nothing
         if cLayer.updateCount < cnt
             if cLayer isa Input
