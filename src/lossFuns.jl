@@ -87,7 +87,7 @@ function cost(
 ) where {T1, T2, N}
 
     c, m = size(A)[N-1:N]
-    costs = sum(loss(A,Y)) / m
+    costs = sum(loss(Float64.(A),Y)) / m
     return Float64.(costs)
 
 end #function cost
@@ -109,7 +109,7 @@ function cost(
 ) where {T1, T2, N}
 
     c, m = size(A)[N-1:N]
-    costs = sum(loss(A,Y)) / (c*m)
+    costs = sum(loss(Float64.(A),Y)) / (c*m)
     return Float64.(costs)
 
 end #function cost
