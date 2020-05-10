@@ -301,17 +301,20 @@ function layerForProp(
     # initWB!(cLayer)
     # initVS!(cLayer, model.optimizer)
 
+    tA = eltype(Ai)
     N = ndims(Ai)
     Ai = permutedims(Ai, [N,(1:N-1)...])
-
+    if tA==Float16
+        Ai = Float64.(Ai)
+    end
     NDim = cLayer.dim + 1
 
-    μ = mean(Ai, dims = 1:NDim)
-    Ai_μ = Ai .- μ
+    μ = (mean(Ai, dims = 1:NDim))
+    Ai_μ = (Ai .- μ)
     Num = prod(size(Ai)[1:NDim])
-    Ai_μ_s = Ai_μ .^ 2
-    var = sum(Ai_μ_s, dims = 1:NDim) ./ Num
-    Z = Ai_μ ./ sqrt.(var .+ cLayer.ϵ)
+    Ai_μ_s = (Ai_μ .^ 2)
+    var = tA.(sum(Ai_μ_s, dims = 1:NDim) ./ Num)
+    Z = tA.(Ai_μ ./ sqrt.(var .+ cLayer.ϵ))
     Ap = cLayer.W .* Z .+ cLayer.B
     Ao = permutedims(Ap, [(2:N)..., 1])
     cLayer.forwCount += 1
@@ -319,13 +322,13 @@ function layerForProp(
     cLayer.inputS = cLayer.outputS = size(Ao)
     # Base.GC.gc()
     return Dict(
-        :μ => μ,
-        :Ai_μ => Ai_μ,
-        :Ai_μ_s => Ai_μ_s,
-        :var => var,
-        :Z => Z,
-        :A => Ao,
-        :Ap => Ap,
+        :μ => tA.(μ),
+        :Ai_μ => tA.(Ai_μ),
+        :Ai_μ_s => tA.(Ai_μ_s),
+        :var => tA.(var),
+        :Z => tA.(Z),
+        :A => tA.(Ao),
+        :Ap => tA.(Ap),
     )
 end #function layerForProp(cLayer::BatchNorm)
 
