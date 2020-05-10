@@ -644,6 +644,8 @@ function layerBackProp(
         end
     end
 
+    tA = eltype(dAo)
+
     cLayer.dB = sum(dAo, dims = 1:normDim)
 
     Num = prod(size(dAo)[1:normDim])
@@ -672,7 +674,7 @@ function layerBackProp(
 
     dAip = dZ3 .+ dZ4
 
-    dAi = permutedims(dAip, [(2:N)..., 1])
+    dAi = tA.(permutedims(dAip, [(2:N)..., 1]))
 
     # dẐ =
     #     dZ ./ sqrt.(varep) .*
