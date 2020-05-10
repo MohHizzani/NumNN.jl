@@ -276,11 +276,14 @@ function layerForProp(
     kwargs...,
 )
 
+
     prediction = getindex(kwargs, :prediction; default=false)
     prevLayer = cLayer.prevLayer
     if length(Ai) == 0
         Ai = FCache[prevLayer][:A]
     end
+
+    cLayer.ϵ = eltype(Ai)(cLayer.ϵ)
 
     if prediction
         cLayer.forwCount += 1
