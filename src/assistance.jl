@@ -136,7 +136,7 @@ end #function getLayerSlice(cLayer::Layer, nextLayer::Layer
 
 ###
 
-export chParamType
+export chParamType!
 
 function chParamType!(cLayer::Layer, T::DataType, cnt::Integer = -1)
     if cnt < 0
@@ -173,7 +173,7 @@ function chParamType!(cLayer::Layer, T::DataType, cnt::Integer = -1)
 
         return FCache
     else #if cLayer.prevLayer==nothing
-        if cLayer.forwCount < cnt
+        if cLayer.updateCount < cnt
             if cLayer isa Input
                 try
                     cLayer.W = T.(cLayer.W)
