@@ -3,3 +3,5 @@ MNIST_Fashion_CNN.jl
 twoDNNlibVsImg.jl
 twodunroll.jl
 typesTest.jl
+
+02_*
