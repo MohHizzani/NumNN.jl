@@ -123,8 +123,13 @@ function predictBatch(model::Model, X::AbstractArray, Y = nothing; kwargs...)
     T = eltype(Ŷ)
     outLayer = model.outLayer
     actFun = outLayer.actFun
+    lossFun = model.lossFun
+    costs = nothing
+    if Y != nothing
+        costs = cost(eval(:($lossFun)), Ŷ, Y)
+    end
     # if isbool(Y)
-    return Ŷ, probToValue(eval(:($actFun)), Ŷ; labels = Y)...
+    return Ŷ, probToValue(eval(:($actFun)), Ŷ; labels = Y)..., costs
 
 end #predict
 
@@ -182,6 +187,8 @@ function predict(model::Model, X_In::AbstractArray, Y_In = nothing; kwargs...)
     Y = nothing
     if Y_In != nothing
         axY = axes(Y_In)[1:end-1]
+        costs =
+            Array{AbstractFloat,1}(undef, nB + ((m % batchSize == 0) ? 0 : 1))
     end
     if useProgBar
         p = Progress((m % batchSize != 0 ? nB + 1 : nB), 0.1)
@@ -202,7 +209,7 @@ function predict(model::Model, X_In::AbstractArray, Y_In = nothing; kwargs...)
         if Y_In != nothing
             Y = view(Y_In, axY..., downInd:upInd)
         end
-        Ŷ_prob_out[j], Ŷ_out[j], accuracy[j] =
+        Ŷ_prob_out[j], Ŷ_out[j], accuracy[j], costs[j] =
             predictBatch(model, X, Y; kwargs...)
 
         if useProgBar
@@ -221,7 +228,7 @@ function predict(model::Model, X_In::AbstractArray, Y_In = nothing; kwargs...)
         if Y_In != nothing
             Y = view(Y_In, axY..., downInd:m)
         end
-        Ŷ_prob_out[nB+1], Ŷ_out[nB+1], accuracy[nB+1] =
+        Ŷ_prob_out[nB+1], Ŷ_out[nB+1], accuracy[nB+1], costs[nB+1] =
             predictBatch(model, X, Y; kwargs...)
 
         # X = Y = nothing
@@ -234,6 +241,10 @@ function predict(model::Model, X_In::AbstractArray, Y_In = nothing; kwargs...)
     # accuracyM = nothing
     # if !(isempty(accuracy))
     accuracyM = mean(filter(x -> x != nothing, accuracy))
+    costM = nothing
+    if Y_In != nothing
+        costM = mean(filter(x -> x != nothing, costs))
+    end
     # end
     if noBool
         Ŷ_values = nothing
@@ -248,6 +259,7 @@ function predict(model::Model, X_In::AbstractArray, Y_In = nothing; kwargs...)
         :YhatValue => Ŷ_values,
         :YhatProb => Ŷ_prob,
         :accuracy => accuracyM,
+        :cost => costM,
     )
 
 end #function predict(
