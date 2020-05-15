@@ -4,5 +4,7 @@
 01F*
 02_1*
 02.jld2
+*.jld
+*.jld2
 
 00_FCLayer_FashionMNIST-Copy1.ipynb
