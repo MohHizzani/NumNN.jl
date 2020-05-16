@@ -63,8 +63,8 @@ function convolve(cLayer::Conv2D, Ai::AbstractArray{T1,4}) where {T1}
     B = cLayer.B
     # @simd
     Threads.@threads for mi = 1:m
-        @simd for ci = 1:c
-        # Threads.@threads for ci = 1:c
+        # @simd for ci = 1:c
+        Threads.@threads for ci = 1:c
             # @simd for
             # wi = 1:n_W
             for wi = 1:n_W, hi = 1:n_H
