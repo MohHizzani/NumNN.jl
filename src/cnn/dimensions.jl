@@ -9,9 +9,9 @@ function outDims(cLayer::PL, AiS::Tuple) where {PL <: PaddableLayer}
 
     f = cLayer.f
     s = cLayer.s
-    inputS = cLayer.inputS[1:end-2]
+    inputS = cLayer.inputS[1:end-1]
     paddedS = paddedSize(cLayer, AiS)[1:end-2]
-    ci, m = cLayer.inputS[end-1:end]
+    ci, m = AiS[end-1:end]
     co = cLayer.channels
     outputS = []
     for i=1:length(f)
@@ -19,6 +19,6 @@ function outDims(cLayer::PL, AiS::Tuple) where {PL <: PaddableLayer}
         push!(outputS, n)
     end
 
-    return (outputS..., co, m)
+    return (outputS..., co)
 
 end

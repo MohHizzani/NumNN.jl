@@ -40,12 +40,14 @@ function layerForProp(
     if length(Ai) == 0
         Ai = FCache[cLayer.prevLayer][:A]
     end
-    cLayer.inputS = size(Ai)
+    if cLayer.inputS != size(Ai)[1:end-1]
+        cLayer.inputS = size(Ai)[1:end-1]
+    end
     paddedS = paddedSize(cLayer, Ai)[1:end-2]
     s = cLayer.s
     f = cLayer.f
-    outputS = outDims(cLayer, Ai)[1:end-2]
-    ci, m = cLayer.inputS[end-1:end]
+    outputS = outDims(cLayer, Ai)[1:end-1]
+    ci, m = size(Ai)[end-1:end]
     co = cLayer.channels
 
     if NNlib
@@ -60,8 +62,9 @@ function layerForProp(
         D = convolve(cLayer, Ai)
     end
 
-    cLayer.outputS = size(D[:A])
-
+    if cLayer.outputS != size(D[:A])[1:end-1]
+        cLayer.outputS = size(D[:A])[1:end-1]
+    end
     # Ai = nothing
     # cLayer.forwCount += 1
     Done[cLayer] = true
@@ -117,14 +120,16 @@ function layerForProp(
         Ai = FCache[cLayer.prevLayer][:A]
     end
 
-    cLayer.inputS = size(Ai)
+    if cLayer.inputS != size(Ai)[1:end-1]
+        cLayer.inputS = size(Ai)[1:end-1]
+    end
     paddedS = paddedSize(cLayer, Ai)[1:end-2]
     s = cLayer.s
     f = cLayer.f
-    outputS = outDims(cLayer, Ai)[1:end-2]
-    ci, m = cLayer.inputS[end-1:end]
+    outputS = outDims(cLayer, Ai)[1:end-1]
+    ci, m = size(Ai)[end-1:end]
     co = cLayer.channels
-    cLayer.inputS = size(Ai)
+    # cLayer.inputS = size(Ai)
     padS = paddingSize(cLayer, Ai)
 
     Ao = zeros(eltype(Ai), outputS..., co, m)
@@ -142,7 +147,9 @@ function layerForProp(
         pooling!(cLayer, Ai, Ao)
     end #if NNlibConv
 
-    cLayer.outputS = size(Ao)
+    if cLayer.outputS != size(Ao)[1:end-1]
+        cLayer.outputS = size(Ao)[1:end-1]
+    end
     # Ai = nothing
     # cLayer.forwCount += 1
     Done[cLayer] = true

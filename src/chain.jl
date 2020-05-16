@@ -39,7 +39,7 @@ function (l::FCLayer)(li_1::Layer)
         push!(li_1.nextLayers, l)
     end
     l.inputS = li_1.outputS
-    l.outputS = (l.channels, li_1.outputS[2])
+    l.outputS = (l.channels,)
     return l
 end #function (l::FCLayer)(li_1::Layer)
 
@@ -63,9 +63,9 @@ function (l::Flatten)(li_1::Layer)
 
     l.inputS = li_1.outputS
 
-    l.channels = prod(l.inputS[1:end-1])
+    l.channels = prod(l.inputS[1:end])
 
-    l.outputS = (l.channels, l.inputS[end])
+    l.outputS = (l.channels,)
 
     if !(l in li_1.nextLayers)
         push!(li_1.nextLayers, l)
@@ -106,14 +106,14 @@ function (l::ConcatLayer)(ls::Array{L,1}) where {L<:Layer}
         end
     end #for
 
-    l.inputS = ls[1].outputS
+    # l.inputS = ls[1].outputS
     l.channels = sum(li.channels for li in ls)
     l.LSlice[l.prevLayer[1]] = 1:l.prevLayer[1].channels
     for i=2:length(l.prevLayer)
         l.LSlice[l.prevLayer[i]] = (l.prevLayer[i-1].channels+1) : (l.prevLayer[i-1].channels+l.prevLayer[i].channels)
     end
-    l.outputS = (l.inputS[1:end-2]...,l.channels,l.inputS[end])
-
+    l.outputS = (l.inputS[1:end-1]...,l.channels)
+    l.inputS = l.outputS
     return l
 end #function (l::AddLayer)(li::Array{Layer,1})
 

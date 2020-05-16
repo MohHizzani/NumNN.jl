@@ -33,7 +33,10 @@ function layerForProp(
 )
     if length(X) != 0
         # cLayer.A = X
-        cLayer.inputS = cLayer.outputS = size(X)
+        if cLayer.inputS != cLayer.outputS != size(X)[1:end-1]
+            cLayer.inputS = cLayer.outputS = size(X)[1:end-1]
+            cLayer.channels = size(X)[end-1]
+        end
     end
     # cLayer.forwCount += 1
     Done[cLayer] = true
@@ -83,10 +86,11 @@ function layerForProp(
     Z = cLayer.W * Ai .+ cLayer.B
     actFun = cLayer.actFun
     # Z = cLayer.Z
-    if cLayer.outputS != size(Z)
-        cLayer.outputS = size(Z)
-    end
     A = eval(:($actFun($Z)))
+    if cLayer.outputS != size(A)[1:end-1]
+        cLayer.outputS = size(A)[1:end-1]
+        cLayer.channels = size(A)[end-1]
+    end
     # cLayer.forwCount += 1
     Done[cLayer] = true
     # Base.GC.gc()
@@ -127,9 +131,16 @@ function layerForProp(
     #     i -> (i.forwCount == cLayer.prevLayer[1].forwCount),
     #     cLayer.prevLayer,
     # )
-        for prevLayer in cLayer.prevLayer
-            A .+= FCache[prevLayer][:A]
-        end
+    if cLayer.inputS != cLayer.prevLayer.outputS
+        cLayer.inputS = cLayer.prevLayer.outputS
+    end
+    for prevLayer in cLayer.prevLayer
+        A .+= FCache[prevLayer][:A]
+    end
+    if cLayer.outputS != size(A)[1:end-1]
+        cLayer.outputS = size(A)[1:end-1]
+        cLayer.channels = size(A)[end-1]
+    end
     # end #if all
     # cLayer.forwCount += 1
     Done[cLayer] = true
@@ -148,7 +159,10 @@ function layerForProp(
 
     N = ndims(FCache[cLayer.prevLayer[1]][:A])
     A = cat([FCache[prevLayer][:A] for prevLayer in cLayer.prevLayer]...; dims=N-1)
-
+    if cLayer.outputS != size(A)[1:end-1]
+        cLayer.outputS = cLayer.inputS = size(A)[1:end-1]
+        cLayer.channels = size(A)[end-1]
+    end
     # cLayer.forwCount += 1
     Done[cLayer] = true
     # Base.GC.gc()
@@ -194,7 +208,11 @@ function layerForProp(
     end
     actFun = cLayer.actFun
     A = eval(:($actFun($Ai)))
-    cLayer.inputS = cLayer.outputS = size(Ai)
+    # cLayer.inputS = cLayer.outputS = size(Ai)
+    if cLayer.outputS != size(A)[1:end-1]
+        cLayer.outputS = cLayer.inputS = size(A)[1:end-1]
+        cLayer.channels = size(A)[end-1]
+    end
     # cLayer.forwCount += 1
     Done[cLayer] = true
     # Ai = nothing
@@ -238,9 +256,15 @@ function layerForProp(
         Ai = FCache[prevLayer][:A]
     end
 
-    cLayer.inputS = size(Ai)
+    if cLayer.inputS != size(Ai)[1:end-1]
+        cLayer.inputS = size(Ai)[1:end-1]
+    end
 
-    cLayer.outputS = (prod(cLayer.inputS[1:end-1]), cLayer.inputS[end])
+    if cLayer.outputS != (prod(cLayer.inputS[1:end-1]),)
+        cLayer.outputS = (prod(cLayer.inputS[1:end-1]),)
+        cLayer.channels = prod(cLayer.inputS[1:end-1])
+    end
+
 
     A = reshape(Ai,cLayer.outputS)
 
@@ -299,7 +323,11 @@ function layerForProp(
         Ai = FCache[prevLayer][:A]
     end
 
-    cLayer.ϵ = eltype(cLayer.W)(cLayer.ϵ)
+    if cLayer.inputS != size(Ai)[1:end-1]
+        cLayer.inputS = cLayer.outputS = size(Ai)[1:end-1]
+    end
+
+    T = eltype(cLayer.W)(cLayer.ϵ)
 
     if prediction
         # cLayer.forwCount += 1
@@ -310,7 +338,7 @@ function layerForProp(
         Num = prod(size(Ai)[1:NDim])
         Ai_μ_s = Ai_μ .^ 2
         var = sum(Ai_μ_s, dims = 1:NDim) ./ Num
-        Z = Ai_μ ./ sqrt.(var .+ cLayer.ϵ)
+        Z = Ai_μ ./ sqrt.(var .+ T(cLayer.ϵ))
         Ao = cLayer.W .* Z .+ cLayer.B
         return Dict(:A => Ao)
     end #prediction
@@ -331,7 +359,7 @@ function layerForProp(
     Num = prod(size(Ai)[1:NDim])
     Ai_μ_s = (Ai_μ .^ 2)
     var = tA.(sum(Ai_μ_s, dims = 1:NDim) ./ Num)
-    Z = tA.(Ai_μ ./ sqrt.(var .+ cLayer.ϵ))
+    Z = tA.(Ai_μ ./ sqrt.(var .+ T(cLayer.ϵ)))
     Ap = cLayer.W .* Z .+ cLayer.B
     Ao = permutedims(Ap, [(2:N)..., 1])
     # cLayer.forwCount += 1

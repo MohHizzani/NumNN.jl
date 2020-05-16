@@ -87,8 +87,8 @@ mutable struct FCLayer <: Layer
     channels::Integer
     actFun::Symbol
 
-    inputS::Tuple{Integer, Integer}
-    outputS::Tuple{Integer, Integer}
+    inputS::Tuple{Integer}
+    outputS::Tuple{Integer}
 
     """
         drop-out keeping node probability
