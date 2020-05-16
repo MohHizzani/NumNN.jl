@@ -41,42 +41,46 @@ function chainForProp(
     cLayer::Layer,
     cnt::Integer = -1;
     FCache = Dict{Layer,Dict{Symbol,AbstractArray}}(),
+    Done = Dict{Layer, Bool}(),
     kwargs...,
 ) where {T,N}
     if cnt < 0
-        cnt = cLayer.forwCount + 1
+        # cnt = cLayer.forwCount + 1
+        cnt = 1
     end
 
     if length(cLayer.nextLayers) == 0
-        if cLayer.forwCount < cnt
-            FCache[cLayer] = layerForProp(cLayer; FCache = FCache, kwargs...)
+        # if cLayer.forwCount < cnt
+        if haskey(Done, cLayer.prevLayer) && Done[cLayer.prevLayer]
+            FCache[cLayer] = layerForProp(cLayer; FCache = FCache, Done = Done, kwargs...)
         end #if cLayer.forwCount < cnt
         return FCache
     elseif isa(cLayer, MILayer) #if typeof(cLayer)==AddLayer
         if all(
-            i -> (i.forwCount == cLayer.prevLayer[1].forwCount),
+            i -> (haskey(Done,i) && Done[i]),
             cLayer.prevLayer,
         )
-            FCache[cLayer] = layerForProp(cLayer; FCache = FCache, kwargs...)
+            FCache[cLayer] = layerForProp(cLayer; FCache = FCache, Done = Done, kwargs...)
             for nextLayer in cLayer.nextLayers
                 FCache =
-                    chainForProp(X, nextLayer, cnt; FCache = FCache, kwargs...)
+                    chainForProp(X, nextLayer, cnt; FCache = FCache, Done = Done, kwargs...)
             end
         end #if all
 
         return FCache
     else #if cLayer.prevLayer==nothing
-        if cLayer.forwCount < cnt
+        # if cLayer.forwCount < cnt
+        if haskey(Done, cLayer.prevLayer) && Done[cLayer.prevLayer]
             if cLayer isa Input
                 FCache[cLayer] =
-                    layerForProp(cLayer, X; FCache = FCache, kwargs...)
+                    layerForProp(cLayer, X; FCache = FCache, Done = Done, kwargs...)
             else
                 FCache[cLayer] =
-                    layerForProp(cLayer; FCache = FCache, kwargs...)
+                    layerForProp(cLayer; FCache = FCache, Done = Done, kwargs...)
             end
             for nextLayer in cLayer.nextLayers
                 FCache =
-                    chainForProp(X, nextLayer, cnt; FCache = FCache, kwargs...)
+                    chainForProp(X, nextLayer, cnt; FCache = FCache, Done = Done, kwargs...)
             end
 
         end #if cLayer.forwCount < cnt
@@ -201,8 +205,8 @@ function predict(model::Model, X_In::AbstractArray, Y_In = nothing; kwargs...)
         Array{AbstractArray{T,nY},1}(undef, nB + ((m % batchSize == 0) ? 0 : 1))
     accuracy =
         Array{AbstractFloat,1}(undef, nB + ((m % batchSize == 0) ? 0 : 1))
-    # Threads.@threads for j = 1:nB
-    @simd for j = 1:nB
+    Threads.@threads for j = 1:nB
+    # @simd for j = 1:nB
         downInd = (j - 1) * batchSize + 1
         upInd = j * batchSize
         X = view(X_In, axX..., downInd:upInd)

@@ -30,6 +30,7 @@ function layerForProp(
     cLayer::CL,
     Ai::AbstractArray = Array{Any,1}(undef,0);
     FCache::Dict{Layer,Dict{Symbol, AbstractArray}},
+    Done::Dict{Layer,Bool},
     kwargs...
 ) where {CL <: ConvLayer}
 
@@ -62,7 +63,8 @@ function layerForProp(
     cLayer.outputS = size(D[:A])
 
     # Ai = nothing
-    cLayer.forwCount += 1
+    # cLayer.forwCount += 1
+    Done[cLayer] = true
     # Base.GC.gc()
     return D
 
@@ -104,6 +106,7 @@ function layerForProp(
     cLayer::PL,
     Ai::AbstractArray = Array{Any,1}(undef,0);
     FCache::Dict{Layer,Dict{Symbol, AbstractArray}},
+    Done::Dict{Layer,Bool},
     kwargs...
 ) where {PL <: PoolLayer}
 
@@ -141,7 +144,8 @@ function layerForProp(
 
     cLayer.outputS = size(Ao)
     # Ai = nothing
-    cLayer.forwCount += 1
+    # cLayer.forwCount += 1
+    Done[cLayer] = true
     # Base.GC.gc()
     return Dict(:A => Ao)
 end #unction layerForProp(cLayer::OneD) where {OneD <: Union{MaxPool1D, AveragePool1D}}

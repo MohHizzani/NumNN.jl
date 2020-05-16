@@ -35,7 +35,8 @@ function layerForProp(
         # cLayer.A = X
         cLayer.inputS = cLayer.outputS = size(X)
     end
-    cLayer.forwCount += 1
+    # cLayer.forwCount += 1
+    Done[cLayer] = true
     # Base.GC.gc()
     return Dict(:A=>X)
 end
@@ -69,6 +70,7 @@ function layerForProp(
     cLayer::FCLayer,
     Ai::AbstractArray = Array{Any,1}(undef,0);
     FCache::Dict{Layer,Dict{Symbol, AbstractArray}},
+    Done::Dict{Layer,Bool},
     kwargs...,
 )
     prevLayer = cLayer.prevLayer
@@ -81,7 +83,8 @@ function layerForProp(
     # Z = cLayer.Z
     cLayer.outputS = size(Z)
     A = eval(:($actFun($Z)))
-    cLayer.forwCount += 1
+    # cLayer.forwCount += 1
+    Done[cLayer] = true
     # Base.GC.gc()
     return Dict(:Z=>Z, :A=>A)
 end #function layerForProp(cLayer::FCLayer)
@@ -111,6 +114,7 @@ Perform forward propagation for `AddLayer` `Layer`
 function layerForProp(
     cLayer::AddLayer;
     FCache::Dict{Layer,Dict{Symbol, AbstractArray}},
+    Done::Dict{Layer,Bool},
     kwargs...,
 )
 
@@ -123,7 +127,8 @@ function layerForProp(
             A .+= FCache[prevLayer][:A]
         end
     # end #if all
-    cLayer.forwCount += 1
+    # cLayer.forwCount += 1
+    Done[cLayer] = true
     # Base.GC.gc()
     return Dict(:A=>A)
 end #function layerForProp(cLayer::AddLayer)
@@ -133,13 +138,15 @@ end #function layerForProp(cLayer::AddLayer)
 function layerForProp(
     cLayer::ConcatLayer;
     FCache::Dict{Layer,Dict{Symbol, AbstractArray}},
+    Done::Dict{Layer,Bool},
     kwargs...,
 )
 
     N = ndims(FCache[cLayer.prevLayer[1]][:A])
     A = cat([FCache[prevLayer][:A] for prevLayer in cLayer.prevLayer]...; dims=N-1)
 
-    cLayer.forwCount += 1
+    # cLayer.forwCount += 1
+    Done[cLayer] = true
     # Base.GC.gc()
     return Dict(:A=>A)
 end #function layerForProp(cLayer::AddLayer)
@@ -174,6 +181,7 @@ function layerForProp(
     cLayer::Activation,
     Ai::AbstractArray = Array{Any,1}(undef,0);
     FCache::Dict{Layer,Dict{Symbol, AbstractArray}},
+    Done::Dict{Layer,Bool},
     kwargs...,
 )
     prevLayer = cLayer.prevLayer
@@ -183,7 +191,8 @@ function layerForProp(
     actFun = cLayer.actFun
     A = eval(:($actFun($Ai)))
     cLayer.inputS = cLayer.outputS = size(Ai)
-    cLayer.forwCount += 1
+    # cLayer.forwCount += 1
+    Done[cLayer] = true
     # Ai = nothing
     # Base.GC.gc()
     return Dict(:A=>A)
@@ -217,6 +226,7 @@ function layerForProp(
     cLayer::Flatten,
     Ai::AbstractArray = Array{Any,1}(undef,0);
     FCache::Dict{Layer,Dict{Symbol, AbstractArray}},
+    Done::Dict{Layer,Bool},
     kwargs...,
 )
     prevLayer = cLayer.prevLayer
@@ -230,7 +240,8 @@ function layerForProp(
 
     A = reshape(Ai,cLayer.outputS)
 
-    cLayer.forwCount += 1
+    # cLayer.forwCount += 1
+    Done[cLayer] = true
     # Ai = nothing
     # Base.GC.gc()
     return Dict(:A=>A)
@@ -273,6 +284,7 @@ function layerForProp(
     cLayer::BatchNorm,
     Ai::AbstractArray = Array{Any,1}(undef,0);
     FCache::Dict{Layer,Dict{Symbol, AbstractArray}},
+    Done::Dict{Layer,Bool},
     kwargs...,
 )
 
@@ -286,7 +298,8 @@ function layerForProp(
     cLayer.ϵ = eltype(cLayer.W)(cLayer.ϵ)
 
     if prediction
-        cLayer.forwCount += 1
+        # cLayer.forwCount += 1
+        Done[cLayer] = true
         NDim = cLayer.dim
         μ = mean(Ai, dims = 1:NDim)
         Ai_μ = Ai .- μ
@@ -317,7 +330,8 @@ function layerForProp(
     Z = tA.(Ai_μ ./ sqrt.(var .+ cLayer.ϵ))
     Ap = cLayer.W .* Z .+ cLayer.B
     Ao = permutedims(Ap, [(2:N)..., 1])
-    cLayer.forwCount += 1
+    # cLayer.forwCount += 1
+    Done[cLayer] = true
     # Ai_μ = nothing
     cLayer.inputS = cLayer.outputS = size(Ao)
     # Base.GC.gc()
