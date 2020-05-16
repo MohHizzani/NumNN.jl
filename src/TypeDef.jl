@@ -157,6 +157,8 @@ mutable struct FCLayer <: Layer
     end #FCLayer
 end #struct FCLayer
 
+Base.show(io::IO, l::FCLayer) = print(io, "FCLayer($(l.channels), $(l.actFun), $(l.inputS), $(l.outputS), ...)")
+
 export FCLayer
 
 ### Mulit-Input Layer MILayer
@@ -254,6 +256,8 @@ mutable struct AddLayer <: MILayer
     end #function AddLayer
 end
 
+Base.show(io::IO, l::AddLayer) = print(io, "AddLayer($(l.channels), $(l.inputS), $(l.outputS), ...)")
+
 export AddLayer
 
 
@@ -322,6 +326,8 @@ mutable struct ConcatLayer <: MILayer
             )
     end #function ConcatLayer
 end #mutable struct ConcatLayer
+
+Base.show(io::IO, l::ConcatLayer) = print(io, "ConcatLayer($(l.channels), $(l.inputS), $(l.outputS), ...)")
 
 ### Activation
 
@@ -406,6 +412,7 @@ mutable struct Activation <: Layer
     end #function Activation
 end #mutable struct Activation
 
+Base.show(io::IO, l::Activation) = print(io, "Activation($(l.channels), $(l.actFun), $(l.inputS), $(l.outputS), ...)")
 
 export Activation
 
@@ -512,6 +519,8 @@ function Input(X::Array{T,N}) where {T,N}
     X_shape = size(X)
     Input(X_shape)
 end #function Input(X::Array{T,N}) where {T,N}
+
+Base.show(io::IO, l::Input) = print(io, "Input($(l.channels), $(l.inputS), $(l.outputS), ...)")
 
 export Input
 
@@ -660,6 +669,8 @@ mutable struct BatchNorm <: Layer
 
 end #mutable struct BatchNorm
 
+Base.show(io::IO, l::BatchNorm) = print(io, "BatchNorm($(l.channels), dim = $(l.dim), $(l.inputS), $(l.outputS), ...)")
+
 export BatchNorm
 
 ### Flatten
@@ -720,6 +731,7 @@ mutable struct Flatten <: Layer
 
 end
 
+Base.show(io::IO, l::Flatten) = print(io, "Flatten($(l.channels), $(l.inputS), $(l.outputS), ...)")
 
 ### Model
 
@@ -803,7 +815,7 @@ mutable struct Model
         regulization = 0,
         λ = 1.0,
         lossFun = :categoricalCrossentropy,
-        paramsDtype::DataType = Float64,
+        paramsDtype::DataType = eltype(X),
     )
 
         deepInitWB!(outLayer; dtype = paramsDtype)

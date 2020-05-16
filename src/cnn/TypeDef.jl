@@ -183,6 +183,8 @@ mutable struct Conv2D <: ConvLayer
 
 end #mutable struct Conv2D
 
+Base.show(io::IO, l::Conv2D) = print(io, "Conv2D($(l.channels), $(l.f), $(l.s), $(l.padding), $(l.actFun), $(l.inputS), $(l.outputS), ...)")
+
 export Conv2D
 
 @doc raw"""
@@ -321,6 +323,8 @@ mutable struct Conv1D <: ConvLayer
     end #function Conv1D
 
 end #mutable struct Conv1D
+
+Base.show(io::IO, l::Conv1D) = print(io, "Conv1D($(l.channels), $(l.f), $(l.s), $(l.padding), $(l.actFun), $(l.inputS), $(l.outputS), ...)")
 
 export Conv1D
 
@@ -462,6 +466,8 @@ mutable struct Conv3D <: ConvLayer
 
 end #mutable struct Conv3D
 
+Base.show(io::IO, l::Conv3D) = print(io, "Conv3D($(l.channels), $(l.f), $(l.s), $(l.padding), $(l.actFun), $(l.inputS), $(l.outputS), ...)")
+
 export Conv3D
 
 
@@ -600,6 +606,8 @@ mutable struct MaxPool2D <: MaxPoolLayer
 
 end #mutable struct MaxPool2D
 
+Base.show(io::IO, l::MaxPool2D) = print(io, "MaxPool2D($(l.channels), $(l.f), $(l.s), $(l.padding), $(l.inputS), $(l.outputS), ...)")
+
 export MaxPool2D
 
 @doc """
@@ -694,6 +702,8 @@ mutable struct MaxPool1D <: MaxPoolLayer
 
 end #mutable struct MaxPool1D
 
+Base.show(io::IO, l::MaxPool1D) = print(io, "MaxPool1D($(l.channels), $(l.f), $(l.s), $(l.padding), $(l.inputS), $(l.outputS), ...)")
+
 export MaxPool1D
 
 @doc """
@@ -787,6 +797,8 @@ mutable struct MaxPool3D <: MaxPoolLayer
     end #function MaxPool3D
 
 end #mutable struct MaxPool3D
+
+Base.show(io::IO, l::MaxPool3D) = print(io, "MaxPool3D($(l.channels), $(l.f), $(l.s), $(l.padding), $(l.inputS), $(l.outputS), ...)")
 
 export MaxPool3D
 
@@ -905,6 +917,8 @@ mutable struct AveragePool2D <: AveragePoolLayer
 
 end #mutable struct AveragePool2D
 
+Base.show(io::IO, l::AveragePool2D) = print(io, "AveragePool2D($(l.channels), $(l.f), $(l.s), $(l.padding), $(l.inputS), $(l.outputS), ...)")
+
 export AveragePool2D
 
 @doc raw"""
@@ -998,6 +1012,8 @@ mutable struct AveragePool1D <: AveragePoolLayer
     end #function AveragePool1D
 
 end #mutable struct AveragePool1D
+
+Base.show(io::IO, l::AveragePool1D) = print(io, "AveragePool1D($(l.channels), $(l.f), $(l.s), $(l.padding), $(l.inputS), $(l.outputS), ...)")
 
 export AveragePool1D
 
@@ -1093,5 +1109,7 @@ mutable struct AveragePool3D <: AveragePoolLayer
     end #function AveragePool3D
 
 end #mutable struct AveragePool3D
+
+Base.show(io::IO, l::AveragePool3D) = print(io, "AveragePool3D($(l.channels), $(l.f), $(l.s), $(l.padding), $(l.inputS), $(l.outputS), ...)")
 
 export AveragePool3D
