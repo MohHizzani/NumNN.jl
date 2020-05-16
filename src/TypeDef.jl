@@ -136,8 +136,8 @@ mutable struct FCLayer <: Layer
         new(
             channels,
             actFun,
-            (0,0), #inputS
-            (0,0), #outputS
+            (0,), #inputS
+            (0,), #outputS
             keepProb,
             Matrix{T}(undef, 0, 0),
             Matrix{T}(undef, 0, 0),
