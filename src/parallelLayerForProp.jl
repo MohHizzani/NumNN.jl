@@ -77,11 +77,15 @@ function layerForProp(
     if length(Ai) == 0
         Ai = FCache[prevLayer][:A]
     end
-    cLayer.inputS = cLayer.prevLayer.outputS
+    if cLayer.inputS != cLayer.prevLayer.outputS
+        cLayer.inputS = cLayer.prevLayer.outputS
+    end
     Z = cLayer.W * Ai .+ cLayer.B
     actFun = cLayer.actFun
     # Z = cLayer.Z
-    cLayer.outputS = size(Z)
+    if cLayer.outputS != size(Z)
+        cLayer.outputS = size(Z)
+    end
     A = eval(:($actFun($Z)))
     # cLayer.forwCount += 1
     Done[cLayer] = true
