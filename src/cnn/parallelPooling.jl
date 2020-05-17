@@ -20,9 +20,9 @@ function pooling!(
     end #if cLayer isa MaxPoolLayer
 
     # @simd
-    for mi = 1:m
+    Threads.@threads for mi = 1:m
         # @simd for
-        Threads.@threads for ci = 1:c
+        @simd for ci = 1:c
             # @simd
             for hi = 1:n_H
                 h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
@@ -103,9 +103,9 @@ function pooling!(
     end #if cLayer isa MaxPoolLayer
 
     # @simd
-    for mi = 1:m
+    Threads.@threads for mi = 1:m
         # @simd for
-        Threads.@threads for ci = 1:c
+        @simd for ci = 1:c
             # @simd for
 
                 # @simd for
@@ -183,9 +183,9 @@ function dpooling!(
     #     end #for mi=1:m
     # else
         # @simd
-        for mi = 1:m
+        Threads.@threads for mi = 1:m
             # @simd
-            Threads.@threads for ci = 1:c
+            @simd for ci = 1:c
                 for hi = 1:n_H
                     h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
                     h_end = hi * s_H - (s_H == 1 ? 0 : s_H - 1) + f_H - 1
@@ -266,9 +266,9 @@ function dpooling!(
     #     end #for mi=1:m
     # else
         # @simd
-        for mi = 1:m
+        Threads.@threads for mi = 1:m
             # @simd
-            Threads.@threads for ci = 1:c
+            @simd for ci = 1:c
                 for wi = 1:n_W, hi = 1:n_H
                     h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
                     h_end = hi * s_H - (s_H == 1 ? 0 : s_H - 1) + f_H - 1
@@ -371,9 +371,9 @@ function dpooling!(
     #
     # else
         # @simd
-        for mi = 1:m
+        Threads.@threads for mi = 1:m
             # @simd
-            Threads.@threads for ci = 1:c
+            @simd for ci = 1:c
                 for di = 1:n_D, wi = 1:n_W, hi = 1:n_H
                     h_start = hi * s_H - (s_H == 1 ? 0 : s_H - 1)
                     h_end = hi * s_H - (s_H == 1 ? 0 : s_H - 1) + f_H - 1
