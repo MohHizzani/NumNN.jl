@@ -610,11 +610,11 @@ function train(
 
     Accuracies = []
     Costs = []
-    for i=1:epochs
+    @simd for i=1:epochs
         shufInd = randperm(m)
         minCosts = [] #the costs of all mini-batches
         minAcc = []
-        for j=1:nB
+        @simd for j=1:nB
             downInd = (j-1)*batchSize+1
             upInd   = j * batchSize
             batchInd = shufInd[downInd:upInd]
