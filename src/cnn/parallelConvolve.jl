@@ -11,8 +11,8 @@ function convolve(cLayer::Conv1D, Ai::AbstractArray{T1,3}) where {T1}
     paddedS = paddedSize(cLayer, Ai)[1:end-2]
     s = cLayer.s
     f = cLayer.f
-    outputS = outDims(cLayer, Ai)[1:end-2]
-    ci, m = cLayer.inputS[end-1:end]
+    outputS = outDims(cLayer, Ai)[1:end-1]
+    ci, m = cLayer.inputS[end], size(Ai)[end]
     co = cLayer.channels
     Z = zeros(eltype(Ai), outputS..., co, m)
     n_H, c, m = size(Z)
@@ -50,12 +50,12 @@ function convolve(cLayer::Conv2D, Ai::AbstractArray{T1,4}) where {T1}
     f_H, f_W = cLayer.f
     s_H, s_W = cLayer.s
     lastDim = ndims(Ai)
-    cLayer.inputS = size(Ai)
+    cLayer.inputS = size(Ai)[1:end-1]
     paddedS = paddedSize(cLayer, Ai)[1:end-2]
     s = cLayer.s
     f = cLayer.f
-    outputS = outDims(cLayer, Ai)[1:end-2]
-    ci, m = cLayer.inputS[end-1:end]
+    outputS = outDims(cLayer, Ai)[1:end-1]
+    ci, m = cLayer.inputS[end], size(Ai)[end]
     co = cLayer.channels
     Z = zeros(eltype(Ai), outputS..., co, m)
     n_H, n_W, c, m = size(Z)
@@ -63,8 +63,8 @@ function convolve(cLayer::Conv2D, Ai::AbstractArray{T1,4}) where {T1}
     B = cLayer.B
     # @simd
     Threads.@threads for mi = 1:m
-        # @simd for ci = 1:c
-        Threads.@threads for ci = 1:c
+        @simd for ci = 1:c
+        # Threads.@threads for ci = 1:c
             # @simd for
             # wi = 1:n_W
             for wi = 1:n_W, hi = 1:n_H
@@ -100,8 +100,8 @@ function convolve(cLayer::Conv3D, Ai::AbstractArray{T1,5}) where {T1}
     paddedS = paddedSize(cLayer, Ai)[1:end-2]
     s = cLayer.s
     f = cLayer.f
-    outputS = outDims(cLayer, Ai)[1:end-2]
-    ci, m = cLayer.inputS[end-1:end]
+    outputS = outDims(cLayer, Ai)[1:end-1]
+    ci, m = cLayer.inputS[end], size(Ai)[end]
     co = cLayer.channels
     Z = zeros(eltype(Ai), outputS..., co, m)
     n_H, n_W, n_D, c, m = size(Z)

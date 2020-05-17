@@ -58,8 +58,8 @@ function pooling!(
     end #if cLayer isa MaxPoolLayer
     # @simd
     Threads.@threads for mi = 1:m
-        # @simd for ci = 1:c
-        Threads.@threads for ci = 1:c
+        @simd for ci = 1:c
+        # Threads.@threads for ci = 1:c
             # @simd for
 
                 # @simd

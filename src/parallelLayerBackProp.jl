@@ -363,8 +363,8 @@ function layerBackProp(
 
     end #if all(i->(i.backCount==cLayer.nextLayers[1].backCount), cLayer.nextLayers)
 
-
-    dAi = reshape(dAo, cLayer.inputS)
+    m = size(Ao)[end]
+    dAi = reshape(dAo, cLayer.inputS..., m)
 
     cLayer.backCount += 1
 
@@ -605,7 +605,7 @@ function layerBackProp(
 
     regulization, λ = model.regulization, model.λ
 
-    N = length(cLayer.outputS)
+    N = length(cLayer.outputS)+1
 
     dZ = []
     if length(dAo) != 0

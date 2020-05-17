@@ -492,20 +492,21 @@ mutable struct Input <: Layer
 
     function Input(X_shape::Tuple)
         N = length(X_shape)
-        if N==2
-            channels = X_shape[1]
-        elseif N==3
-            channels = X_shape[2]
-        elseif N==4
-            channels = X_shape[3]
-        elseif N==5
-            channels = X_shape[4]
-        end
+        channels = X_shape[end-1]
+        # if N==2
+        #     channels = X_shape[1]
+        # elseif N==3
+        #     channels = X_shape[2]
+        # elseif N==4
+        #     channels = X_shape[3]
+        # elseif N==5
+        #     channels = X_shape[4]
+        # end
 
         new(
             channels,
-            X_shape, #inputS
-            X_shape, #outputS
+            X_shape[1:end-1], #inputS
+            X_shape[1:end-1], #outputS
             0,
             0,
             0,

@@ -96,12 +96,12 @@ function initWB!(
     if He
         coef = sqrt(2 / cn)
     end
-    N = length(cLayer.prevLayer.inputS)
+    N = length(cLayer.prevLayer.inputS)+1
     normDim = cLayer.dim
     #bring the batch size into front
-    S = (cLayer.prevLayer.outputS[end], cLayer.prevLayer.outputS[1:end-1]...)
+    S = cLayer.prevLayer.outputS
     paramS = Array{Integer,1}([1])
-    for i=2:N
+    for i=1:N-1
         if S[i] < 1 || (i-1) <= normDim
             push!(paramS, 1)
         else

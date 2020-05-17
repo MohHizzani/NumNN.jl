@@ -70,7 +70,7 @@ function chainForProp(
         return FCache
     else #if cLayer.prevLayer==nothing
         # if cLayer.forwCount < cnt
-        if haskey(Done, cLayer.prevLayer) && Done[cLayer.prevLayer]
+        if !(haskey(Done, cLayer)) || !(Done[cLayer])
             if cLayer isa Input
                 FCache[cLayer] =
                     layerForProp(cLayer, X; FCache = FCache, Done = Done, kwargs...)
@@ -196,17 +196,18 @@ function predict(model::Model, X_In::AbstractArray, Y_In = nothing; kwargs...)
     end
     if useProgBar
         p = Progress((m % batchSize != 0 ? nB + 1 : nB), 0.1)
+        # p = Progress(nB)
     end
 
-    nY = length(model.outLayer.outputS)
+    nY = length(model.outLayer.outputS)+1
     Ŷ_out =
         Array{AbstractArray{T,nY},1}(undef, nB + ((m % batchSize == 0) ? 0 : 1))
     Ŷ_prob_out =
         Array{AbstractArray{T,nY},1}(undef, nB + ((m % batchSize == 0) ? 0 : 1))
     accuracy =
         Array{AbstractFloat,1}(undef, nB + ((m % batchSize == 0) ? 0 : 1))
-    Threads.@threads for j = 1:nB
-    # @simd for j = 1:nB
+    # Threads.@threads for j = 1:nB
+    @simd for j = 1:nB
         downInd = (j - 1) * batchSize + 1
         upInd = j * batchSize
         X = view(X_In, axX..., downInd:upInd)
@@ -218,6 +219,7 @@ function predict(model::Model, X_In::AbstractArray, Y_In = nothing; kwargs...)
 
         if useProgBar
             update!(p, j, showvalues = [("Instances $m", j * batchSize)])
+            # next!(p; showvalues = [("Instances $m", j * batchSize)])
         end #if useProgBar
         # X = Y = nothing
         # Ŷ = nothing
@@ -239,6 +241,7 @@ function predict(model::Model, X_In::AbstractArray, Y_In = nothing; kwargs...)
         # Base.GC.gc()
         if useProgBar
             update!(p, nB + 1, showvalues = [("Instances $m", m)])
+            # next!(p; showvalues = [("Instances $m", m)])
         end
     end
 

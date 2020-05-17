@@ -63,7 +63,7 @@ function (l::Flatten)(li_1::Layer)
 
     l.inputS = li_1.outputS
 
-    l.channels = prod(l.inputS[1:end])
+    l.channels = prod(l.inputS)
 
     l.outputS = (l.channels,)
 
@@ -81,7 +81,7 @@ function (l::BatchNorm)(li_1::Layer)
 
     N = length(li_1.outputS)
 
-    if l.dim >= N
+    if l.dim > N
         throw(DimensionMismatch("Normalization Dimension must be less than $N"))
     end
 
@@ -112,7 +112,7 @@ function (l::ConcatLayer)(ls::Array{L,1}) where {L<:Layer}
     for i=2:length(l.prevLayer)
         l.LSlice[l.prevLayer[i]] = (l.prevLayer[i-1].channels+1) : (l.prevLayer[i-1].channels+l.prevLayer[i].channels)
     end
-    l.outputS = (l.inputS[1:end-1]...,l.channels)
+    l.outputS = (l.prevLayer[1].inputS[1:end-1]...,l.channels)
     l.inputS = l.outputS
     return l
 end #function (l::AddLayer)(li::Array{Layer,1})

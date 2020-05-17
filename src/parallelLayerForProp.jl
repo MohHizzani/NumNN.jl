@@ -29,6 +29,7 @@ function layerForProp(
     cLayer::Input,
     X::AbstractArray = Array{Any,1}(undef,0);
     FCache::Dict{Layer,Dict{Symbol, AbstractArray}},
+    Done::Dict{Layer,Bool},
     kwargs...,
 )
     if length(X) != 0
@@ -260,13 +261,13 @@ function layerForProp(
         cLayer.inputS = size(Ai)[1:end-1]
     end
 
-    if cLayer.outputS != (prod(cLayer.inputS[1:end-1]),)
-        cLayer.outputS = (prod(cLayer.inputS[1:end-1]),)
-        cLayer.channels = prod(cLayer.inputS[1:end-1])
+    if cLayer.outputS != (prod(cLayer.inputS),)
+        cLayer.outputS = (prod(cLayer.inputS),)
+        cLayer.channels = prod(cLayer.inputS)
     end
 
-
-    A = reshape(Ai,cLayer.outputS)
+    m = size(Ai)[end]
+    A = reshape(Ai,cLayer.outputS...,m)
 
     # cLayer.forwCount += 1
     Done[cLayer] = true
@@ -327,7 +328,7 @@ function layerForProp(
         cLayer.inputS = cLayer.outputS = size(Ai)[1:end-1]
     end
 
-    T = eltype(cLayer.W)(cLayer.ϵ)
+    T = eltype(cLayer.W)
 
     if prediction
         # cLayer.forwCount += 1
@@ -365,7 +366,10 @@ function layerForProp(
     # cLayer.forwCount += 1
     Done[cLayer] = true
     # Ai_μ = nothing
-    cLayer.inputS = cLayer.outputS = size(Ao)
+    if cLayer.inputS != cLayer.outputS != size(Ao)[end:end-1]
+        cLayer.inputS = cLayer.outputS = size(Ao)[end:end-1]
+        cLayer.channels = size(Ao)[end-1]
+    end
     # Base.GC.gc()
     return Dict(
         :μ => tA.(μ),
