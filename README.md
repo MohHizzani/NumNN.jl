@@ -69,7 +69,7 @@ julia> using NumNN
 ```
 
 
-[1]: <superfri.org/superfri/article/view/137> "Beating Floating Point at its Own Game: Posit Arithmetic"
+[1]: <https://superfri.org/superfri/article/view/137> "Beating Floating Point at its Own Game: Posit Arithmetic"
 [2]: <julialang.org> "Julia Language"
 [3]: <https://docs.julialang.org/en/v1/manual/methods/> "Julia Multiple Dispatch"
 [4]: <https://docs.julialang.org/en/v1/manual/conversion-and-promotion/#Promotion-1> "Juila Promotion"
